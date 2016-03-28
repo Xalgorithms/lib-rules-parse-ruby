@@ -9,6 +9,7 @@ Gem::Specification.new do |s|
   s.description = "Shared gem for running XA rules"
 
   s.add_development_dependency 'rspec'
+  s.add_development_dependency 'faker'
   s.add_development_dependency 'fuubar'
   
   s.files        = Dir.glob("{bin,lib}/**/*")
