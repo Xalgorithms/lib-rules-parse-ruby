@@ -1,4 +1,5 @@
 require 'ostruct'
+require 'xa/hash/deep'
 
 describe 'assignment' do
   let(:leaves) do
@@ -40,18 +41,6 @@ describe 'assignment' do
     end
   end
 
-  def do_deep_fetch(h, keys)
-    if keys.length == 1
-      h.fetch(keys.first, nil)
-    else
-      do_deep_fetch(h.fetch(keys.first, {}), keys[1..-1])
-    end
-  end
-  
-  def deep_fetch(h, k)
-    do_deep_fetch(h, k.split('.'))
-  end
-  
   it 'will mutate fields using constants' do
     rand_times.each do
       doc = rand_one(documents)
@@ -84,7 +73,7 @@ describe 'assignment' do
       changes = interpreter.execute(doc, [rule]).first
       expected.each do |k, v|
         change = changes[k]
-        expect(change.original).to eql(deep_fetch(doc, k))
+        expect(change.original).to eql(doc.deep_fetch(k))
         expect(change.mutated).to eql(v)
       end
     end
