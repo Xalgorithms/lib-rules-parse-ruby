@@ -1,7 +1,7 @@
 require 'ostruct'
 require 'xa/hash/deep'
 
-describe 'assignment' do
+describe XA::Rules::Interpreter do
   let(:leaves) do
     [
       lambda { Faker::Number.number(4).to_i },
@@ -41,41 +41,52 @@ describe 'assignment' do
     end
   end
 
-  it 'will mutate fields using constants' do
+  def rand_documents
     rand_times.each do
-      doc = rand_one(documents)
-      keys = Set.new(rand_array { rand_key(doc) })
+      yield(rand_one(documents))
+    end
+  end
+  
+  context 'execution' do
+    it 'will generate changes for simple assignment' do
+      rand_documents do |doc|
+        keys = Set.new(rand_array { rand_key(doc) })
 
-      expected = keys.inject({}) do |ex, k|
-        randomly_happen do
-          ex = ex.merge(k => rand_leaf)
+        expected = keys.inject({}) do |ex, k|
+          randomly_happen do
+            ex = ex.merge(k => rand_leaf)
+          end
+          ex
         end
-        ex
-      end
 
-      rule_opts = {
-        # NOTE to SELF: using is for variables, maybe ... OR it's a restriction on what can be mutated
-        # using:     keys.to_a,
-        mutations: [],
-      }.tap do |r|
+        rule_opts = {
+          # NOTE to SELF: using is for variables, maybe ... OR it's a restriction on what can be mutated
+          # using:     keys.to_a,
+          mutations: [],
+        }.tap do |r|
+          expected.each do |k, v|
+            mutation = {
+              key:      k,
+              value:    v,
+            }
+            
+            r[:mutations] = r[:mutations] + [mutation]
+          end
+        end
+
+        rule = XA::Rules::Rule.new(rule_opts)
+        
+        changes = interpreter.execute(doc, [rule]).first
         expected.each do |k, v|
-          mutation = {
-            key:      k,
-            value:    v,
-          }
-          
-          r[:mutations] = r[:mutations] + [mutation]
+          change = changes[k]
+          expect(change.key).to eql(k)
+          expect(change.original).to eql(doc.deep_fetch(k))
+          expect(change.mutated).to eql(v)
         end
-      end
-
-      rule = XA::Rules::Rule.new(rule_opts)
-      
-      changes = interpreter.execute(doc, [rule]).first
-      expected.each do |k, v|
-        change = changes[k]
-        expect(change.original).to eql(doc.deep_fetch(k))
-        expect(change.mutated).to eql(v)
       end
     end
+  end
+
+  context 'application' do
   end
 end
