@@ -10,10 +10,11 @@ module XA
 
       def execute(doc)
         @opts.mutations.inject({}) do |chs, m|
-          chs.merge(m[:key] => OpenStruct.new(
-                      key:      m[:key],
-                      original: doc.deep_fetch(m[:key]),
-                      mutated:  interpret(doc, m[:value]),
+          k = m['key']
+          chs.merge(k => OpenStruct.new(
+                      key:      k,
+                      original: doc.deep_fetch(k),
+                      mutated:  interpret(doc, m['value']),
                     ))
         end
       end

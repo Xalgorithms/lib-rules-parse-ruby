@@ -58,7 +58,7 @@ describe XA::Rules::Interpreter do
       end
 
       rule_opts = {
-        mutations: expected.map { |k, v| { key: k, value: v } },
+        mutations: expected.map { |k, v| { 'key' => k, 'value' => v } },
       }
 
       rule = XA::Rules::Rule.new(rule_opts)
@@ -87,7 +87,7 @@ describe XA::Rules::Interpreter do
 
       rule_opts = {
         using:     Set.new(expected.values).to_a,
-        mutations: expected.map { |k, v| { key: k, value: "$#{v}" } }
+        mutations: expected.map { |k, v| { 'key' => k, 'value' => "$#{v}" } }
       }
 
       rule = XA::Rules::Rule.new(rule_opts)
