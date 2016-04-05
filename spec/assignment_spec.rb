@@ -14,17 +14,16 @@ describe XA::Rules::Interpreter do
     rand_one(leaves).call    
   end
   
-  let(:document) do
-    rand_array(&Faker::Lorem.method(:word)).inject({}) do |o, w|
-      doc = randomly_happen { rand_leaf }
-      doc = document unless doc
+  def make_document(depth)
+    (0...rand(3) + 1).inject({}) do |doc, i|
+      k = i.to_s
 
-      o.merge(w => doc)
+      0 == depth ? doc.merge(k => rand_leaf) : doc.merge(k => make_document(depth - 1))
     end
   end
   
   let(:documents) do
-    rand_array(&method(:document))
+    rand_array { make_document(3) }
   end
 
   let(:interpreter) do
@@ -47,46 +46,41 @@ describe XA::Rules::Interpreter do
     end
   end
   
-  context 'execution' do
-    it 'will generate changes for simple assignment' do
-      rand_documents do |doc|
-        keys = Set.new(rand_array { rand_key(doc) })
+  it 'will generate changes for simple assignment' do
+    rand_documents do |doc|
+      keys = Set.new(rand_array { rand_key(doc) })
 
-        expected = keys.inject({}) do |ex, k|
-          randomly_happen do
-            ex = ex.merge(k => rand_leaf)
-          end
-          ex
+      expected = keys.inject({}) do |ex, k|
+        randomly_happen do
+          ex = ex.merge(k => rand_leaf)
         end
+        ex
+      end
 
-        rule_opts = {
-          # NOTE to SELF: using is for variables, maybe ... OR it's a restriction on what can be mutated
-          # using:     keys.to_a,
-          mutations: [],
-        }.tap do |r|
-          expected.each do |k, v|
-            mutation = {
-              key:      k,
-              value:    v,
-            }
-            
-            r[:mutations] = r[:mutations] + [mutation]
-          end
-        end
-
-        rule = XA::Rules::Rule.new(rule_opts)
-        
-        changes = interpreter.execute(doc, [rule]).first
+      rule_opts = {
+        # NOTE to SELF: using is for variables, maybe ... OR it's a restriction on what can be mutated
+        # using:     keys.to_a,
+        mutations: [],
+      }.tap do |r|
         expected.each do |k, v|
-          change = changes[k]
-          expect(change.key).to eql(k)
-          expect(change.original).to eql(doc.deep_fetch(k))
-          expect(change.mutated).to eql(v)
+          mutation = {
+            key:      k,
+            value:    v,
+          }
+          
+          r[:mutations] = r[:mutations] + [mutation]
         end
       end
-    end
-  end
 
-  context 'application' do
+      rule = XA::Rules::Rule.new(rule_opts)
+
+      changes = interpreter.execute(doc, [rule]).first
+      expected.each do |k, v|
+        change = changes[k]
+        expect(change.key).to eql(k)
+        expect(change.original).to eql(doc.deep_fetch(k))
+        expect(change.mutated).to eql(v)
+      end
+    end
   end
 end
