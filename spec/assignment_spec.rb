@@ -58,19 +58,8 @@ describe XA::Rules::Interpreter do
       end
 
       rule_opts = {
-        # NOTE to SELF: using is for variables, maybe ... OR it's a restriction on what can be mutated
-        # using:     keys.to_a,
-        mutations: [],
-      }.tap do |r|
-        expected.each do |k, v|
-          mutation = {
-            key:      k,
-            value:    v,
-          }
-          
-          r[:mutations] = r[:mutations] + [mutation]
-        end
-      end
+        mutations: expected.map { |k, v| { key: k, value: v } },
+      }
 
       rule = XA::Rules::Rule.new(rule_opts)
 
@@ -80,6 +69,35 @@ describe XA::Rules::Interpreter do
         expect(change.key).to eql(k)
         expect(change.original).to eql(doc.deep_fetch(k))
         expect(change.mutated).to eql(v)
+      end
+    end
+  end
+
+  it 'will generate changes for a referential assignment' do
+    rand_documents do |doc|
+      keys = Set.new(rand_array { rand_key(doc) })
+
+      expected = keys.inject({}) do |ex, k|
+        randomly_happen do
+          ex = ex.merge(k => rand_key(doc))
+        end
+        
+        ex
+      end
+
+      rule_opts = {
+        using:     Set.new(expected.values).to_a,
+        mutations: expected.map { |k, v| { key: k, value: "$#{v}" } }
+      }
+
+      rule = XA::Rules::Rule.new(rule_opts)
+
+      changes = interpreter.execute(doc, [rule]).first
+      expected.each do |k, v|
+        change = changes[k]
+        expect(change.key).to eql(k)
+        expect(change.original).to eql(doc.deep_fetch(k))
+        expect(change.mutated).to eql(doc.deep_fetch(v))
       end
     end
   end

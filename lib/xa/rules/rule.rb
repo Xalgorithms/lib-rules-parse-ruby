@@ -13,9 +13,18 @@ module XA
           chs.merge(m[:key] => OpenStruct.new(
                       key:      m[:key],
                       original: doc.deep_fetch(m[:key]),
-                      mutated:  m[:value],
+                      mutated:  interpret(doc, m[:value]),
                     ))
         end
+      end
+
+      def interpret(doc, v)
+        rv = v
+        if String == v.class && v.start_with?('$')
+          rv = doc.deep_fetch(v[1..-1])
+        end
+
+        rv
       end
     end
   end
