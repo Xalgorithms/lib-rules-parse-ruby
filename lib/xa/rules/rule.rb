@@ -15,13 +15,15 @@ module XA
       end
 
       def use(table_name)
-        @actions << Use.new(table_name)
-        @actions.last
+        add_action(Use.new(table_name))
       end
 
       def apply(table_name, active_cols, joint_cols)
-        @actions << Apply.new(table_name, active_cols, joint_cols)
-        @actions.last
+        add_action(Apply.new(table_name, active_cols, joint_cols))
+      end
+
+      def duplicate(src_table_name, dst_table_name)
+        add_action(Duplicate.new(src_table_name, dst_table_name))
       end
 
       def commit(table_name)
@@ -79,6 +81,23 @@ module XA
         end
       end
 
+      class Duplicate
+        def initialize(src, dst)
+          @src = src
+          @dst = dst
+        end
+
+        def execute(env)
+          env[:tables] = env[:tables].merge(@dst => env[:tables][@src])
+          env
+        end
+      end
+
+      def add_action(act)
+        @actions << act
+        @actions.last
+      end
+      
       def verify_expectations(tables)
         missing = @meta.expects.select { |ex| !tables.key?(ex.table) }.map { |ex| ex.table }
         if missing.empty?

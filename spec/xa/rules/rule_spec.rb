@@ -44,8 +44,8 @@ describe XA::Rules::Rule do
       expect(res.failures).to be_empty
     end
 
-    it 'joins two tables' do
-      tables = {
+    let(:tables) do
+      {
         'foo' => [
           { 'x' => 1, 'y' => 2, 'z' => 1 },
           { 'x' => 2, 'y' => 2, 'z' => 2 },
@@ -61,7 +61,26 @@ describe XA::Rules::Rule do
           { 'q' => 2, 'p' => 3, 'r' => 2 },
         ],
       }
+    end
 
+    it 'duplicates tables' do
+      expected = [
+        { table: 'foo', name: 'one' },
+        { table: 'bar', name: 'two' },
+        { table: 'baz', name: 'three' },
+        { table: 'bar', name: 'four' },
+      ]
+      expected.each do |ex|
+        r = XA::Rules::Rule.new
+        r.duplicate(ex[:table], ex[:name])
+        r.commit(ex[:name])
+
+        res = r.execute(tables.dup)
+        expect(res.tables[ex[:name]]).to eql(tables[ex[:table]])
+      end
+    end
+    
+    it 'joins two tables' do
       expected = [
         {
           table: 'foo',
