@@ -6,7 +6,7 @@ module XA
       attr_reader :meta
 
       def initialize
-        @meta = OpenStruct.new(expects: [])
+        @meta = OpenStruct.new(expects: [], commits: [])
         @actions = []
       end
       
@@ -24,6 +24,10 @@ module XA
         @actions.last
       end
 
+      def commit(table_name)
+        @meta.commits << table_name
+      end
+
       def execute(tables)
         res = verify_expectations(tables) do
           env = {
@@ -34,7 +38,8 @@ module XA
           @actions.each do |act|
             env = act.execute(env)
           end
-          OpenStruct.new(status: :ok, failures: [], tables: env[:tables])
+          committed = env[:tables].select { |k, _| @meta.commits.include?(k) }
+          OpenStruct.new(status: :ok, failures: [], tables: committed)
         end
       end
 
@@ -73,7 +78,7 @@ module XA
           env
         end
       end
-      
+
       def verify_expectations(tables)
         missing = @meta.expects.select { |ex| !tables.key?(ex.table) }.map { |ex| ex.table }
         if missing.empty?

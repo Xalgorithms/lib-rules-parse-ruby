@@ -45,8 +45,6 @@ describe XA::Rules::Rule do
     end
 
     it 'joins two tables' do
-      r = XA::Rules::Rule.new
-
       tables = {
         'foo' => [
           { 'x' => 1, 'y' => 2, 'z' => 1 },
@@ -57,7 +55,11 @@ describe XA::Rules::Rule do
         'bar' => [
           { 'a' => 1, 'b' => 1, 'c' => 0 },
           { 'a' => 2, 'b' => 2, 'c' => 1 },
-        ]
+        ],
+        'baz' => [
+          { 'q' => 2, 'p' => 2, 'r' => 1 },
+          { 'q' => 2, 'p' => 3, 'r' => 2 },
+        ],
       }
 
       expected = [
@@ -71,18 +73,44 @@ describe XA::Rules::Rule do
               { 'x' => 1, 'y' => 1, 'z' => 3, 'a' => 1, 'b' => 1, 'c' => 0 },
               { 'x' => 3, 'y' => 3, 'z' => 4 },
             ],
-            'bar' => [
-              { 'a' => 1, 'b' => 1, 'c' => 0 },
-              { 'a' => 2, 'b' => 2, 'c' => 1 },
+          },
+        },
+        {
+          table: 'foo',
+          join:  ['bar', ['x'], ['a']],
+          final: {
+            'foo' => [
+              { 'x' => 1, 'y' => 2, 'z' => 1, 'a' => 1, 'b' => 1, 'c' => 0 },
+              { 'x' => 2, 'y' => 2, 'z' => 2, 'a' => 2, 'b' => 2, 'c' => 1 },
+              { 'x' => 1, 'y' => 1, 'z' => 3, 'a' => 1, 'b' => 1, 'c' => 0 },
+              { 'x' => 3, 'y' => 3, 'z' => 4 },
+            ],
+          },
+        },
+        {
+          table: 'foo',
+          join:  ['baz', ['x'], ['q']],
+          final: {
+            'foo' => [
+              { 'x' => 1, 'y' => 2, 'z' => 1 },
+              # row reproduced due to two matches in the joining table
+              { 'x' => 2, 'y' => 2, 'z' => 2, 'q' => 2, 'p' => 2, 'r' => 1 },
+              { 'x' => 2, 'y' => 2, 'z' => 2, 'q' => 2, 'p' => 3, 'r' => 2},
+              { 'x' => 1, 'y' => 1, 'z' => 3 },
+              { 'x' => 3, 'y' => 3, 'z' => 4 },
             ],
           },
         },
       ]
 
       expected.each do |ex|
+        r = XA::Rules::Rule.new
+
         r.use(ex[:table])
         r.apply(*ex[:join]).using(:join)
-        res = r.execute(tables)
+        r.commit(ex[:table])
+
+        res = r.execute(tables.dup)
         expect(res.tables).to eql(ex[:final])
       end
     end
