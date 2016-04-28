@@ -62,22 +62,59 @@ module XA
           @name = name
           @active_cols = active_cols
           @joint_cols = joint_cols
+          @applications = []
         end
 
         def using(fn, args)
-        end
-
-        def execute(env)
-          atbl = env[:tables].fetch(env[:active], [])
-          jtbl = env[:tables].fetch(@name, [])
-          ftbl = atbl.inject([]) do |a, ar|
-            avals = @active_cols.map { |k| ar.fetch(k, nil) }
-            jrows = jtbl.select { |jr| avals == @joint_cols.map { |k| jr.fetch(k, nil) } }
-            a + (jrows.any? ? jrows.map { |jr| ar.merge(jr) } : [ar])
+          @funcs ||= [:join].inject({}) do |o, n|
+            o.merge(n => method("apply_#{n}"))
           end
 
-          env[:tables][env[:active]] = ftbl
+          @applications << lambda do |left, right|
+            @funcs.fetch(fn, method(:apply_nothing)).call(args, left, right)
+          end
+        end
+
+        def apply_join(args, left, right)
+          right = args.any? ? right.select { |k, _| args.include?(k) } : right
+          left.merge(right)
+        end
+
+        def apply_nothing(args, left, right)
+          left
+        end
+        
+        def execute(env)
+          active_table = env[:tables].fetch(env[:active], [])
+          joining_table = env[:tables].fetch(@name, [])
+
+          final_table = active_table.inject([]) do |table, active_row|
+            active_vals = @active_cols.map { |k| active_row.fetch(k, nil) }
+            matching_rows = joining_table.select do |joining_row|
+              active_vals == @joint_cols.map { |k| joining_row.fetch(k, nil) }
+            end
+
+            table + execute_applications(matching_rows, active_row)
+          end
+
+          env[:tables][env[:active]] = final_table
           env
+        end
+
+        private
+
+        def execute_applications(matching_rows, existing_row)
+          if matching_rows.any?
+            matching_rows.map do |r|
+              @applications.each do |fn|
+                existing_row = fn.call(existing_row, r)
+              end
+              
+              existing_row
+            end
+          else
+            [existing_row]
+          end
         end
       end
 
