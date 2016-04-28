@@ -16,14 +16,16 @@ describe XA::Rules::Interpret do
   
   it 'will configure expects' do
     o = {
-      'expects' => {
-        'foo' => ['z', 'zz'],
-        'bar' => ['a', 'b'],
+      'meta' => {
+        'expects' => {
+          'foo' => ['z', 'zz'],
+          'bar' => ['a', 'b'],
+        },
       },
     }
 
     with_rule(o) do
-      o['expects'].each do |tn, cols|
+      o['meta']['expects'].each do |tn, cols|
         expect(rule).to receive(:expects).with(tn, cols)
       end
     end
@@ -32,17 +34,45 @@ describe XA::Rules::Interpret do
   it 'will configure commands' do
     o = {
       'commands' => [
-        ['use', 'foo'],
-        ['use', 'bar'],
-        ['apply', 'foo', ['a', 'b'], ['f', 'g']],
-        ['apply', 'bar', ['x', 'y'], ['h', 'i']],
+        {
+          'type'  => 'use',
+          'table' => 'foo',
+        },
+        {
+          'type'  => 'use',
+          'table' => 'bar' ,
+        },
+        {
+          'type'  => 'apply',
+          'table' => 'foo',
+          'args'  => {
+            'left'  => ['a', 'b'],
+            'right' => ['f', 'g'],
+          },
+        },
+        {
+          'type'  => 'apply',
+          'table' => 'baz',
+          'args'  => {
+            'left'  => ['qq', 'pp'],
+            'right' => ['zz', 'yy'],
+          },
+        },
       ],
     }
 
     with_rule(o) do
       o['commands'].each do |c|
-        expect(rule).to receive(c.first.to_sym).with(*c[1..-1])
+        send("expect_#{c['type']}", c, rule)
       end
     end
+  end
+
+  def expect_use(c, r)
+    expect(r).to receive(:use).with(c['table'])
+  end
+
+  def expect_apply(c, r)
+    expect(r).to receive(:apply).with(c['table'], c['args']['left'], c['args']['right'])
   end
 end

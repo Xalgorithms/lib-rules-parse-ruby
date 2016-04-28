@@ -3,26 +3,50 @@ module XA
     module Interpret
       def interpret(o)
         r = XA::Rules::Rule.new
-        o.fetch('expects', {}).each do |tn, cols|
-          r.expects(tn, cols)
-        end
-
-        o.fetch('commands', []).each do |c|
-          validate(c.first) do
-            r.send(*c)
-          end
-        end
-        
+        interpret_meta(o.fetch('meta', {}), r)
+        interpret_commands(o.fetch('commands', []), r)
         r
       end
 
-      def validate(name)
-        @valid_command_names = Set.new(
-          [
-            'use',
-            'apply',
-          ])
-        yield if @valid_command_names.include?(name)
+      private
+
+      COMMANDS = [
+        'use',
+        'apply',
+        'expects',
+      ]
+
+      def interpret_meta(meta, r)
+        meta.fetch('expects', {}).each do |args|
+          r.expects(*args)
+        end
+      end
+
+      def interpret_commands(commands, r)
+        commands.each do |c|
+          interpretation(c.fetch('type', nil)) do |fn|
+            fn.call(r, c)
+          end
+        end
+      end
+      
+      def interpret_use(r, c)
+        r.use(c['table'])
+      end
+
+      def interpret_apply(r, c)
+        r.apply(c['table'], c['args']['left'], c['args']['right'])
+      end
+
+      def interpret_unknown(r, c)
+      end
+      
+      def interpretation(t)
+        @interpretations ||= ['use', 'apply'].inject({}) do |o, t|
+          o.merge(t => method("interpret_#{t}"))
+        end
+        
+        yield(@interpretations.fetch(t, method(:interpret_unknown)))
       end
     end
   end
