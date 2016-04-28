@@ -64,7 +64,7 @@ module XA
           @joint_cols = joint_cols
         end
 
-        def using(fn)
+        def using(fn, args)
         end
 
         def execute(env)

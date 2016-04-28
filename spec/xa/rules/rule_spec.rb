@@ -80,11 +80,12 @@ describe XA::Rules::Rule do
       end
     end
     
-    it 'joins two tables' do
+    it 'applies actions to a table' do
       expected = [
         {
           table: 'foo',
-          join:  ['bar', ['x', 'y'], ['a', 'b']],
+          relation:  ['bar', ['x', 'y'], ['a', 'b']],
+          function: :join,
           final: {
             'foo' => [
               { 'x' => 1, 'y' => 2, 'z' => 1 },
@@ -96,7 +97,8 @@ describe XA::Rules::Rule do
         },
         {
           table: 'foo',
-          join:  ['bar', ['x'], ['a']],
+          relation:  ['bar', ['x'], ['a']],
+          function: :join,
           final: {
             'foo' => [
               { 'x' => 1, 'y' => 2, 'z' => 1, 'a' => 1, 'b' => 1, 'c' => 0 },
@@ -108,7 +110,8 @@ describe XA::Rules::Rule do
         },
         {
           table: 'foo',
-          join:  ['baz', ['x'], ['q']],
+          relation:  ['baz', ['x'], ['q']],
+          function: :join,
           final: {
             'foo' => [
               { 'x' => 1, 'y' => 2, 'z' => 1 },
@@ -126,7 +129,7 @@ describe XA::Rules::Rule do
         r = XA::Rules::Rule.new
 
         r.use(ex[:table])
-        r.apply(*ex[:join]).using(:join)
+        r.apply(*ex[:relation]).using(ex[:function], ex.fetch(:args, []))
         r.commit(ex[:table])
 
         res = r.execute(tables.dup)
