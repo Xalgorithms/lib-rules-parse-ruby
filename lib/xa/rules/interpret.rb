@@ -30,7 +30,7 @@ module XA
       end
       
       def interpret_apply(r, c)
-        r.apply(c['args']['left'], c['args']['right'])
+        r.apply(c['function']['name'], c['function']['args']).using(c['args']['left'], c['args']['right'])
       end
 
       def interpret_unknown(r, c)

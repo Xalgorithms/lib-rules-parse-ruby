@@ -61,6 +61,8 @@ describe XA::Rules::Interpret do
   end
 
   def expect_apply(c, r)
-    expect(r).to receive(:apply).with(c['args']['left'], c['args']['right'])
+    o = double(:apply)
+    expect(o).to receive(:using).with(c['args']['left'], c['args']['right'])
+    expect(r).to receive(:apply).with(c['function']['name'], c['function']['args']).and_return(o)
   end
 end
