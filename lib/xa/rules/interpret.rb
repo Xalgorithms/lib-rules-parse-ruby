@@ -11,7 +11,6 @@ module XA
       private
 
       COMMANDS = [
-        'use',
         'apply',
         'expects',
       ]
@@ -30,19 +29,15 @@ module XA
         end
       end
       
-      def interpret_use(r, c)
-        r.use(c['table'])
-      end
-
       def interpret_apply(r, c)
-        r.apply(c['table'], c['args']['left'], c['args']['right'])
+        r.apply(c['args']['left'], c['args']['right'])
       end
 
       def interpret_unknown(r, c)
       end
       
       def interpretation(t)
-        @interpretations ||= ['use', 'apply'].inject({}) do |o, t|
+        @interpretations ||= ['apply'].inject({}) do |o, t|
           o.merge(t => method("interpret_#{t}"))
         end
         

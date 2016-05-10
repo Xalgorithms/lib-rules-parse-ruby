@@ -35,24 +35,16 @@ describe XA::Rules::Interpret do
     o = {
       'commands' => [
         {
-          'type'  => 'use',
-          'table' => 'foo',
-        },
-        {
-          'type'  => 'use',
-          'table' => 'bar' ,
-        },
-        {
-          'type'  => 'apply',
-          'table' => 'foo',
-          'args'  => {
+          'type'     => 'apply',
+          'function' => { 'name' => 'join', 'args' => ['a','b'] },
+          'args'     => {
             'left'  => ['a', 'b'],
             'right' => ['f', 'g'],
           },
         },
         {
           'type'  => 'apply',
-          'table' => 'baz',
+          'function' => { 'name' => 'replace', 'args' => ['a'] },
           'args'  => {
             'left'  => ['qq', 'pp'],
             'right' => ['zz', 'yy'],
@@ -68,11 +60,7 @@ describe XA::Rules::Interpret do
     end
   end
 
-  def expect_use(c, r)
-    expect(r).to receive(:use).with(c['table'])
-  end
-
   def expect_apply(c, r)
-    expect(r).to receive(:apply).with(c['table'], c['args']['left'], c['args']['right'])
+    expect(r).to receive(:apply).with(c['args']['left'], c['args']['right'])
   end
 end

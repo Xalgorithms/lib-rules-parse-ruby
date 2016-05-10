@@ -64,30 +64,29 @@ describe XA::Rules::Rule do
     end
 
     it 'duplicates tables' do
-      expected = [
-        { table: 'foo', name: 'one' },
-        { table: 'bar', name: 'two' },
-        { table: 'baz', name: 'three' },
-        { table: 'bar', name: 'four' },
-      ]
-      expected.each do |ex|
+      expected = ['foo', 'bar', 'baz', 'bar']
+      expected.each do |n|
         r = XA::Rules::Rule.new
-        r.duplicate(ex[:table], ex[:name])
-        r.commit(ex[:name])
+        r.push(n)
+        r.duplicate
+        r.store('a')
+        r.store('b')
+        r.commit(['a', 'b'])
 
         res = r.execute(tables.dup)
-        expect(res.tables[ex[:name]]).to eql(tables[ex[:table]])
+        expect(res.tables['a']).to eql(tables[n])
+        expect(res.tables['b']).to eql(tables[n])
       end
     end
     
     it 'applies actions to a table' do
       expected = [
         {
-          table: 'foo',
-          relation:  ['bar', ['x', 'y'], ['a', 'b']],
+          tables: ['foo', 'bar'],
+          relation:  [['x', 'y'], ['a', 'b']],
           function: :join,
           final: {
-            'foo' => [
+            'output' => [
               { 'x' => 1, 'y' => 2, 'z' => 1, 'a' => 1 },
               { 'x' => 2, 'y' => 2, 'z' => 2, 'a' => 2, 'b' => 2, 'c' => 1 },
               { 'x' => 1, 'y' => 1, 'z' => 3, 'a' => 1, 'b' => 1, 'c' => 0 },
@@ -96,12 +95,12 @@ describe XA::Rules::Rule do
           },
         },
         {
-          table: 'foo',
-          relation:  ['bar', ['x'], ['a']],
+          tables: ['foo', 'bar'],
+          relation:  [['x'], ['a']],
           function: :join,
           args: ['b'],
           final: {
-            'foo' => [
+            'output' => [
               { 'x' => 1, 'y' => 2, 'z' => 1, 'a' => 1, 'b' => 1 },
               { 'x' => 2, 'y' => 2, 'z' => 2, 'a' => 4, 'b' => 2 },
               { 'x' => 1, 'y' => 1, 'z' => 3, 'a' => 9, 'b' => 1 },
@@ -110,11 +109,11 @@ describe XA::Rules::Rule do
           },
         },
         {
-          table: 'foo',
-          relation:  ['baz', ['x'], ['q']],
+          tables: ['foo', 'baz'],
+          relation:  [['x'], ['q']],
           function: :join,
           final: {
-            'foo' => [
+            'output' => [
               { 'x' => 1, 'y' => 2, 'z' => 1, 'a' => 1 },
               # row reproduced due to two matches in the joining table
               { 'x' => 2, 'y' => 2, 'z' => 2, 'a' => 4, 'q' => 2, 'p' => 2, 'r' => 1 },
@@ -125,12 +124,12 @@ describe XA::Rules::Rule do
           },
         },
         {
-          table: 'foo',
-          relation: ['bar', ['x'], ['b']],
+          tables: ['foo', 'bar'],
+          relation: [['x'], ['b']],
           function: :replace,
           args: ['a', 'c'],
           final: {
-            'foo' => [
+            'output' => [
               { 'x' => 1, 'y' => 2, 'z' => 1, 'a' => 1 },
               { 'x' => 2, 'y' => 2, 'z' => 2, 'a' => 2 },
               { 'x' => 1, 'y' => 1, 'z' => 3, 'a' => 1 },
@@ -143,9 +142,11 @@ describe XA::Rules::Rule do
       expected.each do |ex|
         r = XA::Rules::Rule.new
 
-        r.use(ex[:table])
-        r.apply(*ex[:relation]).using(ex[:function], ex.fetch(:args, []))
-        r.commit(ex[:table])
+        ex[:tables].each { |n| r.push(n) }
+        
+        r.apply(ex[:function], ex.fetch(:args, [])).using(*ex[:relation])
+        r.store('output')
+        r.commit(['output'])
 
         res = r.execute(tables.dup)
         expect(res.tables).to eql(ex[:final])
