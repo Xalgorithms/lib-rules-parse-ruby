@@ -58,6 +58,8 @@ module XA
       end
 
       class Apply
+        FUNCTIONS = [:join, :replace]
+        
         def initialize(name, active_cols, joint_cols)
           @name = name
           @active_cols = active_cols
@@ -66,7 +68,7 @@ module XA
         end
 
         def using(fn, args)
-          @funcs ||= [:join].inject({}) do |o, n|
+          @funcs ||= FUNCTIONS.inject({}) do |o, n|
             o.merge(n => method("apply_#{n}"))
           end
 
@@ -78,6 +80,12 @@ module XA
         def apply_join(args, left, right)
           right = args.any? ? right.select { |k, _| args.include?(k) } : right
           left.merge(right)
+        end
+
+        def apply_replace(args, left, right)
+          args.inject(left) do |o, k|
+            o.key?(k) && right.key?(k) ? o.merge(k => right[k]) : o
+          end
         end
 
         def apply_nothing(args, left, right)

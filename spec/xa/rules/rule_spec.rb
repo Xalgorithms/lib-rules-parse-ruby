@@ -124,6 +124,20 @@ describe XA::Rules::Rule do
             ],
           },
         },
+        {
+          table: 'foo',
+          relation: ['bar', ['x'], ['b']],
+          function: :replace,
+          args: ['a', 'c'],
+          final: {
+            'foo' => [
+              { 'x' => 1, 'y' => 2, 'z' => 1, 'a' => 1 },
+              { 'x' => 2, 'y' => 2, 'z' => 2, 'a' => 2 },
+              { 'x' => 1, 'y' => 1, 'z' => 3, 'a' => 1 },
+              { 'x' => 3, 'y' => 3, 'z' => 4, 'a' => 16 },
+            ],
+          },
+        },
       ]
 
       expected.each do |ex|
