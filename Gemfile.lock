@@ -6,6 +6,8 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    awesome_print (1.6.1)
+    coderay (1.1.1)
     diff-lcs (1.2.5)
     faker (1.6.3)
       i18n (~> 0.5)
@@ -13,6 +15,11 @@ GEM
       rspec (~> 3.0)
       ruby-progressbar (~> 1.4)
     i18n (0.7.0)
+    method_source (0.8.2)
+    pry (0.10.3)
+      coderay (~> 1.1.0)
+      method_source (~> 0.8.1)
+      slop (~> 3.4)
     rspec (3.4.0)
       rspec-core (~> 3.4.0)
       rspec-expectations (~> 3.4.0)
@@ -27,13 +34,16 @@ GEM
       rspec-support (~> 3.4.0)
     rspec-support (3.4.1)
     ruby-progressbar (1.7.5)
+    slop (3.6.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  awesome_print
   faker
   fuubar
+  pry
   rspec
   xa-rules!
 
