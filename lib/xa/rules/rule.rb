@@ -6,7 +6,7 @@ module XA
       attr_reader :meta
 
       def initialize
-        @meta = OpenStruct.new(expects: [], commits: [])
+        @meta = OpenStruct.new(expects: [])
         @actions = []
       end
       
@@ -15,23 +15,23 @@ module XA
       end
 
       def push(n)
-        add_action(Push.new(n))
+        add(Push.new(n))
       end
 
       def duplicate
-        add_action(Duplicate.new)
+        add(Duplicate.new)
       end
 
       def store(name)
-        add_action(Store.new(name))
+        add(Store.new(name))
       end
 
       def commit(names)
-        add_action(Commit.new(names))
+        add(Commit.new(names))
       end
 
       def apply(func, args)
-        add_action(Apply.new(func, args))
+        add(Apply.new(func, args))
       end
       
       def execute(tables)
@@ -85,8 +85,6 @@ module XA
         end
       end
       
-      # old
-      
       class Apply
         FUNCTIONS = [:join, :replace]
 
@@ -117,6 +115,8 @@ module XA
 
           stack.push(table)
         end
+
+        private
         
         def resolve(matching_rows, existing_row)
           if matching_rows.any?
@@ -145,9 +145,9 @@ module XA
         end
       end
 
-      def add_action(act)
+      def add(act)
         @actions << act
-        @actions.last
+        act
       end
       
       def verify_expectations(tables)
