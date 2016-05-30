@@ -73,43 +73,24 @@ module XA
       end
 
       def interpret_push(o, res)
-        actions = o.fetch('actions', [])
-        actions << {
-          'name'  => 'push',
-          'table' => res[:table_name].str,
-        }
-        
-        o.merge('actions' => actions)
+        add_action(o, 'name'  => 'push', 'table' => res[:table_name].str)
       end
 
       def interpret_pop(o, res)
-        actions = o.fetch('actions', [])
-        actions << {
-          'name'  => 'pop',
-        }
-
-        o.merge('actions' => actions)        
+        add_action(o, 'name'  => 'pop')
       end
 
       def interpret_duplicate(o, res)
-        actions = o.fetch('actions', [])
-        actions << {
-          'name'  => 'duplicate',
-        }
-
-        o.merge('actions' => actions)        
+        add_action(o, 'name'  => 'duplicate')
       end
       
       def interpret_commit(o, res)
-        actions = o.fetch('actions', [])
-        actions << {
+        add_action(o, {
           'name'  => 'commit',
           'table' => res[:table_name].str,
         }.tap do |a|
           a['columns'] = split_names(res[:columns]) if res.key?(:columns)
-        end
-
-        o.merge('actions' => actions)
+        end)
       end
 
       def interpret_join(o, res)
@@ -121,8 +102,7 @@ module XA
       end
       
       def interpret_joinish(o, res)
-        actions = o.fetch('actions', [])
-        actions << {
+        add_action(o, {
           'name'    => res[:action].str.downcase,
           'using'   => {
             'left'  =>  split_names(res[:joins][:lefts]),
@@ -131,10 +111,13 @@ module XA
           'include' => res[:includes].inject({}) do |o, i|
             o.merge(i[:original].str => i.key?(:new) ? i[:new].str : i[:original].str)
           end
-        }
-        o.merge('actions' => actions)
+        })
       end
 
+      def add_action(o, act)
+        o.merge('actions' => o.fetch('actions', []) << act)
+      end
+      
       def parser
         @parser ||= ActionParser.new
       end

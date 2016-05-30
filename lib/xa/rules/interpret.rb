@@ -16,7 +16,8 @@ module XA
         'duplicate',
         'join',
         'inclusion',
-        'commit']
+        'commit'
+      ]
       
       def interpret_meta(meta, r)
         meta.fetch('expects', {}).each do |args|
