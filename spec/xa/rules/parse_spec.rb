@@ -22,6 +22,35 @@ describe XA::Rules::Parse do
 
       {
         in: [
+          'PULL repo0:foo:1234 AS foo0',
+          'PULL repo1:bar:3333 AS bar1',
+          'ATTACH http://www.example0.org/foo AS repo0',
+          'ATTACH http://www.example1.org/foo AS repo1',
+        ],
+        out: {
+          'meta' => {
+            'repositories' => {
+              'repo0' => 'http://www.example0.org/foo',
+              'repo1' => 'http://www.example1.org/foo',
+            },
+            'tables' => {
+              'foo0' => {
+                'repository' => 'repo0',
+                'name'       => 'foo',
+                'version'    => '1234',
+              },
+              'bar1' => {
+                'repository' => 'repo1',
+                'name'       => 'bar',
+                'version'    => '3333',
+              },
+            },
+          }
+        },
+      },
+
+      {
+        in: [
           'COMMIT foo[a, b]',
           'COMMIT bar[p, q, r]',
           'COMMIT baz',
@@ -69,6 +98,29 @@ describe XA::Rules::Parse do
               'name'    => 'push',
               'table'   => 'bar',
              },
+          ],
+        },
+      },
+
+      {
+        in: [
+          'INVOKE repo0:name0:1111',
+          'INVOKE repo1:name2:3333',
+        ],
+        out: {
+          'actions' => [
+            {
+              'name'       => 'invoke',
+              'repository' => 'repo0',
+              'rule'       => 'name0',
+              'version'    => '1111',
+            },
+            {
+              'name'       => 'invoke',
+              'repository' => 'repo1',
+              'rule'       => 'name2',
+              'version'    => '3333',
+            },
           ],
         },
       },
