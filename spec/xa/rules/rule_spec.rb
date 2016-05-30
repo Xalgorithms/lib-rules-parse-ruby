@@ -63,17 +63,29 @@ describe XA::Rules::Rule do
       }
     end
 
+    it 'commits tables to the result' do
+      r = XA::Rules::Rule.new
+      r.push('bar')
+      r.push('baz')
+      r.commit('a', ['q'])
+      r.commit('b', ['a', 'c'])
+
+      res = r.execute(tables.dup)
+      expect(res.tables['a']).to eql(tables['baz'].map { |r| { 'q' => r['q'] } })
+      expect(res.tables['b']).to eql(tables['bar'].map { |r| { 'a' => r['a'], 'c' => r['c'] } })
+    end
+    
     it 'duplicates tables' do
       expected = ['foo', 'bar', 'baz', 'bar']
       expected.each do |n|
         r = XA::Rules::Rule.new
         r.push(n)
         r.duplicate
-        r.store('a')
-        r.store('b')
-        r.commit(['a', 'b'])
+        r.commit('a')
+        r.commit('b')
 
         res = r.execute(tables.dup)
+        
         expect(res.tables['a']).to eql(tables[n])
         expect(res.tables['b']).to eql(tables[n])
       end
@@ -145,8 +157,7 @@ describe XA::Rules::Rule do
         ex[:tables].each { |n| r.push(n) }
         
         r.apply(ex[:function], ex.fetch(:args, [])).using(*ex[:relation])
-        r.store('output')
-        r.commit(['output'])
+        r.commit('output')
 
         res = r.execute(tables.dup)
         expect(res.tables).to eql(ex[:final])

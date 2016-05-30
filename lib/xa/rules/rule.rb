@@ -22,12 +22,8 @@ module XA
         add(Duplicate.new)
       end
 
-      def store(name)
-        add(Store.new(name))
-      end
-
-      def commit(names)
-        add(Commit.new(names))
+      def commit(name, columns = nil)
+        add(Commit.new(name, columns))
       end
 
       def apply(func, args)
@@ -63,24 +59,17 @@ module XA
         end
       end
 
-      class Store
-        def initialize(n)
-          @name = n
-        end
-
-        def execute(tables, stack, res)
-          tables[@name] = stack.pop if stack.any?
-        end
-      end
-
       class Commit
-        def initialize(names)
-          @names = names
+        def initialize(name, columns)
+          @name = name
+          @columns = columns
         end
 
         def execute(tables, stack, res)
-          res.tables = @names.inject(res.tables) do |ts, name|
-            tables.key?(name) ? ts.merge(name => tables[name]) : ts
+          if stack.any?
+            t = stack.pop
+            t = t.map { |r| r.select { |k, _| @columns.include?(k) } } if @columns
+            res.tables = res.tables.merge(@name => t)
           end
         end
       end
