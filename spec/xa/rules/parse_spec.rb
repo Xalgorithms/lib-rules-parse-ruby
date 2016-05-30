@@ -22,6 +22,32 @@ describe XA::Rules::Parse do
 
       {
         in: [
+          'COMMIT foo[a, b]',
+          'COMMIT bar[p, q, r]',
+          'COMMIT baz',
+        ],
+        out: {
+          'actions'   => [
+            {
+              'name'    => 'commit',
+              'table'   => 'foo',
+              'columns' => ['a', 'b'],
+             },
+            {
+              'name'    => 'commit',
+              'table'   => 'bar',
+              'columns' => ['p', 'q', 'r'],
+            },
+            {
+              'name'    => 'commit',
+              'table'   => 'baz',
+            },
+          ],
+        },
+      },
+      
+      {
+        in: [
           'JOIN USING [[a, b], [x, y]] INCLUDE [p AS pp, q]',
           'INCLUSION USING [[r, s], [zz, yy]] INCLUDE [r AS rr, s AS ss]',
         ],

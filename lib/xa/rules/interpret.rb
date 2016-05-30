@@ -10,7 +10,7 @@ module XA
 
       private
 
-      ACTIONS = ['join', 'inclusion']
+      ACTIONS = ['join', 'inclusion', 'commit']
       
       def interpret_meta(meta, r)
         meta.fetch('expects', {}).each do |args|
@@ -24,6 +24,10 @@ module XA
             fn.call(r, c)
           end
         end
+      end
+
+      def interpret_commit(r, c)
+        r.commit(c['table'], c.fetch('columns', nil))
       end
       
       def interpret_join(r, c)

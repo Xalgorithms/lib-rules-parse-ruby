@@ -50,6 +50,15 @@ describe XA::Rules::Interpret do
           },
           'include' => { 'a' => 'aa', 'b' => 'bb' }
         },
+        {
+          'name'  => 'commit',
+          'table' => 'a',
+        },
+        {
+          'name'  => 'commit',
+          'table' => 'a',
+          'columns' => ['x', 'y'],
+        },
       ],
     }
 
@@ -60,6 +69,10 @@ describe XA::Rules::Interpret do
     end
   end
 
+  def expect_commit(c, r)
+    expect(r).to receive(:commit).with(c['table'], c.fetch('columns', nil))
+  end
+  
   def expect_inclusion(c, r)
     expect_joinish(:inclusion, c, r)
   end

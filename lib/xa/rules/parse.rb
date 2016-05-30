@@ -19,11 +19,15 @@ module XA
         rule(:name_as)      { name.as(:original) >> (space >> ass >> space >> name.as(:new)).maybe }
         
         rule(:table_ref)      { name.as(:table_name) >> lblock >> names.as(:columns) >> rblock }
+        rule(:table_ref_opt)  { name.as(:table_name) >> (lblock >> names.as(:columns) >> rblock).maybe }
         rule(:join_spec)      { lblock >> lblock >> names.as(:lefts) >> rblock >> comma >> space.maybe >> lblock >> names.as(:rights) >> rblock >> rblock }
         rule(:includes_spec)  { lblock >> names_as >> rblock }
         rule(:joinish)        { usings >> space >> join_spec.as(:joins) >> space >> includes >> space >> includes_spec.as(:includes) }
 
-        rule(:table_action)   { name.as(:action) >> space >> table_ref  }
+        rule(:expects)        { name.as(:action) >> space >> table_ref }
+        rule(:commit)         { name.as(:action) >> space >> table_ref_opt }
+        
+        rule(:table_action)   { expects | commit  }
         rule(:joinish_action) { name.as(:action) >> space >> joinish }
         rule(:action)         { table_action | joinish_action }
 
@@ -59,6 +63,18 @@ module XA
           res[:table_name].str => split_names(res[:columns]))
         meta = meta.merge('expects' => expects)
         o.merge('meta' => meta)
+      end
+
+      def interpret_commit(o, res)
+        actions = o.fetch('actions', [])
+        actions << {
+          'name'  => 'commit',
+          'table' => res[:table_name].str,
+        }.tap do |a|
+          a['columns'] = split_names(res[:columns]) if res.key?(:columns)
+        end
+
+        o.merge('actions' => actions)
       end
 
       def interpret_join(o, res)
