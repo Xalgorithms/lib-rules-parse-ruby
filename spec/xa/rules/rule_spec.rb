@@ -115,7 +115,7 @@ describe XA::Rules::Rule do
         {
           tables: ['foo', 'bar'],
           relation:  [['x', 'y'], ['a', 'b']],
-          function: :join,
+          action: :join,
           final: {
             'output' => [
               { 'x' => 1, 'y' => 2, 'z' => 1, 'a' => 1 },
@@ -128,13 +128,13 @@ describe XA::Rules::Rule do
         {
           tables: ['foo', 'bar'],
           relation:  [['x'], ['a']],
-          function: :join,
-          args: ['b'],
+          action: :join,
+          include: { 'a' => 'a', 'c' => 'cc' },
           final: {
             'output' => [
-              { 'x' => 1, 'y' => 2, 'z' => 1, 'a' => 1, 'b' => 1 },
-              { 'x' => 2, 'y' => 2, 'z' => 2, 'a' => 4, 'b' => 2 },
-              { 'x' => 1, 'y' => 1, 'z' => 3, 'a' => 9, 'b' => 1 },
+              { 'x' => 1, 'y' => 2, 'z' => 1, 'a' => 1, 'cc' => 0 },
+              { 'x' => 2, 'y' => 2, 'z' => 2, 'a' => 2, 'cc' => 1 },
+              { 'x' => 1, 'y' => 1, 'z' => 3, 'a' => 1, 'cc' => 0 },
               { 'x' => 3, 'y' => 3, 'z' => 4, 'a' => 16 },
             ],
           },
@@ -142,7 +142,7 @@ describe XA::Rules::Rule do
         {
           tables: ['foo', 'baz'],
           relation:  [['x'], ['q']],
-          function: :join,
+          action: :join,
           final: {
             'output' => [
               { 'x' => 1, 'y' => 2, 'z' => 1, 'a' => 1 },
@@ -154,28 +154,18 @@ describe XA::Rules::Rule do
             ],
           },
         },
-        {
-          tables: ['foo', 'bar'],
-          relation: [['x'], ['b']],
-          function: :replace,
-          args: ['a', 'c'],
-          final: {
-            'output' => [
-              { 'x' => 1, 'y' => 2, 'z' => 1, 'a' => 1 },
-              { 'x' => 2, 'y' => 2, 'z' => 2, 'a' => 2 },
-              { 'x' => 1, 'y' => 1, 'z' => 3, 'a' => 1 },
-              { 'x' => 3, 'y' => 3, 'z' => 4, 'a' => 16 },
-            ],
-          },
-        },
       ]
 
       expected.each do |ex|
         r = XA::Rules::Rule.new
 
         ex[:tables].each { |n| r.push(n) }
-        
-        r.apply(ex[:function], ex.fetch(:args, [])).using(*ex[:relation])
+
+        r.send(ex[:action]) do |act|
+          act.using(*ex[:relation])
+          act.include(ex[:include]) if ex.key?(:include)
+        end
+
         r.commit('output')
 
         res = r.execute(tables.dup)

@@ -30,10 +30,12 @@ module XA
         add(Commit.new(name, columns))
       end
 
-      def apply(func, args)
-        add(Apply.new(func, args))
+      def join(&bl)
+        act = add(Join.new)
+        bl.call(act) if bl
+        act
       end
-      
+
       def execute(tables)
         res = verify_expectations(tables) do |res|
           stack = []
@@ -83,22 +85,18 @@ module XA
           end
         end
       end
-      
-      class Apply
-        FUNCTIONS = [:join, :replace]
 
-        def initialize(func, args)
-          @func = func
-          @args = args
-          @functions = FUNCTIONS.inject({}) do |o, n|
-            o.merge(n => method("resolve_#{n}"))
-          end
-        end
-
+      class Join
         def using(lefts, rights)
           @joint = { left: lefts, right: rights }
+          self
         end
-        
+
+        def include(includes)
+          @includes = includes
+          self
+        end
+
         def execute(tables, stack, res)
           right = stack.pop
           left = stack.pop
@@ -116,34 +114,27 @@ module XA
         end
 
         private
-        
+
         def resolve(matching_rows, existing_row)
           if matching_rows.any?
             matching_rows.map do |r|
-              fn = @functions.fetch(@func, method(:resolve_nothing))
-              fn.call(@args, existing_row, r)
+              resolve_row(existing_row, r)
             end
           else
             [existing_row]
           end
         end
 
-        def resolve_nothing(args, left, right)
-          left
-        end
-
-        def resolve_join(args, left, right)
-          right = args.any? ? right.select { |k, _| args.include?(k) } : right
+        def resolve_row(left, right)
+          right = right.select do |k, _|
+            @includes.key?(k)
+          end.inject({}) do |o, kv|
+            o.merge(@includes[kv.first] => kv.last)
+          end if @includes
           left.merge(right)
         end
-
-        def resolve_replace(args, left, right)
-          args.inject(left) do |o, k|
-            o.key?(k) && right.key?(k) ? o.merge(k => right[k]) : o
-          end
-        end
       end
-
+      
       def add(act)
         @actions << act
         act

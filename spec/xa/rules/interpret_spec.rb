@@ -31,38 +31,31 @@ describe XA::Rules::Interpret do
     end
   end
 
-  it 'will configure commands' do
+  it 'will configure actions' do
     o = {
-      'commands' => [
+      'actions' => [
         {
-          'type'     => 'apply',
-          'function' => { 'name' => 'join', 'args' => ['a','b'] },
-          'args'     => {
+          'name'     => 'join',
+          'using'    => {
             'left'  => ['a', 'b'],
             'right' => ['f', 'g'],
           },
-        },
-        {
-          'type'  => 'apply',
-          'function' => { 'name' => 'replace', 'args' => ['a'] },
-          'args'  => {
-            'left'  => ['qq', 'pp'],
-            'right' => ['zz', 'yy'],
-          },
+          'include' => { 'a' => 'aa', 'b' => 'bb' }
         },
       ],
     }
 
     with_rule(o) do
-      o['commands'].each do |c|
-        send("expect_#{c['type']}", c, rule)
+      o['actions'].each do |act|
+        send("expect_#{act['name']}", act, rule)
       end
     end
   end
 
-  def expect_apply(c, r)
-    o = double(:apply)
-    expect(o).to receive(:using).with(c['args']['left'], c['args']['right'])
-    expect(r).to receive(:apply).with(c['function']['name'], c['function']['args']).and_return(o)
+  def expect_join(c, r)
+    o = double(:join)
+    expect(r).to receive(:join).and_return(o)
+    expect(o).to receive(:using).with(c['using']['left'], c['using']['right']).and_return(o)
+    expect(o).to receive(:include).with(c['include']).and_return(o)
   end
 end
