@@ -10,7 +10,7 @@ module XA
 
       private
 
-      ACTIONS = ['join']
+      ACTIONS = ['join', 'inclusion']
       
       def interpret_meta(meta, r)
         meta.fetch('expects', {}).each do |args|
@@ -27,9 +27,17 @@ module XA
       end
       
       def interpret_join(r, c)
-        r.join.using(c['using']['left'], c['using']['right']).include(c['include'])
+        interpret_joinish(:join, r, c)
       end
 
+      def interpret_inclusion(r, c)
+        interpret_joinish(:inclusion, r, c)
+      end
+
+      def interpret_joinish(action, r, c)
+        r.send(action).using(c['using']['left'], c['using']['right']).include(c['include'])
+      end
+      
       def interpret_unknown(r, c)
       end
       

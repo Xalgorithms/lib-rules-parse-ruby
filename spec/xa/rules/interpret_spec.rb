@@ -42,6 +42,14 @@ describe XA::Rules::Interpret do
           },
           'include' => { 'a' => 'aa', 'b' => 'bb' }
         },
+        {
+          'name'     => 'inclusion',
+          'using'    => {
+            'left'  => ['a', 'b'],
+            'right' => ['f', 'g'],
+          },
+          'include' => { 'a' => 'aa', 'b' => 'bb' }
+        },
       ],
     }
 
@@ -52,9 +60,17 @@ describe XA::Rules::Interpret do
     end
   end
 
+  def expect_inclusion(c, r)
+    expect_joinish(:inclusion, c, r)
+  end
+  
   def expect_join(c, r)
-    o = double(:join)
-    expect(r).to receive(:join).and_return(o)
+    expect_joinish(:join, c, r)
+  end
+
+  def expect_joinish(action, c, r)
+    o = double(action)
+    expect(r).to receive(action).and_return(o)
     expect(o).to receive(:using).with(c['using']['left'], c['using']['right']).and_return(o)
     expect(o).to receive(:include).with(c['include']).and_return(o)
   end

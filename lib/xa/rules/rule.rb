@@ -36,6 +36,12 @@ module XA
         act
       end
 
+      def inclusion(&bl)
+        act = add(Inclusion.new)
+        bl.call(act) if bl
+        act
+      end
+
       def execute(tables)
         res = verify_expectations(tables) do |res|
           stack = []
@@ -132,6 +138,12 @@ module XA
             o.merge(@includes[kv.first] => kv.last)
           end if @includes
           left.merge(right)
+        end
+      end
+
+      class Inclusion < Join
+        def resolve(matching_rows, existing_row)
+          [existing_row.merge('is_member' => matching_rows.any?, 'is_not_member' => matching_rows.empty?)]
         end
       end
       
