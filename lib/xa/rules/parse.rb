@@ -12,6 +12,9 @@ module XA
         rule(:ass)          { str('AS') }
         rule(:usings)       { str('USING') }
         rule(:includes)     { str('INCLUDE') }
+        rule(:pushs)        { str('PUSH') }
+        rule(:pops)         { str('POP') }
+        rule(:duplicates)   { str('DUPLICATE') }
 
         rule(:names)        { name >> (comma >> space.maybe >> name).repeat }
         rule(:name)         { match('[a-zA-Z]').repeat(1) }
@@ -26,10 +29,14 @@ module XA
 
         rule(:expects)        { name.as(:action) >> space >> table_ref }
         rule(:commit)         { name.as(:action) >> space >> table_ref_opt }
+        rule(:push)           { pushs.as(:action) >> space >> name.as(:table_name) }
+        rule(:pop)            { pops.as(:action) }
+        rule(:duplicate)      { duplicates.as(:action) }
         
-        rule(:table_action)   { expects | commit  }
+        rule(:table_action)   { expects | commit }
         rule(:joinish_action) { name.as(:action) >> space >> joinish }
-        rule(:action)         { table_action | joinish_action }
+        rule(:stack_action)   { push | pop | duplicate }
+        rule(:action)         { table_action | joinish_action | stack_action }
 
         root(:action)
       end
@@ -65,6 +72,34 @@ module XA
         o.merge('meta' => meta)
       end
 
+      def interpret_push(o, res)
+        actions = o.fetch('actions', [])
+        actions << {
+          'name'  => 'push',
+          'table' => res[:table_name].str,
+        }
+        
+        o.merge('actions' => actions)
+      end
+
+      def interpret_pop(o, res)
+        actions = o.fetch('actions', [])
+        actions << {
+          'name'  => 'pop',
+        }
+
+        o.merge('actions' => actions)        
+      end
+
+      def interpret_duplicate(o, res)
+        actions = o.fetch('actions', [])
+        actions << {
+          'name'  => 'duplicate',
+        }
+
+        o.merge('actions' => actions)        
+      end
+      
       def interpret_commit(o, res)
         actions = o.fetch('actions', [])
         actions << {

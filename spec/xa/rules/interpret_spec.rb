@@ -59,6 +59,20 @@ describe XA::Rules::Interpret do
           'table' => 'a',
           'columns' => ['x', 'y'],
         },
+        {
+          'name' => 'push',
+          'table' => 'foo',
+        },
+        {
+          'name' => 'push',
+          'table' => 'bar',
+        },
+        {
+          'name' => 'pop',
+        },
+        {
+          'name' => 'duplicate',
+        },
       ],
     }
 
@@ -81,6 +95,18 @@ describe XA::Rules::Interpret do
     expect_joinish(:join, c, r)
   end
 
+  def expect_push(c, r)
+    expect(r).to receive(:push).with(c['table'])
+  end
+  
+  def expect_pop(c, r)
+    expect(r).to receive(:pop)
+  end
+  
+  def expect_duplicate(c, r)
+    expect(r).to receive(:duplicate)
+  end
+  
   def expect_joinish(action, c, r)
     o = double(action)
     expect(r).to receive(action).and_return(o)

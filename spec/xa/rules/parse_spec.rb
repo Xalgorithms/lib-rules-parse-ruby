@@ -45,6 +45,33 @@ describe XA::Rules::Parse do
           ],
         },
       },
+
+      {
+        in: [
+          'PUSH foo',
+          'POP',
+          'DUPLICATE',
+          'PUSH bar',
+        ],
+        out: {
+          'actions'   => [
+            {
+              'name'    => 'push',
+              'table'   => 'foo',
+             },
+            {
+              'name'    => 'pop',
+            },
+            {
+              'name'    => 'duplicate',
+            },
+            {
+              'name'    => 'push',
+              'table'   => 'bar',
+             },
+          ],
+        },
+      },
       
       {
         in: [
