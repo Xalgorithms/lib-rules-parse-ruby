@@ -3,7 +3,7 @@ require 'xa/rules/parse'
 describe XA::Rules::Parse do
   include XA::Rules::Parse
 
-  it 'parses expect statements' do
+  it 'parses' do
     expectations = [
       {
         in: [
@@ -19,6 +19,39 @@ describe XA::Rules::Parse do
           }
         },
       },
+
+      {
+        in: [
+          'JOIN USING [[a, b], [x, y]] INCLUDE [p AS pp, q]',
+          'INCLUSION USING [[r, s], [zz, yy]] INCLUDE [r AS rr, s AS ss]',
+        ],
+        out: {
+          'actions' => [
+            {
+              'name' => 'join',
+              'using' => {
+                'left'  => ['a', 'b'],
+                'right' => ['x', 'y'],
+              },
+              'include' => {
+                'p' => 'pp',
+                'q' => 'q',
+              },
+            },
+            {
+              'name' => 'inclusion',
+              'using' => {
+                'left'  => ['r', 's'],
+                'right' => ['zz', 'yy'],
+              },
+              'include' => {
+                'r' => 'rr',
+                's' => 'ss',
+              },
+            },
+          ],
+        },
+      }
     ]
 
     expectations.each do |ex|
