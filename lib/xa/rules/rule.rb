@@ -31,15 +31,11 @@ module XA
       end
 
       def join(&bl)
-        act = add(Join.new)
-        bl.call(act) if bl
-        act
+        act = add(Join.new, &bl)
       end
 
       def inclusion(&bl)
-        act = add(Inclusion.new)
-        bl.call(act) if bl
-        act
+        act = add(Inclusion.new, &bl)
       end
 
       def execute(tables)
@@ -137,6 +133,7 @@ module XA
           end.inject({}) do |o, kv|
             o.merge(@includes[kv.first] => kv.last)
           end if @includes
+
           left.merge(right)
         end
       end
@@ -147,8 +144,9 @@ module XA
         end
       end
       
-      def add(act)
+      def add(act, &bl)
         @actions << act
+        bl.call(act) if bl
         act
       end
       
