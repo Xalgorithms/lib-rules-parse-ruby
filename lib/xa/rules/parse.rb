@@ -17,7 +17,7 @@ module XA
         rule(:duplicates)   { str('DUPLICATE') }
 
         rule(:names)        { name >> (comma >> space.maybe >> name).repeat }
-        rule(:name)         { match('[a-zA-Z]').repeat(1) }
+        rule(:name)         { match('\w+').repeat(1) }
         rule(:names_as)     { name_as >> (comma >> space.maybe >> name_as).repeat }
         rule(:name_as)      { name.as(:original) >> (space >> ass >> space >> name.as(:new)).maybe }
         
