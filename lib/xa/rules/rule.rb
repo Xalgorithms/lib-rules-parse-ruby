@@ -18,6 +18,10 @@ module XA
         add(Push.new(n))
       end
 
+      def pop
+        add(Pop.new)
+      end
+
       def duplicate
         add(Duplicate.new)
       end
@@ -50,6 +54,12 @@ module XA
 
         def execute(tables, stack, res)
           stack.push(tables[@name])
+        end
+      end
+
+      class Pop
+        def execute(tables, stack, res)
+          stack.pop
         end
       end
 

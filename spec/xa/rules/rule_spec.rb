@@ -63,7 +63,25 @@ describe XA::Rules::Rule do
       }
     end
 
-    it 'commits tables to the result' do
+    it 'has basic stack operations' do
+      r = XA::Rules::Rule.new
+      r.push('bar')
+      r.push('baz')
+      r.pop
+      r.push('bar')
+      r.pop
+      r.push('baz')
+
+      r.commit('a')
+      r.commit('b')
+
+      res = r.execute(tables.dup)
+
+      expect(res.tables['a']).to eql(tables['baz'])
+      expect(res.tables['b']).to eql(tables['bar'])
+    end
+    
+    it 'allows commits to specify only certain columns' do
       r = XA::Rules::Rule.new
       r.push('bar')
       r.push('baz')
@@ -71,6 +89,7 @@ describe XA::Rules::Rule do
       r.commit('b', ['a', 'c'])
 
       res = r.execute(tables.dup)
+
       expect(res.tables['a']).to eql(tables['baz'].map { |r| { 'q' => r['q'] } })
       expect(res.tables['b']).to eql(tables['bar'].map { |r| { 'a' => r['a'], 'c' => r['c'] } })
     end
