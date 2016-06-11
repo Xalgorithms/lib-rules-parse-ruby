@@ -55,12 +55,8 @@ module XA
       def parse(actions)
         rv = {}
         actions.each do |act|
-          begin
-            res = parser.parse(act)
-            rv = rv.merge(interpret(rv, res))
-          rescue Exception => e
-            p e
-          end
+          res = parser.parse(act)
+          rv = rv.merge(interpret(rv, res))
         end
         rv
       end
