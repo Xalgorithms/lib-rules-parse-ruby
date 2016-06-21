@@ -143,8 +143,18 @@ module XA
       end
 
       class Inclusion < Join
+        def initialize
+          @includes = { 'is_not_member' => 'is_not_member', 'is_member' => 'is_member' }
+        end
+        
         def resolve(matching_rows, existing_row)
-          [existing_row.merge('is_member' => matching_rows.any?, 'is_not_member' => matching_rows.empty?)]
+          o = {
+          }.tap do |o|
+            o[@includes['is_member']] = matching_rows.any? if @includes.key?('is_member')
+            o[@includes['is_not_member']] = matching_rows.empty? if @includes.key?('is_not_member')
+          end
+
+          [existing_row.merge(o)]
         end
       end
 

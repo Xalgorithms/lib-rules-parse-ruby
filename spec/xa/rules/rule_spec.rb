@@ -165,6 +165,30 @@ describe XA::Rules::Rule do
             ],
           },
         },
+        {
+          tables: ['bar', 'baz'],
+          relation:  [['a'], ['p']],
+          action: :inclusion,
+          include: { 'is_member' => 'bar' },
+          final: {
+            'output' => [
+              { 'a' => 1, 'b' => 1, 'c' => 0, 'bar' => false },
+              { 'a' => 2, 'b' => 2, 'c' => 1, 'bar' => true },
+            ],
+          },
+        },
+        {
+          tables: ['bar', 'baz'],
+          relation:  [['a'], ['p']],
+          action: :inclusion,
+          include: { 'is_not_member' => 'bar' },
+          final: {
+            'output' => [
+              { 'a' => 1, 'b' => 1, 'c' => 0, 'bar' => true },
+              { 'a' => 2, 'b' => 2, 'c' => 1, 'bar' => false },
+            ],
+          },
+        },
       ]
 
       expected.each do |ex|
