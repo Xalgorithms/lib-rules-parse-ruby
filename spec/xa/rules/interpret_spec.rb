@@ -73,6 +73,15 @@ describe XA::Rules::Interpret do
         {
           'name' => 'duplicate',
         },
+        {
+          'name'     => 'accumulate',
+          'column'   => 'foo',
+          'result'   => 'baz',
+          'function' => {
+            'name' => 'mult',
+            'args' => ['a', 'b', 'c'],
+          },
+        },
       ],
     }
 
@@ -112,5 +121,11 @@ describe XA::Rules::Interpret do
     expect(r).to receive(action).and_return(o)
     expect(o).to receive(:using).with(c['using']['left'], c['using']['right']).and_return(o)
     expect(o).to receive(:include).with(c['include']).and_return(o)
+  end
+
+  def expect_accumulate(c, r)
+    o = double(:accumulate)
+    expect(r).to receive(:accumulate).with(c['column'], c.fetch('result', nil)).and_return(o)
+    expect(o).to receive(:apply).with(c['function']['name'], c['function']['args'])
   end
 end

@@ -183,5 +183,10 @@ describe XA::Rules::Rule do
         expect(res.tables).to eql(ex[:final])
       end
     end
+
+    it 'should apply accumulation' do
+      pending('DESIGN THIS')
+      raise 'nothing'
+    end
   end
 end

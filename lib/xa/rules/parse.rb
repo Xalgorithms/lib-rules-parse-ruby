@@ -59,7 +59,7 @@ module XA
       def parse(actions)
         rv = {}
         actions.each do |act|
-          p act
+#          p act
           res = parser.parse(act)
           rv = rv.merge(interpret(rv, res))
         end
@@ -73,7 +73,7 @@ module XA
       end
       
       def interpret(o, res)
-        p res
+#        p res
         send("interpret_#{res.fetch(:action, 'nothing').str.downcase}", o, res)
       end
 

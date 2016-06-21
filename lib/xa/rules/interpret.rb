@@ -16,7 +16,8 @@ module XA
         'duplicate',
         'join',
         'inclusion',
-        'commit'
+        'commit',
+        'accumulate',
       ]
       
       def interpret_meta(meta, r)
@@ -59,6 +60,10 @@ module XA
 
       def interpret_joinish(action, r, c)
         r.send(action).using(c['using']['left'], c['using']['right']).include(c['include'])
+      end
+
+      def interpret_accumulate(r, c)
+        r.accumulate(c['column'], c['result']).apply(c['function']['name'], c['function']['args'])
       end
       
       def interpret_unknown(r, c)

@@ -38,6 +38,9 @@ module XA
         act = add(Inclusion.new, &bl)
       end
 
+      def accumulate(column, result, &bl)
+      end
+
       def execute(tables)
         res = verify_expectations(tables) do |res|
           stack = []
