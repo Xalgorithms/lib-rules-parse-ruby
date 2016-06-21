@@ -164,6 +164,9 @@ module XA
 
         def apply(func, args)
         end
+
+        def execute(tables, stack, res)
+        end
       end
       
       def add(act, &bl)

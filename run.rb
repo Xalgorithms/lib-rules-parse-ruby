@@ -1,4 +1,5 @@
 require 'multi_json'
+
 require_relative './lib/xa/rules/parse'
 require_relative './lib/xa/rules/interpret'
 
@@ -37,7 +38,16 @@ puts ">> using rule #{File.basename(rule_fn)}"
 
 parse_file(rule_fn) do |res|
   interpret_res(res, tables) do |exec_res|
-    puts "result: #{exec_res.status}"
+    puts ">> result: #{exec_res.status}"
+    if exec_res.status == :ok
+      puts '>> result tables'
+      exec_res.tables.each do |n, content|
+        puts ">>> #{n}"
+        content.each do |r|
+          puts ">>>> #{r}"
+        end
+      end
+    end
   end
 end
 
