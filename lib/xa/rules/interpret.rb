@@ -1,3 +1,5 @@
+require_relative './rule'
+
 module XA
   module Rules
     module Interpret
