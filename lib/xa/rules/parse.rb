@@ -141,7 +141,6 @@ module XA
             'right' => split_names(res[:joins][:rights]),
           },
           'include' => includes.inject({}) do |o, i|
-            p [i]
             o.merge(i[:original].str => i.key?(:new) ? i[:new].str : i[:original].str)
           end
         })
