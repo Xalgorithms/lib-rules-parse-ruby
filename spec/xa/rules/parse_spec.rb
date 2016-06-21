@@ -127,11 +127,24 @@ describe XA::Rules::Parse do
       
       {
         in: [
+          'JOIN USING [[a, b], [x, y]] INCLUDE [p]',
           'JOIN USING [[a, b], [x, y]] INCLUDE [p AS pp, q]',
           'INCLUSION USING [[r, s], [zz, yy]] INCLUDE [r AS rr, s AS ss]',
+          'ACCUMULATE foo USING mult(a, b, c) AS baz',
+          'ACCUMULATE bar USING add(p, q)',
         ],
         out: {
           'actions' => [
+            {
+              'name' => 'join',
+              'using' => {
+                'left'  => ['a', 'b'],
+                'right' => ['x', 'y'],
+              },
+              'include' => {
+                'p' => 'p',
+              },
+            },
             {
               'name' => 'join',
               'using' => {
@@ -152,6 +165,23 @@ describe XA::Rules::Parse do
               'include' => {
                 'r' => 'rr',
                 's' => 'ss',
+              },
+            },
+            {
+              'name'     => 'accumulate',
+              'column'   => 'foo',
+              'result'   => 'baz',
+              'function' => {
+                  'name' => 'mult',
+                  'args' => ['a', 'b', 'c'],
+              },
+            },
+            {
+              'name'   => 'accumulate',
+              'column' => 'bar',
+              'function' => {
+                  'name' => 'add',
+                  'args' => ['p', 'q'],
               },
             },
           ],

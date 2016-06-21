@@ -8,6 +8,8 @@ module XA
         rule(:colon)        { str(':') }
         rule(:lblock)       { str('[') }
         rule(:rblock)       { str(']') }
+        rule(:lparen)       { str('(') }
+        rule(:rparen)       { str(')') }
         
         rule(:space)        { match('\s').repeat(1) }
         rule(:ass)          { str('AS') }
@@ -41,13 +43,15 @@ module XA
         rule(:pull)           { pulls.as(:action) >> space >> rule_ref.as(:rule_ref) >> space >> ass >> space >> name.as(:table_name) }
         rule(:attach)         { attachs.as(:action) >> space >> anything.as(:url) >> space >> ass >> space >> name.as(:name) }
         rule(:invoke)         { invokes.as(:action) >> space >> rule_ref.as(:rule_ref) }
+        rule(:func)           { name.as(:name) >> lparen >> names.as(:args) >> rparen }
         
         rule(:table_action)   { expects | commit }
         rule(:joinish_action) { name.as(:action) >> space >> joinish }
+        rule(:reduce_action)  { name.as(:action) >> space >> name.as(:column) >> space >> usings >> space >> func.as(:function) >> (space >> ass >> space >> name.as(:result)).maybe }
         rule(:stack_action)   { push | pop | duplicate }
         rule(:repo_action)    { attach | pull }
         rule(:rule_action)    { invoke }
-        rule(:action)         { table_action | joinish_action | stack_action | repo_action | rule_action }
+        rule(:action)         { table_action | joinish_action | reduce_action | stack_action | repo_action | rule_action }
 
         root(:action)
       end
@@ -55,6 +59,7 @@ module XA
       def parse(actions)
         rv = {}
         actions.each do |act|
+          p act
           res = parser.parse(act)
           rv = rv.merge(interpret(rv, res))
         end
@@ -68,6 +73,7 @@ module XA
       end
       
       def interpret(o, res)
+        p res
         send("interpret_#{res.fetch(:action, 'nothing').str.downcase}", o, res)
       end
 
@@ -127,16 +133,32 @@ module XA
       end
       
       def interpret_joinish(o, res)
+        includes = res[:includes].class == Array ? res[:includes] : [res[:includes]]
         add_action(o, {
           'name'    => res[:action].str.downcase,
           'using'   => {
             'left'  =>  split_names(res[:joins][:lefts]),
             'right' => split_names(res[:joins][:rights]),
           },
-          'include' => res[:includes].inject({}) do |o, i|
+          'include' => includes.inject({}) do |o, i|
+            p [i]
             o.merge(i[:original].str => i.key?(:new) ? i[:new].str : i[:original].str)
           end
         })
+      end
+
+      def interpret_accumulate(o, res)
+        act = {
+          'name'     => res[:action].str.downcase,
+          'column'   => res[:column].str,
+          'function' => {
+            'name' => res[:function][:name].str,
+            'args' => split_names(res[:function][:args]),
+          }
+        }.tap do |a|
+          a['result'] = res[:result].str if res.key?(:result)
+        end
+        add_action(o, act)
       end
 
       def add_action(o, act)
