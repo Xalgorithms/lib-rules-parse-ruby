@@ -39,6 +39,7 @@ module XA
       end
 
       def accumulate(column, result, &bl)
+        act = add(Accumulate.new(column, result), &bl)
       end
 
       def execute(tables)
@@ -144,6 +145,14 @@ module XA
       class Inclusion < Join
         def resolve(matching_rows, existing_row)
           [existing_row.merge('is_member' => matching_rows.any?, 'is_not_member' => matching_rows.empty?)]
+        end
+      end
+
+      class Accumulate
+        def initialize(column, result)
+        end
+
+        def apply(func, args)
         end
       end
       
