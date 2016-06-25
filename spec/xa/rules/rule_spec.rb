@@ -60,6 +60,11 @@ describe XA::Rules::Rule do
           { 'q' => 2, 'p' => 2, 'r' => 1 },
           { 'q' => 2, 'p' => 3, 'r' => 2 },
         ],
+        'strs' => [
+          { 'q' => '2.5', 'p' => '2', 'r' => '1' },
+          { 'q' => '2', 'p' => '3.5', 'r' => '2' },
+          { 'q' => '2', 'r' => '2' },
+        ],
       }
     end
 
@@ -216,7 +221,7 @@ describe XA::Rules::Rule do
           args: ['x', 'y'],
           column: 'z',
           result: 'zm',
-          values: [2, 8, 3, 36],
+          values: [2.0, 8.0, 3.0, 36.0],
         },
         {
           table: 'bar',
@@ -224,7 +229,15 @@ describe XA::Rules::Rule do
           args: ['b'],
           column: 'a',
           result: 'bm',
-          values: [1, 4],
+          values: [1.0, 4.0],
+        },
+        {
+          table: 'strs',
+          function: 'mult',
+          args: ['q', 'p'],
+          column: 'r',
+          result: 'rm',
+          values: [5.0, 14.0, 4.0],
         },
       ]
 

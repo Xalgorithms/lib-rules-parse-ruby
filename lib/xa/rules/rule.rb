@@ -172,7 +172,7 @@ module XA
         
         class Mult < Func
           def apply(vals)
-            vals.inject(1) { |total, v| total * (v ? v : 1) }
+            vals.map { |v| v ? v.to_f : 1.0 }.inject(1) { |total, v| total * v }
           end
         end
 
