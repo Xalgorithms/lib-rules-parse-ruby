@@ -9,12 +9,7 @@ def parse_file(fn)
   include XA::Rules::Parse
 
   File.open(fn) do |f|
-    to_parse = f.each_line.inject([]) do |a, ln|
-      ln.strip!
-      (ln.empty? || ln.start_with?('#')) ? a : a + [ln]
-    end
-
-    yield(parse(to_parse))
+    yield(parse_buffer(f.read))
   end
 end
 

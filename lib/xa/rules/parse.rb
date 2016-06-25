@@ -55,6 +55,13 @@ module XA
 
         root(:action)
       end
+
+      def parse_buffer(b)
+        parse(b.split(/\n/).inject([]) do |a, ln|
+                ln.strip!
+                (ln.empty? || ln.start_with?('#')) ? a : a + [ln]
+              end)
+      end
       
       def parse(actions)
         rv = {}
