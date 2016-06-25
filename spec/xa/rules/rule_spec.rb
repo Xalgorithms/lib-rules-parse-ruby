@@ -53,7 +53,7 @@ describe XA::Rules::Rule do
           { 'x' => 3, 'y' => 3, 'z' => 4, 'a' => 16 },
         ],
         'bar' => [
-          { 'a' => 1, 'b' => 1, 'c' => 0 },
+          { 'a' => 1, 'b' => 1, 'c' => 5 },
           { 'a' => 2, 'b' => 2, 'c' => 1 },
         ],
         'baz' => [
@@ -120,7 +120,7 @@ describe XA::Rules::Rule do
             'output' => [
               { 'x' => 1, 'y' => 2, 'z' => 1, 'a' => 1 },
               { 'x' => 2, 'y' => 2, 'z' => 2, 'a' => 2, 'b' => 2, 'c' => 1 },
-              { 'x' => 1, 'y' => 1, 'z' => 3, 'a' => 1, 'b' => 1, 'c' => 0 },
+              { 'x' => 1, 'y' => 1, 'z' => 3, 'a' => 1, 'b' => 1, 'c' => 5 },
               { 'x' => 3, 'y' => 3, 'z' => 4, 'a' => 16 },
             ],
           },
@@ -132,9 +132,9 @@ describe XA::Rules::Rule do
           include: { 'a' => 'a', 'c' => 'cc' },
           final: {
             'output' => [
-              { 'x' => 1, 'y' => 2, 'z' => 1, 'a' => 1, 'cc' => 0 },
+              { 'x' => 1, 'y' => 2, 'z' => 1, 'a' => 1, 'cc' => 5 },
               { 'x' => 2, 'y' => 2, 'z' => 2, 'a' => 2, 'cc' => 1 },
-              { 'x' => 1, 'y' => 1, 'z' => 3, 'a' => 1, 'cc' => 0 },
+              { 'x' => 1, 'y' => 1, 'z' => 3, 'a' => 1, 'cc' => 5 },
               { 'x' => 3, 'y' => 3, 'z' => 4, 'a' => 16 },
             ],
           },
@@ -160,7 +160,7 @@ describe XA::Rules::Rule do
           action: :inclusion,
           final: {
             'output' => [
-              { 'a' => 1, 'b' => 1, 'c' => 0, 'is_member' => false, 'is_not_member' => true },
+              { 'a' => 1, 'b' => 1, 'c' => 5, 'is_member' => false, 'is_not_member' => true },
               { 'a' => 2, 'b' => 2, 'c' => 1, 'is_member' => true, 'is_not_member' => false },
             ],
           },
@@ -172,7 +172,7 @@ describe XA::Rules::Rule do
           include: { 'is_member' => 'bar' },
           final: {
             'output' => [
-              { 'a' => 1, 'b' => 1, 'c' => 0, 'bar' => false },
+              { 'a' => 1, 'b' => 1, 'c' => 5, 'bar' => false },
               { 'a' => 2, 'b' => 2, 'c' => 1, 'bar' => true },
             ],
           },
@@ -184,7 +184,7 @@ describe XA::Rules::Rule do
           include: { 'is_not_member' => 'bar' },
           final: {
             'output' => [
-              { 'a' => 1, 'b' => 1, 'c' => 0, 'bar' => true },
+              { 'a' => 1, 'b' => 1, 'c' => 5, 'bar' => true },
               { 'a' => 2, 'b' => 2, 'c' => 1, 'bar' => false },
             ],
           },
@@ -209,8 +209,35 @@ describe XA::Rules::Rule do
     end
 
     it 'should apply accumulation' do
-      pending('DESIGN THIS')
-      raise 'nothing'
+      expected = [
+        {
+          table: 'foo',
+          function: 'mult',
+          args: ['x', 'y'],
+          column: 'z',
+          result: 'zm',
+          values: [2, 8, 3, 36],
+        },
+        {
+          table: 'bar',
+          function: 'mult',
+          args: ['b'],
+          column: 'a',
+          result: 'bm',
+          values: [1, 4],
+        },
+      ]
+
+      expected.each do |ex|
+        r = XA::Rules::Rule.new
+        r.push(ex[:table])
+        r.accumulate(ex[:column], ex[:result]).apply(ex[:function], ex[:args])
+        r.commit('results')
+        res = r.execute(tables.dup)
+
+        tbl = res.tables['results']
+        expect(tbl.map { |r| r[ex[:result]] }).to eql(ex[:values])
+      end
     end
   end
 end

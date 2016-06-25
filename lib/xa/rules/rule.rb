@@ -46,6 +46,7 @@ module XA
         res = verify_expectations(tables) do |res|
           stack = []
           @actions.each do |act|
+            # p stack
             act.execute(tables, stack, res)
           end
 
@@ -159,13 +160,48 @@ module XA
       end
 
       class Accumulate
+        class Func
+          def initialize(args)
+            @args = args
+          end
+
+          def apply_to_row(row, start)
+            apply([start] + @args.map { |arg| row.fetch(arg, nil) })
+          end
+        end
+        
+        class Mult < Func
+          def apply(vals)
+            vals.inject(1) { |total, v| total * (v ? v : 1) }
+          end
+        end
+
+        class Empty < Func
+          def apply(vals)
+            vals
+          end
+        end
+        
         def initialize(column, result)
+          @column = column
+          @result = result
+          @applications = []
         end
 
         def apply(func, args)
+          @functions ||= {
+            'mult' => Mult,
+          }
+
+          @applications << @functions.fetch(func, Empty).new(args)
+          @applications.last
         end
 
         def execute(tables, stack, res)
+          tbl = stack.pop
+          stack.push(tbl.map do |r|
+            r.merge(@result => @applications.first.apply_to_row(r, r.fetch(@column, nil)))
+          end)
         end
       end
       
