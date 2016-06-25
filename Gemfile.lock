@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    xa-rules (0.0.2)
+    xa-rules (0.0.3)
       parslet
 
 GEM
