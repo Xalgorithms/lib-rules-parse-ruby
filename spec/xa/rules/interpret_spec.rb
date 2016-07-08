@@ -82,12 +82,43 @@ describe XA::Rules::Interpret do
             'args' => ['a', 'b', 'c'],
           },
         },
+        {
+          'name'       => 'pull',
+          'repository' => 'repo0',
+          'table'      => 'foo',
+          'version'    => '1234',
+          'as'         => 'foo0',
+        },
+        {
+          'name'       => 'pull',
+          'repository' => 'repo1',
+          'table'      => 'bar',
+          'version'    => '3333',
+          'as'         => 'bar1',
+        },
       ],
     }
 
     with_rule(o) do
       o['actions'].each do |act|
         send("expect_#{act['name']}", act, rule)
+      end
+    end
+  end
+
+  it 'will configure attaches' do
+    o = {
+      'meta' => {
+        'repositories' => {
+          'foo' => 'http://foo.com',
+          'bar' => 'http://baz.com',
+        },
+      },
+    }
+
+    with_rule(o) do
+      o['meta']['repositories'].each do |name, url|
+        expect(rule).to receive(:attach).with(url, name)
       end
     end
   end
@@ -127,5 +158,9 @@ describe XA::Rules::Interpret do
     o = double(:accumulate)
     expect(r).to receive(:accumulate).with(c['column'], c.fetch('result', nil)).and_return(o)
     expect(o).to receive(:apply).with(c['function']['name'], c['function']['args'])
+  end
+
+  def expect_pull(c, r)
+    expect(r).to receive(:pull).with(c['as'], c['repository'], c['table'], c['version'])
   end
 end

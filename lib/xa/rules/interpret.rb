@@ -20,11 +20,15 @@ module XA
         'inclusion',
         'commit',
         'accumulate',
+        'pull',
       ]
       
       def interpret_meta(meta, r)
         meta.fetch('expects', {}).each do |args|
           r.expects(*args)
+        end
+        meta.fetch('repositories', {}).each do |name, url|
+          r.attach(url, name)
         end
       end
 
@@ -66,6 +70,10 @@ module XA
 
       def interpret_accumulate(r, c)
         r.accumulate(c['column'], c['result']).apply(c['function']['name'], c['function']['args'])
+      end
+
+      def interpret_pull(r, c)
+        r.pull(c['as'], c['repository'], c['table'], c['version'])
       end
       
       def interpret_unknown(r, c)

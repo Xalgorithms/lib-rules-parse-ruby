@@ -33,19 +33,23 @@ describe XA::Rules::Parse do
               'repo0' => 'http://www.example0.org/foo',
               'repo1' => 'http://www.example1.org/foo',
             },
-            'tables' => {
-              'foo0' => {
-                'repository' => 'repo0',
-                'name'       => 'foo',
-                'version'    => '1234',
-              },
-              'bar1' => {
-                'repository' => 'repo1',
-                'name'       => 'bar',
-                'version'    => '3333',
-              },
+          },
+          'actions' => [
+            {
+              'name'       => 'pull',
+              'repository' => 'repo0',
+              'table'      => 'foo',
+              'version'    => '1234',
+              'as'         => 'foo0',
             },
-          }
+            {
+              'name'       => 'pull',
+              'repository' => 'repo1',
+              'table'      => 'bar',
+              'version'    => '3333',
+              'as'         => 'bar1',
+            },
+          ]
         },
       },
 

@@ -89,11 +89,14 @@ module XA
       end
 
       def interpret_pull(o, res)
-        add_meta(o, 'tables', res[:table_name].str => {
-                   'repository' => res[:rule_ref][:repo].str,
-                   'name'       => res[:rule_ref][:rule].str,
-                   'version'    => res[:rule_ref][:version].str,
-                 })
+        act = {
+          'name' => 'pull',
+          'repository' => res[:rule_ref][:repo].str,
+          'table'      => res[:rule_ref][:rule].str,
+          'version'    => res[:rule_ref][:version].str,
+          'as'         => res[:table_name].str,
+        }
+        add_action(o, act)
       end
 
       def interpret_attach(o, res)

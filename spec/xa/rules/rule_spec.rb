@@ -1,4 +1,5 @@
 require 'xa/rules/rule'
+require 'xa/rules/context'
 
 describe XA::Rules::Rule do
   context 'meta information' do
@@ -25,20 +26,20 @@ describe XA::Rules::Rule do
     it 'fails execution if expectations are not met' do
       r = XA::Rules::Rule.new
 
-      res = r.execute({})
+      res = r.execute(nil, {})
       expect(res).to_not be_nil
       expect(res.status).to eql(:ok)
       expect(res.failures).to be_empty
 
       r.expects('foo', ['a', 'b'])
 
-      res = r.execute({})
+      res = r.execute(nil, {})
       expect(res).to_not be_nil
       expect(res.status).to eql(:missing_expected_table)
       expect(res.failures).to_not be_empty
       expect(res.failures.first).to eql('foo')
 
-      res = r.execute('foo' => [])
+      res = r.execute(nil, 'foo' => [])
       expect(res).to_not be_nil
       expect(res.status).to eql(:ok)
       expect(res.failures).to be_empty
@@ -80,7 +81,7 @@ describe XA::Rules::Rule do
       r.commit('a')
       r.commit('b')
 
-      res = r.execute(tables.dup)
+      res = r.execute(nil, tables.dup)
 
       expect(res.tables['a']).to eql(tables['baz'])
       expect(res.tables['b']).to eql(tables['bar'])
@@ -93,7 +94,7 @@ describe XA::Rules::Rule do
       r.commit('a', ['q'])
       r.commit('b', ['a', 'c'])
 
-      res = r.execute(tables.dup)
+      res = r.execute(nil, tables.dup)
 
       expect(res.tables['a']).to eql(tables['baz'].map { |r| { 'q' => r['q'] } })
       expect(res.tables['b']).to eql(tables['bar'].map { |r| { 'a' => r['a'], 'c' => r['c'] } })
@@ -108,7 +109,7 @@ describe XA::Rules::Rule do
         r.commit('a')
         r.commit('b')
 
-        res = r.execute(tables.dup)
+        res = r.execute(nil, tables.dup)
         
         expect(res.tables['a']).to eql(tables[n])
         expect(res.tables['b']).to eql(tables[n])
@@ -208,7 +209,7 @@ describe XA::Rules::Rule do
 
         r.commit('output')
 
-        res = r.execute(tables.dup)
+        res = r.execute(nil, tables.dup)
         expect(res.tables).to eql(ex[:final])
       end
     end
@@ -246,11 +247,77 @@ describe XA::Rules::Rule do
         r.push(ex[:table])
         r.accumulate(ex[:column], ex[:result]).apply(ex[:function], ex[:args])
         r.commit('results')
-        res = r.execute(tables.dup)
+        res = r.execute(nil, tables.dup)
 
         tbl = res.tables['results']
         expect(tbl.map { |r| r[ex[:result]] }).to eql(ex[:values])
       end
+    end
+  end
+
+  it 'should provide meta data about repositories' do
+    expected = [
+      { url: 'http://foo.com', name: 'foo' },
+      { url: 'http://bar.com', name: 'baz' },
+    ]
+
+    r = XA::Rules::Rule.new
+    expected.each do |ex|
+        r.attach(ex[:url], ex[:name])
+    end
+
+    actual = []
+    r.repositories do |url, name|
+      actual << { url: url, name: name } 
+    end
+    
+    expect(actual).to eql(expected)
+  end
+
+  it 'should pull outer tables via the context' do
+    expected = [
+      {
+        repo: 'repo0',
+        table: 'table0',
+        version: '1',
+        name: 'rt00',
+        data: [
+          { 'a' => '1', 'b' => '2' },
+          { 'a' => '11', 'b' => '12' },
+        ],
+      },
+      {
+        repo: 'repo0',
+        table: 'table1',
+        version: '22',
+        name: 'rt01',
+        data: [
+          { 'p' => '1', 'q' => '2' },
+          { 'p' => '11', 'q' => '12' },
+        ],
+      },
+      {
+        repo: 'repo1',
+        table: 'table11',
+        version: 'latest',
+        name: 'rt_latest',
+        data: [
+          { 'x' => 'zzz', 'y' => 'qqq' },
+          { 'x' => 'aaa', 'y' => 'eee' },
+        ],
+      },
+    ]
+
+    ctx = XA::Rules::Context.new
+    expected.each do |ex|
+      r = XA::Rules::Rule.new
+      r.pull(ex[:name], ex[:repo], ex[:table], ex[:version])
+      r.push(ex[:name])
+      r.commit('results')
+      
+      allow(ctx).to receive(:get).with(:table, { repo: ex[:repo], table: ex[:table], version: ex[:version] }).and_yield(ex[:data])
+      res = ctx.execute(r)
+      expect(res.tables['results']).to eql(ex[:data])
     end
   end
 end

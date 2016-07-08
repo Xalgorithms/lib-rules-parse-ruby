@@ -6,12 +6,26 @@ module XA
       attr_reader :meta
 
       def initialize
-        @meta = OpenStruct.new(expects: [])
+        @meta = OpenStruct.new(expects: [], repos: {})
         @actions = []
       end
-      
+
       def expects(table_name, column_names)
         @meta.expects << OpenStruct.new(table: table_name, columns: column_names)
+      end
+
+      def attach(url, name)
+        @meta.repos[name] = url
+      end
+
+      def repositories
+        @meta.repos.each do |k, v|
+          yield(v, k)
+        end
+      end
+
+      def pull(name, repo, table, version)
+        add(Pull.new(name, repo, table, version))
       end
 
       def push(n)
@@ -42,12 +56,12 @@ module XA
         act = add(Accumulate.new(column, result), &bl)
       end
 
-      def execute(tables)
+      def execute(ctx, tables)
         res = verify_expectations(tables) do |res|
           stack = []
           @actions.each do |act|
             # p stack
-            act.execute(tables, stack, res)
+            act.execute(ctx, tables, stack, res)
           end
 
           res
@@ -56,24 +70,37 @@ module XA
 
       private
 
+      class Pull
+        def initialize(name, repo, table, version)
+          @name = name
+          @args = { repo: repo, table: table, version: version }
+        end
+
+        def execute(ctx, tables, stack, res)
+          ctx.get(:table, @args) do |tbl|
+            tables[@name] = tbl
+          end
+        end
+      end
+      
       class Push
         def initialize(n)
           @name = n
         end
 
-        def execute(tables, stack, res)
+        def execute(ctx, tables, stack, res)
           stack.push(tables[@name])
         end
       end
 
       class Pop
-        def execute(tables, stack, res)
+        def execute(ctx, tables, stack, res)
           stack.pop
         end
       end
 
       class Duplicate
-        def execute(tables, stack, res)
+        def execute(ctx, tables, stack, res)
           stack.push(stack.last.dup)
         end
       end
@@ -84,7 +111,7 @@ module XA
           @columns = columns
         end
 
-        def execute(tables, stack, res)
+        def execute(ctx, tables, stack, res)
           if stack.any?
             t = stack.pop
             t = t.map { |r| r.select { |k, _| @columns.include?(k) } } if @columns
@@ -104,7 +131,7 @@ module XA
           self
         end
 
-        def execute(tables, stack, res)
+        def execute(ctx, tables, stack, res)
           right = stack.pop
           left = stack.pop
 
@@ -197,7 +224,7 @@ module XA
           @applications.last
         end
 
-        def execute(tables, stack, res)
+        def execute(ctx, tables, stack, res)
           tbl = stack.pop
           stack.push(tbl.map do |r|
             r.merge(@result => @applications.first.apply_to_row(r, r.fetch(@column, nil)))
