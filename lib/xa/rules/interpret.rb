@@ -73,7 +73,7 @@ module XA
       end
 
       def interpret_pull(r, c)
-        r.pull(c['as'], c['repository'], c['table'], c['version'])
+        r.pull(c['as'], c['namespace'], c['table'], c['version'])
       end
       
       def interpret_unknown(r, c)

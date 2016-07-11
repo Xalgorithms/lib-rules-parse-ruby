@@ -71,9 +71,9 @@ module XA
       private
 
       class Pull
-        def initialize(name, repo, table, version)
+        def initialize(name, ns, table, version)
           @name = name
-          @args = { repo: repo, table: table, version: version }
+          @args = { ns: ns, table: table, version: version }
         end
 
         def execute(ctx, tables, stack, res)

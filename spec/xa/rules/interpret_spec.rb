@@ -83,18 +83,18 @@ describe XA::Rules::Interpret do
           },
         },
         {
-          'name'       => 'pull',
-          'repository' => 'repo0',
-          'table'      => 'foo',
-          'version'    => '1234',
-          'as'         => 'foo0',
+          'name'      => 'pull',
+          'namespace' => 'repo0',
+          'table'     => 'foo',
+          'version'   => '1234',
+          'as'        => 'foo0',
         },
         {
-          'name'       => 'pull',
-          'repository' => 'repo1',
-          'table'      => 'bar',
-          'version'    => '3333',
-          'as'         => 'bar1',
+          'name'      => 'pull',
+          'namespace' => 'repo1',
+          'table'     => 'bar',
+          'version'   => '3333',
+          'as'        => 'bar1',
         },
       ],
     }
@@ -161,6 +161,6 @@ describe XA::Rules::Interpret do
   end
 
   def expect_pull(c, r)
-    expect(r).to receive(:pull).with(c['as'], c['repository'], c['table'], c['version'])
+    expect(r).to receive(:pull).with(c['as'], c['namespace'], c['table'], c['version'])
   end
 end

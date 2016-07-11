@@ -277,7 +277,7 @@ describe XA::Rules::Rule do
   it 'should pull outer tables via the context' do
     expected = [
       {
-        repo: 'repo0',
+        ns: 'ns0',
         table: 'table0',
         version: '1',
         name: 'rt00',
@@ -287,7 +287,7 @@ describe XA::Rules::Rule do
         ],
       },
       {
-        repo: 'repo0',
+        ns: 'ns0',
         table: 'table1',
         version: '22',
         name: 'rt01',
@@ -297,7 +297,7 @@ describe XA::Rules::Rule do
         ],
       },
       {
-        repo: 'repo1',
+        ns: 'ns1',
         table: 'table11',
         version: 'latest',
         name: 'rt_latest',
@@ -311,11 +311,11 @@ describe XA::Rules::Rule do
     ctx = XA::Rules::Context.new
     expected.each do |ex|
       r = XA::Rules::Rule.new
-      r.pull(ex[:name], ex[:repo], ex[:table], ex[:version])
+      r.pull(ex[:name], ex[:ns], ex[:table], ex[:version])
       r.push(ex[:name])
       r.commit('results')
       
-      allow(ctx).to receive(:get).with(:table, { repo: ex[:repo], table: ex[:table], version: ex[:version] }).and_yield(ex[:data])
+      allow(ctx).to receive(:get).with(:table, { ns: ex[:ns], table: ex[:table], version: ex[:version] }).and_yield(ex[:data])
       res = ctx.execute(r)
       expect(res.tables['results']).to eql(ex[:data])
     end

@@ -22,8 +22,8 @@ describe XA::Rules::Parse do
 
       {
         in: [
-          'PULL repo0:foo:1234 AS foo0',
-          'PULL repo1:bar:3333 AS bar1',
+          'PULL ns0:foo:1234 AS foo0',
+          'PULL ns1:bar:3333 AS bar1',
           'ATTACH http://www.example0.org/foo AS repo0',
           'ATTACH http://www.example1.org/foo AS repo1',
         ],
@@ -36,18 +36,18 @@ describe XA::Rules::Parse do
           },
           'actions' => [
             {
-              'name'       => 'pull',
-              'repository' => 'repo0',
-              'table'      => 'foo',
-              'version'    => '1234',
-              'as'         => 'foo0',
+              'name'      => 'pull',
+              'namespace' => 'ns0',
+              'table'     => 'foo',
+              'version'   => '1234',
+              'as'        => 'foo0',
             },
             {
-              'name'       => 'pull',
-              'repository' => 'repo1',
-              'table'      => 'bar',
-              'version'    => '3333',
-              'as'         => 'bar1',
+              'name'      => 'pull',
+              'namespace' => 'ns1',
+              'table'     => 'bar',
+              'version'   => '3333',
+              'as'        => 'bar1',
             },
           ]
         },
@@ -108,22 +108,22 @@ describe XA::Rules::Parse do
 
       {
         in: [
-          'INVOKE repo0:name0:1111',
-          'INVOKE repo1:name2:3333',
+          'INVOKE ns0:name0:1111',
+          'INVOKE ns1:name2:3333',
         ],
         out: {
           'actions' => [
             {
-              'name'       => 'invoke',
-              'repository' => 'repo0',
-              'rule'       => 'name0',
-              'version'    => '1111',
+              'name'      => 'invoke',
+              'namespace' => 'ns0',
+              'rule'      => 'name0',
+              'version'   => '1111',
             },
             {
-              'name'       => 'invoke',
-              'repository' => 'repo1',
-              'rule'       => 'name2',
-              'version'    => '3333',
+              'name'      => 'invoke',
+              'namespace' => 'ns1',
+              'rule'      => 'name2',
+              'version'   => '3333',
             },
           ],
         },

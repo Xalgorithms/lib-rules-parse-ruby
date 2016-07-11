@@ -30,7 +30,7 @@ module XA
         
         rule(:table_ref)      { name.as(:table_name) >> lblock >> names.as(:columns) >> rblock }
         rule(:table_ref_opt)  { name.as(:table_name) >> (lblock >> names.as(:columns) >> rblock).maybe }
-        rule(:rule_ref)       { name.as(:repo) >> colon >> name.as(:rule) >> colon >> name.as(:version) }
+        rule(:rule_ref)       { name.as(:ns) >> colon >> name.as(:rule) >> colon >> name.as(:version) }
         rule(:join_spec)      { lblock >> lblock >> names.as(:lefts) >> rblock >> comma >> space.maybe >> lblock >> names.as(:rights) >> rblock >> rblock }
         rule(:includes_spec)  { lblock >> names_as >> rblock }
         rule(:joinish)        { usings >> space >> join_spec.as(:joins) >> space >> includes >> space >> includes_spec.as(:includes) }
@@ -90,11 +90,11 @@ module XA
 
       def interpret_pull(o, res)
         act = {
-          'name' => 'pull',
-          'repository' => res[:rule_ref][:repo].str,
-          'table'      => res[:rule_ref][:rule].str,
-          'version'    => res[:rule_ref][:version].str,
-          'as'         => res[:table_name].str,
+          'name'      => 'pull',
+          'namespace' => res[:rule_ref][:ns].str,
+          'table'     => res[:rule_ref][:rule].str,
+          'version'   => res[:rule_ref][:version].str,
+          'as'        => res[:table_name].str,
         }
         add_action(o, act)
       end
@@ -117,10 +117,10 @@ module XA
       
       def interpret_invoke(o, res)
         act = {
-          'name' => 'invoke',
-          'repository' => res[:rule_ref][:repo].str,
-          'rule'       => res[:rule_ref][:rule].str,
-          'version'    => res[:rule_ref][:version].str,
+          'name'      => 'invoke',
+          'namespace' => res[:rule_ref][:ns].str,
+          'rule'      => res[:rule_ref][:rule].str,
+          'version'   => res[:rule_ref][:version].str,
         }
         add_action(o, act)
       end
