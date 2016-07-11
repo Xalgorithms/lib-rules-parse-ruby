@@ -1,4 +1,4 @@
-require 'xa/repository/client'
+require 'xa/registry/client'
 
 module XA
   module Rules
@@ -16,7 +16,7 @@ module XA
 
       def execute(rule)
         rule.repositories do |url, name|
-          @clients[name] = XA::Repository::Client.new(url) if !@clients.key?(name)
+          @clients[name] = XA::Registry::Client.new(url) if !@clients.key?(name)
         end
         rule.execute(self, {})
       end

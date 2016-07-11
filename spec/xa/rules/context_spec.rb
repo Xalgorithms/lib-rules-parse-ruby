@@ -1,6 +1,6 @@
 require 'xa/rules/context'
 require 'xa/rules/rule'
-require 'xa/repository/client'
+require 'xa/registry/client'
 
 describe XA::Rules::Context do
   it 'should execute a rule, in context' do
@@ -12,7 +12,7 @@ describe XA::Rules::Context do
     ctx.execute(r)
   end
 
-  it 'should download from the repository' do
+  it 'should download from the registry' do
     expectations = [
       {
         url: 'http://foo.com',
@@ -45,8 +45,8 @@ describe XA::Rules::Context do
       r = XA::Rules::Rule.new
       r.attach(ex[:url], ex[:repo])
 
-      cl = instance_double(XA::Repository::Client)
-      expect(XA::Repository::Client).to receive(:new).with(ex[:url]).and_return(cl)
+      cl = instance_double(XA::Registry::Client)
+      expect(XA::Registry::Client).to receive(:new).with(ex[:url]).and_return(cl)
       ctx.execute(r)
 
       expect(cl).to receive(:tables).with(ex[:table], ex[:version]).and_return(ex[:data])

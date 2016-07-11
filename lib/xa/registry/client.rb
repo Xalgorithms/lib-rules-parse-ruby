@@ -1,5 +1,5 @@
 module XA
-  module Repository
+  module Registry
     class Client
       def initialize(url)
       end
