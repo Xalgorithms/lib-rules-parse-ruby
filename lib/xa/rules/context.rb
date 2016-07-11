@@ -25,7 +25,7 @@ module XA
 
       def get_table(args, &bl)
         if @clients.key?(args[:repo])
-          bl.call(@clients[args[:repo]].tables(args[:table], args[:version])) if bl
+          bl.call(@clients[args[:repo]].tables(args[:ns], args[:table], args[:version])) if bl
         end
       end
 

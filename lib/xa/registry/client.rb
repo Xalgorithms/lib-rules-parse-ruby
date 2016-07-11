@@ -4,7 +4,7 @@ module XA
       def initialize(url)
       end
 
-      def tables(name, version)
+      def tables(ns, name, version)
       end
     end
   end

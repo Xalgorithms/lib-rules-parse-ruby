@@ -17,6 +17,7 @@ describe XA::Rules::Context do
       {
         url: 'http://foo.com',
         repo: 'foo',
+        ns: 'foons',
         table: 'table_foo',
         version: '1234',
         type: :table,
@@ -28,6 +29,7 @@ describe XA::Rules::Context do
       {
         url: 'http://faa.com',
         repo: 'baz',
+        ns: 'bazns',
         table: 'table_baz',
         version: '111',
         type: :table,
@@ -49,8 +51,8 @@ describe XA::Rules::Context do
       expect(XA::Registry::Client).to receive(:new).with(ex[:url]).and_return(cl)
       ctx.execute(r)
 
-      expect(cl).to receive(:tables).with(ex[:table], ex[:version]).and_return(ex[:data])
-      ctx.get(ex[:type], { repo: ex[:repo], table: ex[:table], version: ex[:version] }) do |actual|
+      expect(cl).to receive(:tables).with(ex[:ns], ex[:table], ex[:version]).and_return(ex[:data])
+      ctx.get(ex[:type], { repo: ex[:repo], ns: ex[:ns], table: ex[:table], version: ex[:version] }) do |actual|
         expect(actual).to eql(ex[:data])
       end
     end
