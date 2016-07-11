@@ -38,6 +38,17 @@ describe XA::Rules::Context do
           { 'p' => '11', 'q' => '12' },
         ],
       },
+      {
+        url: 'http://faa.com',
+        repo: 'baz1',
+        ns: 'xalgo',
+        rule: 'rule_x',
+        version: '111',
+        type: :rule,
+        data: {
+          actions: [],
+        }
+      },
     ]
 
     # context should be reusable
@@ -51,9 +62,16 @@ describe XA::Rules::Context do
       expect(XA::Registry::Client).to receive(:new).with(ex[:url]).and_return(cl)
       ctx.execute(r)
 
-      expect(cl).to receive(:tables).with(ex[:ns], ex[:table], ex[:version]).and_return(ex[:data])
-      ctx.get(ex[:type], { repo: ex[:repo], ns: ex[:ns], table: ex[:table], version: ex[:version] }) do |actual|
-        expect(actual).to eql(ex[:data])
+      if ex.key?(:table)
+        expect(cl).to receive(:tables).with(ex[:ns], ex[:table], ex[:version]).and_return(ex[:data])
+        ctx.get(ex[:type], { repo: ex[:repo], ns: ex[:ns], table: ex[:table], version: ex[:version] }) do |actual|
+          expect(actual).to eql(ex[:data])
+        end
+      elsif ex.key?(:rule)
+        expect(cl).to receive(:rules).with(ex[:ns], ex[:rule], ex[:version]).and_return(ex[:data])
+        ctx.get(ex[:type], { repo: ex[:repo], ns: ex[:ns], rule: ex[:rule], version: ex[:version] }) do |actual|
+          expect(actual).to eql(ex[:data])
+        end
       end
     end
   end

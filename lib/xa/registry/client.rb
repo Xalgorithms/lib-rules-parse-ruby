@@ -13,18 +13,21 @@ module XA
         end
       end
 
+      def rules(ns, name, version)
+        get_rule(ns, name, version)
+      end
+      
       def tables(ns, name, version)
-        rv = nil
-        resp = @conn.get("/api/v1/rules/#{ns}/#{name}/#{version}")
-        if resp.success?
-          if resp.body.key?('rows')
-            rv = resp.body['rows']
-          else
-            Rails.logger.warn('? does not appear to be a table')
-          end
-        end
-
+        rv = get_rule(ns, name, version)
+        rv = rv['rows'] if rv && rv.key?('rows')
         rv
+      end
+
+      private
+
+      def get_rule(ns, name, version)
+        resp = @conn.get("/api/v1/rules/#{ns}/#{name}/#{version}")
+        resp.success? ? resp.body : nil
       end
     end
   end
