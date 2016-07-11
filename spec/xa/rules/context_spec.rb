@@ -12,6 +12,17 @@ describe XA::Rules::Context do
     ctx.execute(r)
   end
 
+  it 'should provide tables to the rule' do
+    tables = { foo: [], bar: [] }
+    ctx = XA::Rules::Context.new(tables)
+
+    rule = instance_double(XA::Rules::Rule)
+    expect(rule).to receive(:repositories).and_return({})
+    expect(rule).to receive(:execute).with(ctx, tables)
+
+    ctx.execute(rule)
+  end
+  
   it 'should download from the registry' do
     expectations = [
       {

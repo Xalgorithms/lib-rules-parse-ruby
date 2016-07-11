@@ -3,12 +3,13 @@ require 'xa/registry/client'
 module XA
   module Rules
     class Context
-      def initialize
+      def initialize(tables = {})
         @clients = {}
         @types = {
           table: method(:get_table),
           rule:  method(:get_rule),
         }
+        @tables = tables
       end
       
       def get(type, args, &bl)
@@ -19,7 +20,7 @@ module XA
         rule.repositories do |url, name|
           @clients[name] = XA::Registry::Client.new(url) if !@clients.key?(name)
         end
-        rule.execute(self, {})
+        rule.execute(self, @tables)
       end
 
       private
