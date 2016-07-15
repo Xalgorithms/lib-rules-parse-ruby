@@ -18,20 +18,31 @@ module XA
 
       def execute(rule)
         rule.repositories do |url, name|
-          @clients[name] = XA::Registry::Client.new(url) if !@clients.key?(name)
+          init_client(name, url)
         end
         rule.execute(self, @tables)
       end
 
       private
 
-      def with_client(repo)
-        cl = @clients.fetch(repo, nil)
+      def init_client(name, url)
+        if !@clients.key?(name)
+          cl = XA::Registry::Client.new(url)
+          @clients[name] = {
+            client:     cl,
+            namespaces: cl.namespaces,
+          }
+        end
+      end
+      
+      def with_client(ns)
+        # TODO: deal with multiple registries some time in the future
+        cl = @clients.values.select { |cl| cl[:namespaces].include?(ns) }.first[:client]
         yield(cl) if cl
       end
 
       def invoke_client(args, m, t, &bl)
-        with_client(args[:repo]) do |cl|
+        with_client(args[:ns]) do |cl|
           bl.call(cl.send(m, args[:ns], args[t], args[:version])) if bl
         end
       end

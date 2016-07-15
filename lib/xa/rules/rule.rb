@@ -24,8 +24,8 @@ module XA
         end
       end
 
-      def pull(name, repo, table, version)
-        add(Pull.new(name, repo, table, version))
+      def pull(name, ns, table, version)
+        add(Pull.new(name, ns, table, version))
       end
 
       def push(n)

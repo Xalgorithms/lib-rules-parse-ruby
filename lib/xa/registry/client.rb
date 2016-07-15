@@ -13,6 +13,10 @@ module XA
         end
       end
 
+      def namespaces
+        get("namespaces")
+      end
+
       def rules(ns, name, version)
         get_rule(ns, name, version)
       end
@@ -26,7 +30,11 @@ module XA
       private
 
       def get_rule(ns, name, version)
-        resp = @conn.get("/api/v1/rules/#{ns}/#{name}/#{version}")
+        get("rules/#{ns}/#{name}/#{version}")
+      end
+
+      def get(rel_url)
+        resp = @conn.get("/api/v1/#{rel_url}")
         resp.success? ? resp.body : nil
       end
     end
