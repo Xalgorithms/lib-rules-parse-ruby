@@ -79,7 +79,7 @@ module XA
         def execute(ctx, tables, stack, res)
           ctx.get(:table, @args) do |tbl|
             tables[@name] = tbl
-          end
+          end if !tables.key?(@name)
         end
       end
       
