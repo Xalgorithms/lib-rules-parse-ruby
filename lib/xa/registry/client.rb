@@ -17,8 +17,12 @@ module XA
         get("namespaces")
       end
 
-      def rules(ns, name, version)
+      def rule_by_reference(ns, name, version)
         get_rule(ns, name, version)
+      end
+
+      def rules(since = nil)
+        since ? get("rules/since/#{since}") : get("rules")
       end
       
       def tables(ns, name, version)
@@ -30,7 +34,7 @@ module XA
       private
 
       def get_rule(ns, name, version)
-        get("rules/#{ns}/#{name}/#{version}")
+        get("rules/by_reference/#{ns}/#{name}/#{version}")
       end
 
       def get(rel_url)
