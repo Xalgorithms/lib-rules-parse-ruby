@@ -37,7 +37,8 @@ module XA
       
       def with_client(ns)
         # TODO: deal with multiple registries some time in the future
-        cl = @clients.values.select { |cl| cl[:namespaces].include?(ns) }.first[:client]
+        cl = @clients.values.select { |cl| cl[:namespaces].include?(ns) }.first
+        cl = cl[:client] if cl
         yield(cl) if cl
       end
 
@@ -52,7 +53,7 @@ module XA
       end
 
       def get_rule(args, &bl)
-        invoke_client(args, :rules, :rule, &bl)
+        invoke_client(args, :rule_by_reference, :rule, &bl)
       end
 
       def get_nothing(args, &bl)

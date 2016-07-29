@@ -5,10 +5,16 @@ require 'xa/registry/client'
 describe XA::Rules::Context do
   it 'should execute a rule, in context' do
     r = instance_double(XA::Rules::Rule)
+    cl = instance_double(XA::Registry::Client)
+
     ctx = XA::Rules::Context.new
 
     expect(r).to receive(:execute).with(ctx, {})
     expect(r).to receive(:repositories).and_yield(nil, nil)
+
+    expect(XA::Registry::Client).to receive(:new).and_return(cl)
+    expect(cl).to receive(:namespaces).and_return([])
+    
     ctx.execute(r)
   end
 
@@ -70,6 +76,8 @@ describe XA::Rules::Context do
       r.attach(ex[:url], ex[:repo])
 
       cl = instance_double(XA::Registry::Client)
+      expect(cl).to receive(:namespaces).and_return([ex[:ns]])
+                                                    
       expect(XA::Registry::Client).to receive(:new).with(ex[:url]).and_return(cl)
       ctx.execute(r)
 
@@ -79,7 +87,7 @@ describe XA::Rules::Context do
           expect(actual).to eql(ex[:data])
         end
       elsif ex.key?(:rule)
-        expect(cl).to receive(:rules).with(ex[:ns], ex[:rule], ex[:version]).and_return(ex[:data])
+        expect(cl).to receive(:rule_by_reference).with(ex[:ns], ex[:rule], ex[:version]).and_return(ex[:data])
         ctx.get(ex[:type], { repo: ex[:repo], ns: ex[:ns], rule: ex[:rule], version: ex[:version] }) do |actual|
           expect(actual).to eql(ex[:data])
         end
