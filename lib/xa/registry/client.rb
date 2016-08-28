@@ -17,6 +17,10 @@ module XA
         get("namespaces")
       end
 
+      def rule_by_full_reference(ref)
+        rule_by_reference(*ref.split(/:/))
+      end
+      
       def rule_by_reference(ns, name, version)
         get_rule(ns, name, version)
       end
