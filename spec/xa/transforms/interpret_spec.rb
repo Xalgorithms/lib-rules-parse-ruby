@@ -27,6 +27,40 @@ describe XA::Transforms::Interpret do
             { 'z' => 'q01', 'y' => 'd01' },
           ]
         },
+        changes: {
+          'p' => 'change/p',
+          'y' => 'change/y',
+        },
+        rev: [
+          {
+            'x' => {
+              'y' => {
+                'z' => 'change/p',
+                'q' => 'q00',
+              },
+            },
+            'a' => {
+              'b' => {
+                'c' => 'c00',
+              },
+            },
+            'd' => 'change/y',
+          },
+          {
+            'x' => {
+              'y' => {
+                'z' => 'change/p',
+                'q' => 'q01',
+              },
+            },
+            'a' => {
+              'b' => {
+                'c' => 'c01',
+              },
+            },
+            'd' => 'change/y',
+          },
+        ],
         data: [
           {
             'x' => {
@@ -72,6 +106,27 @@ describe XA::Transforms::Interpret do
             { 'q' => 'c01' },
           ],
         },
+        changes: {
+          'r' => 'change/r',
+          'q' => 'change/q',
+        },
+        rev: [
+          {
+            'x' => {
+              'y' => {
+                'z' => 'z00',
+              },
+            },
+            'd' => 'change/r',
+          },
+          {
+            'a' => {
+              'b' => {
+                'c' => 'change/q',
+              }
+            },
+          },
+        ],
         data: [
           {
             'x' => {
@@ -98,7 +153,20 @@ describe XA::Transforms::Interpret do
     ]
 
     expectations.each do |ex|
-      expect(interpret(ex[:data], ex[:in])).to eql(ex[:out])
+      interpreted = interpret(ex[:data], ex[:in])
+      expect(interpreted).to eql(ex[:out])
+
+      # change the data and reverse transform
+      changed = interpreted.keys.inject({}) do |o, k|
+        changed_rows = interpreted[k].map do |row|
+          row.keys.inject({}) do |co, rk|
+            co.merge(rk => ex[:changes].fetch(rk, row[rk]))
+          end
+        end
+        o.merge(k => changed_rows)
+      end
+
+      expect(misinterpret(changed, ex[:in])).to eql(ex[:rev])
     end
   end
 end

@@ -1,27 +1,31 @@
+require 'xa/util/documents'
+require 'xa/util/tables'
+
 module XA
   module Transforms
     module Interpret
+      include XA::Util::Documents
+      include XA::Util::Tables
+      
       def interpret(src, tx)
-        maps = tx.keys.inject({}) do |o, col_key|
-          o.merge(col_key => {
-                    make: lambda do |src_o|
-                      make_row(src_o, tx[col_key])
-                    end,
-                    table: []
-                  })
-        end
-
-        src.each do |src_o|
-          maps.values.each do |v|
-            v[:table] << v[:make].call(src_o)
+        tx.keys.inject({}) do |tables, tn|
+          m = tx[tn]
+          docs = src.map do |doc|
+            transform_by_inverted_map(doc, m)
           end
-        end
-
-        maps.inject({}) do |o, kv|
-          o.merge(kv.first => kv.last[:table])
+          tables.merge(tn => docs)
         end
       end
 
+      def misinterpret(tables, tx)
+        tables_to_documents(tables).map do |doc|
+          transformed = tx.values.map do |m|
+            transform_by_map(doc, m)
+          end
+          combine_documents(transformed)
+        end
+      end
+      
       private
 
       def make_row(o, tx)
