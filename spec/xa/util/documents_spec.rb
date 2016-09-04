@@ -221,5 +221,66 @@ describe XA::Util::Documents do
 
     expect(combine_documents(docs)).to eql(expected)
   end
+
+  it 'can determine if a path is present in a document' do
+    expectations = [
+      {
+        # general case
+        document: {
+          'x' => {
+            'y' => {
+              'z' => 'z_val',
+              'q' => 'q_val',
+            },
+          },
+          'a' => {
+            'b' => 'b_val'
+          },
+          'p' => 'p_val',
+          'q' => {
+            'r' => 'r_val',
+          },
+          'f' => 'f_val',
+        },
+        keys: {
+          'x.y.z' => true,
+          'x.y.x' => false,
+          'a'     => true,
+          'q.r'   => true,
+          'd'     => false,
+        },
+      },
+      {
+        document: {
+          'x' => {
+            'y' => {
+              'z' => 'z_val',
+              'q' => 'q_val',
+            },
+          },
+          'a' => {
+            'b' => 'b_val'
+          },
+          'p' => 'p_val',
+          'q' => {
+            'r' => 'r_val',
+          },
+          'f' => 'f_val',
+        },
+        keys: {
+          'x.y.z' => true,
+          'x'     => true,
+          'x.z'   => false,
+          'g'     => false,
+        },
+      },
+    ]
+
+    expectations.each do |ex|
+      ex[:keys].keys.each do |k|
+        expect(document_contains_path(ex[:document], k)).to eql(ex[:keys][k])
+      end
+    end
+  end
 end
   

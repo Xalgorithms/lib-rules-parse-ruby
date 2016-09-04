@@ -32,6 +32,10 @@ module XA
           end
         end
       end
+
+      def document_contains_path(doc, k)
+        do_contains(doc, k.split('.'))
+      end
       
       private
 
@@ -48,6 +52,10 @@ module XA
 
       def do_insertion(doc, ks, val)
         doc.merge(ks.first => ks.length == 1 ? val : do_insertion(doc.fetch(ks.first, {}), ks[1..-1], val))
+      end
+
+      def do_contains(doc, ks)
+        ks.length == 1 ? doc.include?(ks.first) : do_contains(doc.fetch(ks.first), ks[1..-1])
       end
     end
   end
