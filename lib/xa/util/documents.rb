@@ -27,6 +27,12 @@ module XA
             existing = final.fetch(k, {})
             existing = {} if existing.class != Hash
             final.merge(k => merge_document(existing, src[k]))
+          elsif src[k].class == Array && dest[k].class == Array
+            merged_a = src[k].each_with_index.map do |o, i|
+              merge_document(dest[k][i], o)
+            end
+            
+            final.merge(k => merged_a)
           else
             final.merge(k => src[k])
           end

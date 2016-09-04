@@ -198,6 +198,12 @@ describe XA::Util::Documents do
       {
         'a' => [1, 2, 3],
         'b' => [4, 5, 6],
+        'c' => [{ 'x' => 1, 'y' => 2}],
+        'd' => [{ 'q' => 11}],
+      },
+      {
+        'd' => 100,
+        'c' => [{ 'x' => 11, 'z' => 3}],
       },
     ]
 
@@ -217,6 +223,8 @@ describe XA::Util::Documents do
       'z' => 'z_value',
       'a' => [1, 2, 3],
       'b' => [4, 5, 6],
+      'c' => [{ 'x' => 11, 'y' => 2, 'z' => 3 }],
+      'd' => 100,
     }
 
     expect(combine_documents(docs)).to eql(expected)
