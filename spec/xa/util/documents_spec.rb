@@ -290,5 +290,78 @@ describe XA::Util::Documents do
       end
     end
   end
+
+  it 'should extract a subset of a document based on the keys of another document' do
+    expectations = [
+      {
+        doc: {
+          'x' => {
+            'y' => 1,
+            'z' => 2,
+          },
+          'p' => 3,
+          'q' => 4,
+        },
+        assoc: {
+          'x' => {
+            'z' => 'a2',
+          },
+          'q' => 'a4',
+        },
+        result: {
+          'x' => {
+            'z' => 2,
+          },
+          'q' => 4,          
+        },
+      },
+      {
+        doc: {
+          'p' => 1,
+          'x' => {
+            'y' => {
+              'xx' => 1,
+              'yy' => 2,
+            },
+            'z' => {
+              'xx' => 3,
+              'yy' => 4,
+            }
+          },
+        },
+        assoc: {
+          'p' => 'a1',
+        },
+        result: {
+          'p' => 1,          
+        },
+      },
+      {
+        doc: {
+          'a' => [
+            { 'x' => 1 },
+            { 'x' => 2 },
+            { 'x' => 3 },
+            { 'x' => 4 },
+          ],
+        },
+        assoc: {
+          'a' => 'a1',
+        },
+        result: {
+          'a' => [
+            { 'x' => 1 },
+            { 'x' => 2 },
+            { 'x' => 3 },
+            { 'x' => 4 },
+          ],
+        },
+      },
+    ]
+
+    expectations.each do |ex|
+      expect(extract_corresponding(ex[:doc], ex[:assoc])).to eql(ex[:result])
+    end
+  end
 end
   

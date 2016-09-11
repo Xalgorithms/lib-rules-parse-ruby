@@ -42,6 +42,20 @@ module XA
       def document_contains_path(doc, k)
         do_contains(doc, k.split('.'))
       end
+
+      def extract_corresponding(doc, assoc_doc)
+        assoc_doc.keys.inject({}) do |corr, k|
+          if doc.key?(k)
+            if doc[k].class == Hash
+              corr.merge(k => extract_corresponding(doc[k], assoc_doc.fetch(k, {})))
+            else
+              corr.merge(k => doc[k])
+            end
+          else
+            corr
+          end
+        end
+      end
       
       private
 
