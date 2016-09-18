@@ -116,8 +116,10 @@ module XA
         def execute(ctx, tables, stack, res)
           if stack.any?
             t = stack.pop
+            ctx.logger.info("committing (table=#{t}; name=#{@name}; cols=#{@columns})") if ctx
             t = t.map { |r| r.select { |k, _| @columns.include?(k) } } if @columns
             res.tables = res.tables.merge(@name => t)
+            ctx.logger.info("committed (res.tables=#{res.tables})") if ctx
           end
         end
       end
@@ -148,6 +150,8 @@ module XA
             table + resolve(matches, lr)
           end
 
+          ctx.logger.info("joined (table=#{table})") if ctx
+          
           stack.push(table)
         end
 
@@ -230,9 +234,12 @@ module XA
 
         def execute(ctx, tables, stack, res)
           tbl = stack.pop
-          stack.push(tbl.map do |r|
+          ctx.logger.info("accumulating (tbl=#{tbl})") if ctx
+          res = tbl.map do |r|
             r.merge(@result => @applications.first.apply_to_row(r, r.fetch(@column, nil)))
-          end)
+          end
+          ctx.logger.info("accumulated (res=#{res})") if ctx
+          stack.push(res)
         end
       end
       
