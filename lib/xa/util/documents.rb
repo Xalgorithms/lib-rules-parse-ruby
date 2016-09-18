@@ -48,6 +48,12 @@ module XA
           if doc.key?(k)
             if doc[k].class == Hash
               corr.merge(k => extract_corresponding(doc[k], assoc_doc.fetch(k, {})))
+            elsif doc[k].class == Array && assoc_doc[k].class == Array
+              # TODO: assumes that assoc_doc is dominant in size
+              subset = assoc_doc[k].each_with_index.map do |val, i|
+                extract_corresponding(doc[k][i], val)
+              end
+              corr.merge(k => subset)
             else
               corr.merge(k => doc[k])
             end
