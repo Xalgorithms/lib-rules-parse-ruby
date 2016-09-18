@@ -89,6 +89,7 @@ module XA
         end
 
         def execute(ctx, tables, stack, res)
+          ctx.logger.debug("push (name=#{@name}; tables=#{tables.keys.join('|')})") if ctx
           stack.push(tables[@name])
         end
       end
@@ -135,6 +136,8 @@ module XA
           right = stack.pop
           left = stack.pop
 
+          ctx.logger.info("join (right=#{right}; left=#{left})") if ctx
+          
           table = left.inject([]) do |table, lr|
             lvals = @joint[:left].map { |k| lr.fetch(k, nil) }
             matches = right.select do |rr|
