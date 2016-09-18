@@ -77,6 +77,7 @@ module XA
         end
 
         def execute(ctx, tables, stack, res)
+          ctx.logger.info("pulling from context (args=#{@args})") if ctx
           ctx.get(:table, @args) do |tbl|
             tables[@name] = tbl
           end if !tables.key?(@name)
