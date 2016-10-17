@@ -197,4 +197,52 @@ describe XA::Rules::Parse do
       expect(parse(ex[:in])).to eql(ex[:out])
     end
   end
+
+  it 'parses buffers' do
+    expectations = [
+      {
+        in: "EXPECTS foo[x, y, z]\nExPeCTS bar[a, b]",
+        out: {
+          'meta' => {
+            'expects' => {
+              'foo' => ['x', 'y', 'z'],
+              'bar' => ['a', 'b'],
+            },
+          }
+        },
+      },
+
+      {
+        in: "PULL ns0:foo:1234 AS foo0\r\nPULL ns1:bar:3333 AS bar1\r\nATTACH http://www.example0.org/foo AS repo0\nATTACH http://www.example1.org/foo AS repo1",
+        out: {
+          'meta' => {
+            'repositories' => {
+              'repo0' => 'http://www.example0.org/foo',
+              'repo1' => 'http://www.example1.org/foo',
+            },
+          },
+          'actions' => [
+            {
+              'name'      => 'pull',
+              'namespace' => 'ns0',
+              'table'     => 'foo',
+              'version'   => '1234',
+              'as'        => 'foo0',
+            },
+            {
+              'name'      => 'pull',
+              'namespace' => 'ns1',
+              'table'     => 'bar',
+              'version'   => '3333',
+              'as'        => 'bar1',
+            },
+          ]
+        },
+      },
+    ]
+
+    expectations.each do |ex|
+      expect(parse_buffer(ex[:in])).to eql(ex[:out])
+    end
+  end
 end
