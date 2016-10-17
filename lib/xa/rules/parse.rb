@@ -56,17 +56,17 @@ module XA
         root(:action)
       end
 
-      def parse_buffer(b)
+      def parse_buffer(b, logger=nil)
         parse(b.split(/\r?\n/).inject([]) do |a, ln|
                 ln.strip!
                 (ln.empty? || ln.start_with?('#')) ? a : a + [ln]
-              end)
+              end, logger)
       end
       
-      def parse(actions)
+      def parse(actions, logger=nil)
         rv = {}
         actions.each do |act|
-#          p act
+          logger.debug("try to parse: #{act}")
           res = parser.parse(act)
           rv = rv.merge(interpret(rv, res))
         end
