@@ -79,6 +79,7 @@ module XA
         def execute(ctx, tables, stack, res)
           ctx.logger.info("pulling from context (args=#{@args})") if ctx
           ctx.get(:table, @args) do |tbl|
+            # TODO: if tbl is nil, we need to fail gracefully
             tables[@name] = tbl
           end if !tables.key?(@name)
         end
@@ -97,6 +98,7 @@ module XA
 
       class Pop
         def execute(ctx, tables, stack, res)
+          ctx.logger.debug("pop (tables=#{tables.keys.join('|')})") if ctx
           stack.pop
         end
       end
