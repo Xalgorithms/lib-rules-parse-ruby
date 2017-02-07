@@ -213,7 +213,7 @@ describe XA::Rules::Parse do
       },
 
       {
-        in: "PULL ns0:foo:1234 AS foo0\r\nPULL ns1:bar:3333 AS bar1\r\nATTACH http://www.example0.org/foo AS repo0\nATTACH http://www.example1.org/foo AS repo1",
+        in: "PULL ns0:foo:1234 AS foo0\r\n\r\nPULL ns1:bar:3333 AS bar1\r\nATTACH http://www.example0.org/foo AS repo0\nATTACH http://www.example1.org/foo AS repo1",
         out: {
           'meta' => {
             'repositories' => {

@@ -66,7 +66,7 @@ module XA
       def parse(actions, logger=nil)
         rv = {}
         actions.each do |act|
-          logger.debug("try to parse: #{act}")
+          logger.debug("try to parse: #{act}") if logger
           res = parser.parse(act)
           rv = rv.merge(interpret(rv, res))
         end
