@@ -73,14 +73,72 @@ module XA
         rv
       end
 
+      def unparse(actions, logger=nil)
+        actions.map do |act|
+          send("unparse_#{act['name']}", act)
+        end
+      end
+
       private
+
+      def unparse_pull(act)
+        rv = "PULL #{act['namespace']}:#{act['table']}:#{act['version']}"
+        rv = "#{rv} AS #{act['as']}" if act.key?('as')
+        rv
+      end
+
+      def unparse_commit(act)
+        rv = "COMMIT #{act['table']}"
+        rv = "#{rv}[#{act['columns'].join(', ')}]" if act.key?('columns')
+        rv
+      end
+
+      def unparse_push(act)
+        "PUSH #{act['table']}"
+      end
+
+      def unparse_pop(act)
+        "POP"
+      end
+
+      def unparse_duplicate(act)
+        "DUPLICATE"
+      end
+
+      def unparse_invoke(act)
+        "INVOKE #{act['namespace']}:#{act['rule']}:#{act['version']}"
+      end
+
+      def unparse_join(act)
+        incs = act.fetch('include', {}).map do |k, v|
+          k == v ? k : "#{k} AS #{v}"
+        end
+
+        rv = "JOIN USING [[#{act['using']['left'].join(', ')}], [#{act['using']['right'].join(', ')}]]"
+        rv = "#{rv} INCLUDE [#{incs.join(', ')}]" if !incs.empty?
+        rv
+      end
+
+      def unparse_inclusion(act)
+        incs = act.fetch('include', {}).map do |k, v|
+          k == v ? k : "#{k} AS #{v}"
+        end
+
+        rv = "INCLUSION USING [[#{act['using']['left'].join(', ')}], [#{act['using']['right'].join(', ')}]]"
+        rv = "#{rv} INCLUDE [#{incs.join(', ')}]" if !incs.empty?
+      end
+      
+      def unparse_accumulate(act)
+        rv = "ACCUMULATE #{act['column']} USING #{act['function']['name']}(#{act['function']['args'].join(', ')})"
+        rv = "#{rv} AS #{act['result']}" if act.key?('result')
+        rv
+      end
 
       def split_names(names)
         names.str.split(/\,\s+/)
       end
       
       def interpret(o, res)
-#        p res
         send("interpret_#{res.fetch(:action, 'nothing').str.downcase}", o, res)
       end
 
