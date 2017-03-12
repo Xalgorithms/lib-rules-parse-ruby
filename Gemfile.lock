@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    xa-rules (0.0.6)
+    xa-rules (0.0.7)
       faraday
       faraday_middleware
       parslet
