@@ -58,75 +58,98 @@ module XA
 
       def execute(ctx, tables)
         res = verify_expectations(tables) do |res|
-          stack = []
+          env = {
+            ctx: ctx,
+            tables: tables,
+            stack: [],
+          }
           @actions.each do |act|
             # p stack
-            act.execute(ctx, tables, stack, res)
+            env = act.execute(env, res)
           end
 
           res
         end
       end
 
-      private
+      class Action
+        def make_env(env={})
+          env.clone
+        end
 
-      class Pull
+        def execute(env, res)
+          act(make_env(env), res)
+        end
+      end
+      
+      class Pull < Action
         def initialize(name, ns, table, version)
           @name = name
           @args = { ns: ns, table: table, version: version }
         end
 
-        def execute(ctx, tables, stack, res)
-          ctx.logger.info("pulling from context (args=#{@args})") if ctx
-          ctx.get(:table, @args) do |tbl|
-            # TODO: if tbl is nil, we need to fail gracefully
-            tables[@name] = tbl
-          end if !tables.key?(@name)
+        def act(env, res)
+          if env[:ctx]
+            env[:ctx].logger.info("pulling from context (args=#{@args})")
+            env[:ctx].get(:table, @args) do |tbl|
+              # TODO: if tbl is nil, we need to fail gracefully
+              env[:tables] = env[:tables].merge(@name => tbl)
+            end
+
+            env
+          end
         end
       end
       
-      class Push
+      class Push < Action
         def initialize(n)
           @name = n
         end
 
-        def execute(ctx, tables, stack, res)
-          ctx.logger.debug("push (name=#{@name}; tables=#{tables.keys.join('|')})") if ctx
-          stack.push(tables[@name])
+        def act(env, res)
+          env[:ctx].logger.debug("push (name=#{@name}; tables=#{env[:tables].keys.join('|')})") if env[:ctx]
+          # bit esoteric to avoid side-effects
+          env = env.merge(stack: env[:stack] + [env[:tables][@name]])
         end
       end
 
-      class Pop
-        def execute(ctx, tables, stack, res)
-          ctx.logger.debug("pop (tables=#{tables.keys.join('|')})") if ctx
-          stack.pop
+      class Pop < Action
+        def execute(env, res)
+          env[:ctx].logger.debug("pop (tables=#{env[:tables].keys.join('|')})") if env[:ctx]
+          # bit esoteric to avoid side-effects
+          env.merge(stack: env[:stack][0...-1])
         end
       end
 
-      class Duplicate
-        def execute(ctx, tables, stack, res)
-          stack.push(stack.last.dup)
+      class Duplicate < Action
+        def execute(env, res)
+          # bit esoteric to avoid side-effects
+          env[:stack].empty? ? env : env.merge(stack: env[:stack] + [env[:stack].last.dup])
         end
       end
 
-      class Commit
-        def initialize(name, columns)
+      class Commit < Action
+        def initialize(name, columns=nil)
           @name = name
           @columns = columns
         end
 
-        def execute(ctx, tables, stack, res)
-          if stack.any?
-            t = stack.pop
-            ctx.logger.info("committing (table=#{t}; name=#{@name}; cols=#{@columns})") if ctx
+        def execute(env, res)
+          if env[:stack].any?
+            t = env[:stack].last
+            env[:ctx].logger.info("committing (table=#{t}; name=#{@name}; cols=#{@columns})") if env[:ctx]
             t = t.map { |r| r.select { |k, _| @columns.include?(k) } } if @columns
             res.tables = res.tables.merge(@name => t)
-            ctx.logger.info("committed (res.tables=#{res.tables})") if ctx
+            env[:ctx].logger.info("committed (res.tables=#{res.tables})") if env[:ctx]
+            env.merge(stack: env[:stack][0...-1])
+          else
+            env[:ctx].logger.warn('nothing on the stack to commit') if env[:ctx]
+            env
           end
         end
       end
 
-      class Join
+      class Join < Action
         def using(lefts, rights)
           @joint = { left: lefts, right: rights }
           self
@@ -137,24 +160,28 @@ module XA
           self
         end
 
-        def execute(ctx, tables, stack, res)
-          right = stack.pop
-          left = stack.pop
+        def act(env, res)
+          right = env[:stack][-1]
+          left = env[:stack][-2]
 
-          ctx.logger.info("join (right=#{right}; left=#{left})") if ctx
-          
-          table = left.inject([]) do |table, lr|
-            lvals = @joint[:left].map { |k| lr.fetch(k, nil) }
-            matches = right.select do |rr|
-              lvals == @joint[:right].map { |k| rr.fetch(k, nil) }
+          if right && left
+            env[:ctx].logger.info("join (right=#{right}; left=#{left})") if env[:ctx]
+            
+            table = left.inject([]) do |table, lr|
+              lvals = @joint[:left].map { |k| lr.fetch(k, nil) }
+              matches = right.select do |rr|
+                lvals == @joint[:right].map { |k| rr.fetch(k, nil) }
+              end
+
+              table + resolve(matches, lr)
             end
 
-            table + resolve(matches, lr)
-          end
+            env[:ctx].logger.info("joined (table=#{table})") if env[:ctx]
 
-          ctx.logger.info("joined (table=#{table})") if ctx
-          
-          stack.push(table)
+            env.merge(stack: env[:stack][0...-2] << table)
+          else
+            env
+          end
         end
 
         private
@@ -186,8 +213,7 @@ module XA
         end
         
         def resolve(matching_rows, existing_row)
-          o = {
-          }.tap do |o|
+          o = { }.tap do |o|
             o[@includes['is_member']] = matching_rows.any? if @includes.key?('is_member')
             o[@includes['is_not_member']] = matching_rows.empty? if @includes.key?('is_not_member')
           end
@@ -196,7 +222,7 @@ module XA
         end
       end
 
-      class Accumulate
+      class Accumulate < Action
         class Func
           def initialize(args)
             @args = args
@@ -234,17 +260,23 @@ module XA
           @applications.last
         end
 
-        def execute(ctx, tables, stack, res)
-          tbl = stack.pop
-          ctx.logger.info("accumulating (tbl=#{tbl})") if ctx
-          res = tbl.map do |r|
-            r.merge(@result => @applications.first.apply_to_row(r, r.fetch(@column, nil)))
+        def act(env, res)
+          tbl = env[:stack][-1]
+          if tbl
+            env[:ctx].logger.info("accumulating (tbl=#{tbl})") if env[:ctx]
+            res = tbl.map do |r|
+              r.merge(@result => @applications.first.apply_to_row(r, r.fetch(@column, nil)))
+            end
+            env[:ctx].logger.info("accumulated (res=#{res})") if env[:ctx]
+            env.merge(stack: env[:stack][0...-1] << res)
+          else
+            env
           end
-          ctx.logger.info("accumulated (res=#{res})") if ctx
-          stack.push(res)
         end
       end
       
+      private
+
       def add(act, &bl)
         @actions << act
         bl.call(act) if bl
