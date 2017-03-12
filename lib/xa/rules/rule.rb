@@ -56,7 +56,7 @@ module XA
         act = add(Accumulate.new(column, result), &bl)
       end
 
-      def execute(ctx, tables)
+      def execute(ctx, tables, audit = nil)
         res = verify_expectations(tables) do |res|
           env = {
             ctx: ctx,
@@ -65,7 +65,10 @@ module XA
           }
           @actions.each do |act|
             # p stack
+            name = act.class.name.split('::').last.downcase
+            audit.will_run(name, env) if audit
             env = act.execute(env, res)
+            audit.ran(name, env) if audit
           end
 
           res

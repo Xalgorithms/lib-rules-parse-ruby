@@ -320,4 +320,44 @@ describe XA::Rules::Rule do
       expect(res.tables['results']).to eql(ex[:data])
     end
   end
+
+  it 'should optionally permit an audit that receives the state after each action' do
+    class Audit
+      attr_reader :runs
+      
+      def initialize
+        @runs = {
+          will: [],
+          did: [],
+        }
+      end
+
+      def will_run(name, env)
+        @runs[:will] << { action: name, env: env }        
+      end
+      
+      def ran(name, env)
+        @runs[:did] << { action: name, env: env }
+      end
+    end
+
+    r = XA::Rules::Rule.new
+    r.pull('name', 'ns', 'table', 'ver')
+    r.push('name')
+    r.pop
+    r.duplicate
+    r.commit('name')
+
+    audit = Audit.new
+    ctx = XA::Rules::Context.new
+    r.execute(ctx, {}, audit)
+
+    names = [
+      'pull', 'push', 'pop', 'duplicate', 'commit'
+    ]
+    expect(audit.runs[:will].map { |r| r[:action] }).to eql(names)
+    expect(audit.runs[:will].select { |r| r[:env].empty? }).to eql([])
+    expect(audit.runs[:did].map { |r| r[:action] }).to eql(names)
+    expect(audit.runs[:did].select { |r| r[:env].empty? }).to eql([])
+  end
 end
