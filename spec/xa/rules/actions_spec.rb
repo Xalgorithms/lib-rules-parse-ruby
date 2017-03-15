@@ -9,16 +9,29 @@ describe 'actions' do
 
         ctx = XA::Rules::Context.new
         allow(ctx).to receive(:get).with(:table, args).and_yield(ntable)
-        env = {
-          ctx: ctx,
-          tables: {},
-          stack: [],
-        }
+
+        env = { ctx: ctx, tables: {}, stack: [], }
         
         act = XA::Rules::Rule::Pull.new(args[:table], args[:ns], args[:table], args[:version])
 
         nenv = act.execute(env, nil)
         expect(nenv[:tables]).to include(args[:table] => ntable)
+      end
+    end
+
+    it 'should generate an error if the table is not found' do
+      rand_times.each do
+        args = { ns: Faker::Lorem.word, table: Faker::Lorem.word, version: Faker::Number.hexadecimal(6) }
+
+        ctx = XA::Rules::Context.new
+        allow(ctx).to receive(:get).with(:table, args).and_yield(nil)
+        env = { ctx: ctx, tables: {}, stack: [], }
+
+        act = XA::Rules::Rule::Pull.new(args[:table], args[:ns], args[:table], args[:version])
+        nenv = act.execute(env, nil)
+
+        expect(nenv).to have_key(:errors)
+        expect(nenv[:errors]).to eql([{ reason: XA::Rules::Errors::TABLE_NOT_FOUND, details: { table: args[:table], ns: args[:ns], version: args[:version] } }])
       end
     end
   end
@@ -36,6 +49,21 @@ describe 'actions' do
         nenv = act.execute(oenv, nil)
         expect(oenv[:stack]).to eql(ostack)
         expect(nenv[:stack]).to eql(ostack << tbl)
+      end
+    end
+
+    it 'should generate an error if the table is not defined' do
+      tables = rand_hash_of_tables
+      ctx = XA::Rules::Context.new
+      env = { ctx: ctx, tables: {}, stack: [] }
+
+      oenv = env
+      tables.each do |name, tbl|
+        act = XA::Rules::Rule::Push.new(name)
+        nenv = act.execute(oenv, nil)
+
+        expect(nenv).to have_key(:errors)
+        expect(nenv[:errors]).to eql([{ reason: XA::Rules::Errors::TABLE_NOT_FOUND, details: { table: name } }])
       end
     end
   end
@@ -64,6 +92,9 @@ describe 'actions' do
         act = XA::Rules::Rule::Pop.new
         nenv = act.execute(env, nil)
         expect(nenv[:stack]).to be_empty
+
+        expect(nenv).to have_key(:errors)
+        expect(nenv[:errors]).to eql([{ reason: XA::Rules::Errors::STACK_EMPTY }])
       end
     end
   end
@@ -92,6 +123,9 @@ describe 'actions' do
         act = XA::Rules::Rule::Duplicate.new
         nenv = act.execute(env, nil)
         expect(nenv[:stack]).to be_empty
+
+        expect(nenv).to have_key(:errors)
+        expect(nenv[:errors]).to eql([{ reason: XA::Rules::Errors::STACK_EMPTY }])
       end
     end
   end
@@ -152,6 +186,9 @@ describe 'actions' do
         nenv = act.execute(oenv, res)
         expect(nenv[:stack]).to be_empty
         expect(res.tables).to be_empty
+
+        expect(nenv).to have_key(:errors)
+        expect(nenv[:errors]).to eql([{ reason: XA::Rules::Errors::STACK_EMPTY }])
       end
     end
   end
@@ -225,11 +262,15 @@ describe 'actions' do
       act.include(a: :aa, x: :xx)
 
       nenv = act.execute(env, nil)
-      expect(nenv).to eql(env)
+
+      expect(nenv).to have_key(:errors)
+      expect(nenv[:errors]).to eql([{ reason: XA::Rules::Errors::STACK_STARVED }])
 
       env = { ctx: ctx, tables: {}, stack: [{}] }
       nenv = act.execute(env, nil)
-      expect(nenv).to eql(env)
+
+      expect(nenv).to have_key(:errors)
+      expect(nenv[:errors]).to eql([{ reason: XA::Rules::Errors::STACK_STARVED }])
     end
 
     it 'should not affect left keys' do
@@ -295,7 +336,36 @@ describe 'actions' do
       act.apply('mult', [:b, :c])
 
       nenv = act.execute(env, nil)
-      expect(nenv).to eql(env)
+
+      expect(nenv).to have_key(:errors)
+      expect(nenv[:errors]).to eql([{ reason: XA::Rules::Errors::STACK_STARVED }])
+    end
+
+    it 'can handle stack starvation' do
+      ctx = XA::Rules::Context.new
+      env = { ctx: ctx, tables: {}, stack: [] }
+      act = XA::Rules::Rule::Accumulate.new(:a, :acc)
+      act.apply('mult', [:b, :c])
+
+      nenv = act.execute(env, nil)
+
+      expect(nenv).to have_key(:errors)
+      expect(nenv[:errors]).to eql([{ reason: XA::Rules::Errors::STACK_STARVED }])
+    end
+
+    it 'can handle invalid functions' do
+      ctx = XA::Rules::Context.new
+      env = { ctx: ctx, tables: {}, stack: [] }
+      act = XA::Rules::Rule::Accumulate.new(:a, :acc)
+      fns = rand_array_of_words
+      fns.each do |n|
+        act.apply(n, [:b, :c])
+      end
+
+      nenv = act.execute(env, nil)
+
+      expect(nenv).to have_key(:errors)
+      expect(nenv[:errors]).to eql([{ reason: XA::Rules::Errors::NO_VALID_APPLICATIONS, details: { functions: fns } }])
     end
   end
 end

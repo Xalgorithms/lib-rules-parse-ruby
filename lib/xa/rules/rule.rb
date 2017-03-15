@@ -1,4 +1,5 @@
 require 'ostruct'
+require_relative './errors'
 
 module XA
   module Rules
@@ -83,6 +84,12 @@ module XA
         def execute(env, res)
           act(make_env(env), res)
         end
+
+        def add_error(env, reason, details=nil)
+          err = { reason: reason }
+          err = err.merge(details: details) if details
+          env.merge(errors: env.fetch(:errors, []) + [err])
+        end
       end
       
       class Pull < Action
@@ -95,8 +102,11 @@ module XA
           if env[:ctx]
             env[:ctx].logger.info("pulling from context (args=#{@args})")
             env[:ctx].get(:table, @args) do |tbl|
-              # TODO: if tbl is nil, we need to fail gracefully
-              env[:tables] = env[:tables].merge(@name => tbl)
+              if tbl
+                env[:tables] = env[:tables].merge(@name => tbl)
+              else
+                env = add_error(env, XA::Rules::Errors::TABLE_NOT_FOUND, @args)
+              end
             end
 
             env
@@ -112,22 +122,33 @@ module XA
         def act(env, res)
           env[:ctx].logger.debug("push (name=#{@name}; tables=#{env[:tables].keys.join('|')})") if env[:ctx]
           # bit esoteric to avoid side-effects
-          env = env.merge(stack: env[:stack] + [env[:tables][@name]])
+          if env[:tables].key?(@name)
+            env.merge(stack: env[:stack] + [env[:tables][@name]])
+          else
+            add_error(env, XA::Rules::Errors::TABLE_NOT_FOUND, { table: @name })
+          end
         end
       end
 
       class Pop < Action
         def execute(env, res)
           env[:ctx].logger.debug("pop (tables=#{env[:tables].keys.join('|')})") if env[:ctx]
-          # bit esoteric to avoid side-effects
-          env.merge(stack: env[:stack][0...-1])
+          if !env[:stack].empty?
+            env.merge(stack: env[:stack][0...-1])
+          else
+            add_error(env, XA::Rules::Errors::STACK_EMPTY)
+          end
         end
       end
 
       class Duplicate < Action
         def execute(env, res)
           # bit esoteric to avoid side-effects
-          env[:stack].empty? ? env : env.merge(stack: env[:stack] + [env[:stack].last.dup])
+          if !env[:stack].empty?
+            env.merge(stack: env[:stack] + [env[:stack].last.dup])
+          else
+            add_error(env, XA::Rules::Errors::STACK_EMPTY)
+          end
         end
       end
 
@@ -147,7 +168,7 @@ module XA
             env.merge(stack: env[:stack][0...-1])
           else
             env[:ctx].logger.warn('nothing on the stack to commit') if env[:ctx]
-            env
+            add_error(env, XA::Rules::Errors::STACK_EMPTY)
           end
         end
       end
@@ -183,7 +204,7 @@ module XA
 
             env.merge(stack: env[:stack][0...-2] << table)
           else
-            env
+            add_error(env, XA::Rules::Errors::STACK_STARVED)            
           end
         end
 
@@ -242,38 +263,37 @@ module XA
           end
         end
 
-        class Empty < Func
-          def apply(vals)
-            vals
-          end
-        end
-        
         def initialize(column, result)
           @column = column
           @result = result
           @applications = []
+          @functions = {
+            'mult' => Mult,
+          }
+          @invalid_applications = []
         end
 
         def apply(func, args)
-          @functions ||= {
-            'mult' => Mult,
-          }
-
-          @applications << @functions.fetch(func, Empty).new(args)
-          @applications.last
+          if @functions.key?(func)
+            @applications << @functions[func].new(args)
+          else
+            @invalid_applications << func
+          end
         end
 
         def act(env, res)
           tbl = env[:stack][-1]
-          if tbl
+          if tbl && !@applications.empty?
             env[:ctx].logger.info("accumulating (tbl=#{tbl})") if env[:ctx]
             res = tbl.map do |r|
               r.merge(@result => @applications.first.apply_to_row(r, r.fetch(@column, nil)))
             end
             env[:ctx].logger.info("accumulated (res=#{res})") if env[:ctx]
             env.merge(stack: env[:stack][0...-1] << res)
+          elsif @applications.empty?
+            add_error(env, XA::Rules::Errors::NO_VALID_APPLICATIONS, { functions: @invalid_applications })
           else
-            env
+            add_error(env, XA::Rules::Errors::STACK_STARVED)            
           end
         end
       end
