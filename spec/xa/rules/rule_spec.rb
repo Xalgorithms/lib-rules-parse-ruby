@@ -26,23 +26,26 @@ describe XA::Rules::Rule do
     it 'fails execution if expectations are not met' do
       r = XA::Rules::Rule.new
 
-      res = r.execute(nil, {})
+      res = r.execute(XA::Rules::Context.new, {})
+      
       expect(res).to_not be_nil
-      expect(res.status).to eql(:ok)
-      expect(res.failures).to be_empty
+      expect(res[:status]).to eql(:ok)
+      expect(res[:failures]).to be_empty
 
       r.expects('foo', ['a', 'b'])
 
-      res = r.execute(nil, {})
-      expect(res).to_not be_nil
-      expect(res.status).to eql(:missing_expected_table)
-      expect(res.failures).to_not be_empty
-      expect(res.failures.first).to eql('foo')
+      res = r.execute(XA::Rules::Context.new, {})
 
-      res = r.execute(nil, 'foo' => [])
       expect(res).to_not be_nil
-      expect(res.status).to eql(:ok)
-      expect(res.failures).to be_empty
+      expect(res[:status]).to eql(:missing_expected_table)
+      expect(res[:failures]).to_not be_empty
+      expect(res[:failures].first).to eql('foo')
+
+      res = r.execute(XA::Rules::Context.new, 'foo' => [])
+
+      expect(res).to_not be_nil
+      expect(res[:status]).to eql(:ok)
+      expect(res[:failures]).to be_empty
     end
 
     let(:tables) do
@@ -81,10 +84,10 @@ describe XA::Rules::Rule do
       r.commit('a')
       r.commit('b')
 
-      res = r.execute(nil, tables.dup)
+      res = r.execute(XA::Rules::Context.new, tables.dup)
 
-      expect(res.tables['a']).to eql(tables['baz'])
-      expect(res.tables['b']).to eql(tables['bar'])
+      expect(res[:tables]['a']).to eql(tables['baz'])
+      expect(res[:tables]['b']).to eql(tables['bar'])
     end
     
     it 'allows commits to specify only certain columns' do
@@ -94,10 +97,10 @@ describe XA::Rules::Rule do
       r.commit('a', ['q'])
       r.commit('b', ['a', 'c'])
 
-      res = r.execute(nil, tables.dup)
+      res = r.execute(XA::Rules::Context.new, tables.dup)
 
-      expect(res.tables['a']).to eql(tables['baz'].map { |r| { 'q' => r['q'] } })
-      expect(res.tables['b']).to eql(tables['bar'].map { |r| { 'a' => r['a'], 'c' => r['c'] } })
+      expect(res[:tables]['a']).to eql(tables['baz'].map { |r| { 'q' => r['q'] } })
+      expect(res[:tables]['b']).to eql(tables['bar'].map { |r| { 'a' => r['a'], 'c' => r['c'] } })
     end
     
     it 'duplicates tables' do
@@ -109,10 +112,10 @@ describe XA::Rules::Rule do
         r.commit('a')
         r.commit('b')
 
-        res = r.execute(nil, tables.dup)
+        res = r.execute(XA::Rules::Context.new, tables.dup)
         
-        expect(res.tables['a']).to eql(tables[n])
-        expect(res.tables['b']).to eql(tables[n])
+        expect(res[:tables]['a']).to eql(tables[n])
+        expect(res[:tables]['b']).to eql(tables[n])
       end
     end
     
@@ -209,11 +212,11 @@ describe XA::Rules::Rule do
 
         r.commit('output')
 
-        res = r.execute(nil, tables.dup)
-        expect(res.tables).to eql(ex[:final])
+        res = r.execute(XA::Rules::Context.new, tables.dup)
+        expect(res[:tables]).to include(ex[:final])
       end
     end
-
+ 
     it 'should apply accumulation' do
       expected = [
         {
@@ -243,13 +246,15 @@ describe XA::Rules::Rule do
       ]
 
       expected.each do |ex|
+        ctx = XA::Rules::Context.new
         r = XA::Rules::Rule.new
         r.push(ex[:table])
         r.accumulate(ex[:column], ex[:result]).apply(ex[:function], ex[:args])
         r.commit('results')
-        res = r.execute(nil, tables.dup)
+        res = r.execute(ctx, tables.dup)
 
-        tbl = res.tables['results']
+        expect(res[:tables]).to have_key('results')
+        tbl = res[:tables]['results']
         expect(tbl.map { |r| r[ex[:result]] }).to eql(ex[:values])
       end
     end
@@ -263,7 +268,7 @@ describe XA::Rules::Rule do
 
     r = XA::Rules::Rule.new
     expected.each do |ex|
-        r.attach(ex[:url], ex[:name])
+      r.attach(ex[:url], ex[:name])
     end
 
     actual = []
@@ -317,7 +322,7 @@ describe XA::Rules::Rule do
       
       allow(ctx).to receive(:get).with(:table, { ns: ex[:ns], table: ex[:table], version: ex[:version] }).and_yield(ex[:data])
       res = ctx.execute(r)
-      expect(res.tables['results']).to eql(ex[:data])
+      expect(res[:tables]['results']).to eql(ex[:data])
     end
   end
 

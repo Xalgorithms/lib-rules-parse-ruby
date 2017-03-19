@@ -58,21 +58,22 @@ module XA
       end
 
       def execute(ctx, tables, audit = nil)
-        res = verify_expectations(tables) do |res|
+        verify_expectations(tables) do |res|
           env = {
             ctx: ctx,
             tables: tables,
             stack: [],
           }
-          @actions.each do |act|
+          fenv = @actions.inject({ tables: {} }) do |o, act|
             # p stack
             name = act.class.name.split('::').last.downcase
             audit.will_run(name, env) if audit
-            env = act.execute(env, res)
+            env = act.execute(env)
             audit.ran(name, env) if audit
+            o.merge(env)
           end
 
-          res
+          res.merge(tables: res[:tables].merge(fenv[:tables]))
         end
       end
 
@@ -81,8 +82,8 @@ module XA
           env.clone
         end
 
-        def execute(env, res)
-          act(make_env(env), res)
+        def execute(env)
+          act(make_env(env))
         end
 
         def add_error(env, reason, details=nil)
@@ -98,7 +99,7 @@ module XA
           @args = { ns: ns, table: table, version: version }
         end
 
-        def act(env, res)
+        def act(env)
           if env[:ctx]
             env[:ctx].logger.info("pulling from context (args=#{@args})")
             env[:ctx].get(:table, @args) do |tbl|
@@ -119,7 +120,7 @@ module XA
           @name = n
         end
 
-        def act(env, res)
+        def act(env)
           env[:ctx].logger.debug("push (name=#{@name}; tables=#{env[:tables].keys.join('|')})") if env[:ctx]
           # bit esoteric to avoid side-effects
           if env[:tables].key?(@name)
@@ -131,7 +132,7 @@ module XA
       end
 
       class Pop < Action
-        def execute(env, res)
+        def act(env)
           env[:ctx].logger.debug("pop (tables=#{env[:tables].keys.join('|')})") if env[:ctx]
           if !env[:stack].empty?
             env.merge(stack: env[:stack][0...-1])
@@ -142,7 +143,7 @@ module XA
       end
 
       class Duplicate < Action
-        def execute(env, res)
+        def act(env)
           # bit esoteric to avoid side-effects
           if !env[:stack].empty?
             env.merge(stack: env[:stack] + [env[:stack].last.dup])
@@ -158,14 +159,12 @@ module XA
           @columns = columns
         end
 
-        def execute(env, res)
+        def act(env)
           if env[:stack].any?
             t = env[:stack].last
             env[:ctx].logger.info("committing (table=#{t}; name=#{@name}; cols=#{@columns})") if env[:ctx]
             t = t.map { |r| r.select { |k, _| @columns.include?(k) } } if @columns
-            res.tables = res.tables.merge(@name => t)
-            env[:ctx].logger.info("committed (res.tables=#{res.tables})") if env[:ctx]
-            env.merge(stack: env[:stack][0...-1])
+            env.merge(stack: env[:stack][0...-1], tables: env[:tables].merge(@name => t))
           else
             env[:ctx].logger.warn('nothing on the stack to commit') if env[:ctx]
             add_error(env, XA::Rules::Errors::STACK_EMPTY)
@@ -184,7 +183,7 @@ module XA
           self
         end
 
-        def act(env, res)
+        def act(env)
           right = env[:stack][-1]
           left = env[:stack][-2]
 
@@ -281,7 +280,7 @@ module XA
           end
         end
 
-        def act(env, res)
+        def act(env)
           tbl = env[:stack][-1]
           if tbl && !@applications.empty?
             env[:ctx].logger.info("accumulating (tbl=#{tbl})") if env[:ctx]
@@ -309,9 +308,9 @@ module XA
       def verify_expectations(tables)
         missing = @meta.expects.select { |ex| !tables.key?(ex.table) }.map { |ex| ex.table }
         if missing.empty?
-          yield(OpenStruct.new(status: :ok, failures: [], tables: {}))
+          yield({ status: :ok, failures: [], tables: {} })
         else
-          OpenStruct.new(status: :missing_expected_table, failures: missing)
+          { status: :missing_expected_table, failures: missing }
         end
       end
     end

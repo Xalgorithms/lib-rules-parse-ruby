@@ -14,7 +14,7 @@ describe 'actions' do
         
         act = XA::Rules::Rule::Pull.new(args[:table], args[:ns], args[:table], args[:version])
 
-        nenv = act.execute(env, nil)
+        nenv = act.execute(env)
         expect(nenv[:tables]).to include(args[:table] => ntable)
       end
     end
@@ -28,7 +28,7 @@ describe 'actions' do
         env = { ctx: ctx, tables: {}, stack: [], }
 
         act = XA::Rules::Rule::Pull.new(args[:table], args[:ns], args[:table], args[:version])
-        nenv = act.execute(env, nil)
+        nenv = act.execute(env)
 
         expect(nenv).to have_key(:errors)
         expect(nenv[:errors]).to eql([{ reason: XA::Rules::Errors::TABLE_NOT_FOUND, details: { table: args[:table], ns: args[:ns], version: args[:version] } }])
@@ -46,7 +46,7 @@ describe 'actions' do
       tables.each do |name, tbl|
         act = XA::Rules::Rule::Push.new(name)
         ostack = oenv[:stack]
-        nenv = act.execute(oenv, nil)
+        nenv = act.execute(oenv)
         expect(oenv[:stack]).to eql(ostack)
         expect(nenv[:stack]).to eql(ostack << tbl)
       end
@@ -60,7 +60,7 @@ describe 'actions' do
       oenv = env
       tables.each do |name, tbl|
         act = XA::Rules::Rule::Push.new(name)
-        nenv = act.execute(oenv, nil)
+        nenv = act.execute(oenv)
 
         expect(nenv).to have_key(:errors)
         expect(nenv[:errors]).to eql([{ reason: XA::Rules::Errors::TABLE_NOT_FOUND, details: { table: name } }])
@@ -78,7 +78,7 @@ describe 'actions' do
       tables.each do |_, _|
         act = XA::Rules::Rule::Pop.new
         ostack = oenv[:stack]
-        nenv = act.execute(oenv, nil)
+        nenv = act.execute(oenv)
         expect(oenv[:stack]).to eql(ostack)
         expect(nenv[:stack]).to eql(ostack[0...-1])
       end
@@ -90,7 +90,7 @@ describe 'actions' do
 
       rand_times.each do |_, _|
         act = XA::Rules::Rule::Pop.new
-        nenv = act.execute(env, nil)
+        nenv = act.execute(env)
         expect(nenv[:stack]).to be_empty
 
         expect(nenv).to have_key(:errors)
@@ -109,7 +109,7 @@ describe 'actions' do
       rand_times.each do
         act = XA::Rules::Rule::Duplicate.new
         ostack = oenv[:stack]
-        nenv = act.execute(oenv, nil)
+        nenv = act.execute(oenv)
         expect(oenv[:stack]).to eql(ostack)
         expect(nenv[:stack]).to eql(ostack << tbl)
       end
@@ -121,7 +121,7 @@ describe 'actions' do
       
       rand_times.each do
         act = XA::Rules::Rule::Duplicate.new
-        nenv = act.execute(env, nil)
+        nenv = act.execute(env)
         expect(nenv[:stack]).to be_empty
 
         expect(nenv).to have_key(:errors)
@@ -131,7 +131,7 @@ describe 'actions' do
   end
 
   describe XA::Rules::Rule::Commit do
-    it 'should remove the top of the stack in the results' do
+    it 'should remove the top of the stack into env[:tables]' do
       ctx = XA::Rules::Context.new
       tables = rand_array_of_tables
       env = { ctx: ctx, tables: {}, stack: tables }
@@ -140,12 +140,11 @@ describe 'actions' do
       tables.reverse.each do |tbl|
         name = Faker::Number.hexadecimal(10)
         act = XA::Rules::Rule::Commit.new(name)
-        res = OpenStruct.new(tables: {})
         ostack = oenv[:stack]
-        nenv = act.execute(oenv, res)
+        nenv = act.execute(oenv)
         expect(oenv[:stack]).to eql(ostack)
         expect(nenv[:stack]).to eql(ostack[0...-1])
-        expect(res.tables[name]).to eql(tbl)
+        expect(nenv[:tables]).to include(name => tbl)
         oenv = nenv
       end
     end
@@ -163,12 +162,11 @@ describe 'actions' do
         end
         name = Faker::Lorem.word
         act = XA::Rules::Rule::Commit.new(name, cols)
-        res = OpenStruct.new(tables: {})
         ostack = oenv[:stack]
-        nenv = act.execute(oenv, res)
+        nenv = act.execute(oenv)
         expect(oenv[:stack]).to eql(ostack)
         expect(nenv[:stack]).to eql(ostack[0...-1])
-        expect(res.tables).to include(name => ex_tbl)
+        expect(nenv[:tables]).to include(name => ex_tbl)
         oenv = nenv
       end
     end
@@ -183,9 +181,9 @@ describe 'actions' do
         name = Faker::Lorem.word
         act = XA::Rules::Rule::Commit.new(name)
         res = OpenStruct.new(tables: {})
-        nenv = act.execute(oenv, res)
+        nenv = act.execute(oenv)
         expect(nenv[:stack]).to be_empty
-        expect(res.tables).to be_empty
+        expect(res[:tables]).to be_empty
 
         expect(nenv).to have_key(:errors)
         expect(nenv[:errors]).to eql([{ reason: XA::Rules::Errors::STACK_EMPTY }])
@@ -219,7 +217,7 @@ describe 'actions' do
       act.using([:a], [:a])
 
       oenv = env
-      nenv = act.execute(oenv, nil)
+      nenv = act.execute(oenv)
       expect(oenv).to eql(env)
       expect(nenv[:stack]).to eql([ex_tbl])
     end
@@ -249,7 +247,7 @@ describe 'actions' do
       act.include(a: :aa, x: :xx)
 
       oenv = env
-      nenv = act.execute(oenv, nil)
+      nenv = act.execute(oenv)
       expect(oenv).to eql(env)
       expect(nenv[:stack]).to eql([ex_tbl])
     end
@@ -261,13 +259,13 @@ describe 'actions' do
       act.using([:a], [:a])
       act.include(a: :aa, x: :xx)
 
-      nenv = act.execute(env, nil)
+      nenv = act.execute(env)
 
       expect(nenv).to have_key(:errors)
       expect(nenv[:errors]).to eql([{ reason: XA::Rules::Errors::STACK_STARVED }])
 
       env = { ctx: ctx, tables: {}, stack: [{}] }
-      nenv = act.execute(env, nil)
+      nenv = act.execute(env)
 
       expect(nenv).to have_key(:errors)
       expect(nenv[:errors]).to eql([{ reason: XA::Rules::Errors::STACK_STARVED }])
@@ -298,7 +296,7 @@ describe 'actions' do
       act.include(b: :bb, x: :xx)
 
       oenv = env
-      nenv = act.execute(oenv, nil)
+      nenv = act.execute(oenv)
       expect(oenv).to eql(env)
       expect(nenv[:stack]).to eql([ex_tbl])
     end
@@ -324,7 +322,7 @@ describe 'actions' do
       act.apply('mult', [:b, :c])
 
       oenv = env
-      nenv = act.execute(oenv, nil)
+      nenv = act.execute(oenv)
       expect(oenv).to eql(env)
       expect(nenv[:stack]).to eql([ex_tbl])      
     end
@@ -335,7 +333,7 @@ describe 'actions' do
       act = XA::Rules::Rule::Accumulate.new(:a, :acc)
       act.apply('mult', [:b, :c])
 
-      nenv = act.execute(env, nil)
+      nenv = act.execute(env)
 
       expect(nenv).to have_key(:errors)
       expect(nenv[:errors]).to eql([{ reason: XA::Rules::Errors::STACK_STARVED }])
@@ -347,7 +345,7 @@ describe 'actions' do
       act = XA::Rules::Rule::Accumulate.new(:a, :acc)
       act.apply('mult', [:b, :c])
 
-      nenv = act.execute(env, nil)
+      nenv = act.execute(env)
 
       expect(nenv).to have_key(:errors)
       expect(nenv[:errors]).to eql([{ reason: XA::Rules::Errors::STACK_STARVED }])
@@ -362,7 +360,7 @@ describe 'actions' do
         act.apply(n, [:b, :c])
       end
 
-      nenv = act.execute(env, nil)
+      nenv = act.execute(env)
 
       expect(nenv).to have_key(:errors)
       expect(nenv[:errors]).to eql([{ reason: XA::Rules::Errors::NO_VALID_APPLICATIONS, details: { functions: fns } }])
