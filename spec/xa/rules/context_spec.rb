@@ -9,7 +9,7 @@ describe XA::Rules::Context do
 
     ctx = XA::Rules::Context.new
 
-    expect(r).to receive(:execute).with(ctx, {})
+    expect(r).to receive(:execute).with(ctx, {}, nil)
     expect(r).to receive(:repositories).and_yield(nil, nil)
 
     expect(XA::Registry::Client).to receive(:new).and_return(cl)
@@ -24,7 +24,7 @@ describe XA::Rules::Context do
 
     rule = instance_double(XA::Rules::Rule)
     expect(rule).to receive(:repositories).and_return({})
-    expect(rule).to receive(:execute).with(ctx, tables)
+    expect(rule).to receive(:execute).with(ctx, tables, nil)
 
     ctx.execute(rule)
   end
