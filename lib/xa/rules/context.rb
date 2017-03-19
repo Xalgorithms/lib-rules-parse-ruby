@@ -37,11 +37,11 @@ module XA
         @types.fetch(type, method(:get_nothing)).call(args, &bl)
       end
 
-      def execute(rule)
+      def execute(rule, audit=nil)
         rule.repositories do |url, name|
           init_client(name, url)
         end
-        rule.execute(self, @tables)
+        rule.execute(self, @tables, audit)
       end
 
       private
