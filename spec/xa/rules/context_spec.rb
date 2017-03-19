@@ -94,4 +94,16 @@ describe XA::Rules::Context do
       end
     end
   end
+
+  it 'should communicate execution errors' do
+    ctx = XA::Rules::Context.new
+    r = XA::Rules::Rule.new
+
+    expect(r).to receive(:execute).and_return({ status: :failure, failures: [{:reason=>"table_not_found", :details=>{:table=>"missing"}}]})
+
+    res = ctx.execute(r)
+
+    expect(res[:status]).to eql(:failure)
+    expect(res[:failures]).to eql([{:reason=>"table_not_found", :details=>{:table=>"missing"}}])    
+  end
 end

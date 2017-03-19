@@ -365,4 +365,14 @@ describe XA::Rules::Rule do
     expect(audit.runs[:did].map { |r| r[:action] }).to eql(names)
     expect(audit.runs[:did].select { |r| r[:env].empty? }).to eql([])
   end
+
+  it 'should halt on error' do
+    r = XA::Rules::Rule.new
+    r.push('missing')
+
+    res = r.execute(XA::Rules::Context.new, {})
+
+    expect(res[:status]).to eql(:failure)
+    expect(res[:failures]).to eql([{:reason=>"table_not_found", :details=>{:table=>"missing"}}])
+  end
 end

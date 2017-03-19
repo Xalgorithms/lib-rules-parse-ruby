@@ -73,7 +73,8 @@ module XA
             o.merge(env)
           end
 
-          res.merge(tables: res[:tables].merge(fenv[:tables]))
+          errs = fenv.fetch(:errors, [])
+          res.merge(status: errs.empty? ? :ok : :failure, failures: errs, tables: res[:tables].merge(fenv[:tables]))
         end
       end
 
