@@ -37,9 +37,8 @@ describe XA::Rules::Rule do
       res = r.execute(XA::Rules::Context.new, {})
 
       expect(res).to_not be_nil
-      expect(res[:status]).to eql(:missing_expected_table)
-      expect(res[:failures]).to_not be_empty
-      expect(res[:failures].first).to eql('foo')
+      expect(res[:status]).to eql(:failure)
+      expect(res[:failures]).to eql([{ reason: :missing_expected_table, details: ['foo'] }])
 
       res = r.execute(XA::Rules::Context.new, 'foo' => [])
 

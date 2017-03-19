@@ -311,7 +311,7 @@ module XA
         if missing.empty?
           yield({ status: :ok, failures: [], tables: {} })
         else
-          { status: :missing_expected_table, failures: missing }
+          { status: :failure, failures: [{ reason: :missing_expected_table, details: missing }] }
         end
       end
     end
