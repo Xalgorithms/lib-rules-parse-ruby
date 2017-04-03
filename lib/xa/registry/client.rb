@@ -31,7 +31,7 @@ module XA
       
       def tables(ns, name, version)
         rv = get_rule(ns, name, version)
-        rv = rv['rows'] if rv && rv.key?('rows')
+        rv = rv.fetch('content', {}).fetch('rows', []) if rv
         rv
       end
 
