@@ -1,1 +1,1 @@
-require_relative './rules/rule'
+require_relative './rules/parse'
