@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
   s.authors     = ["Don Kelly"]
   s.email       = ["karfai@gmail.com"]
   s.summary     = "XA Rules"
-  s.description = "Shared gem for running XA rules"
+  s.description = "Shared rule gem"
 
   s.add_dependency 'faraday'
   s.add_dependency 'faraday_middleware'
