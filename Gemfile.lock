@@ -1,8 +1,9 @@
 GIT
   remote: https://github.com/karfai/radish.git
-  revision: dce98e784b2b933a2c7288093393d4a63027b523
+  revision: da6e45fe413107d0885f6824c3b775720caf4e93
   specs:
-    radish (0.0.3)
+    radish (0.1.0)
+      multi_json
 
 PATH
   remote: .
@@ -29,6 +30,7 @@ GEM
       ruby-progressbar (~> 1.4)
     i18n (0.7.0)
     method_source (0.8.2)
+    multi_json (1.12.2)
     multipart-post (2.0.0)
     parslet (1.8.1)
     pry (0.10.3)
