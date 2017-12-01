@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/karfai/radish.git
-  revision: da6e45fe413107d0885f6824c3b775720caf4e93
+  revision: 93c25a62dc1f8337b3a583dc11c85c158ae8d18b
   specs:
     radish (0.1.0)
       multi_json

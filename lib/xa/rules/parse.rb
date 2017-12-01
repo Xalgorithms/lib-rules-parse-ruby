@@ -4,73 +4,193 @@ module XA
   module Rules
     module Parse
       class ActionParser < Parslet::Parser
-        # rule(:comma)        { str(',') }
-        # rule(:colon)        { str(':') }
-        # rule(:lblock)       { str('[') }
-        # rule(:rblock)       { str(']') }
-        # rule(:lparen)       { str('(') }
-        # rule(:rparen)       { str(')') }
-        
-        # rule(:space)        { match('\s').repeat(1) }
-        # rule(:ass)          { str('AS') }
-        # rule(:usings)       { str('USING') }
-        # rule(:includes)     { str('INCLUDE') }
-        # rule(:pushs)        { str('PUSH') }
-        # rule(:pops)         { str('POP') }
-        # rule(:duplicates)   { str('DUPLICATE') }
-        # rule(:pulls)        { str('PULL') }
-        # rule(:attachs)      { str('ATTACH') }
-        # rule(:invokes)      { str('INVOKE') }
+        rule(:nl)                 { str('\n') }
+        rule(:space)              { match('\s').repeat(1) }
+        rule(:quote)              { str("'") }
+        rule(:string)             { quote >> match('\w').repeat(1) >> quote }
+        rule(:number)             { match('[0-9]').repeat(1) }
+        rule(:semi)               { str(';') }
+        rule(:comma)               { str(',') }
+        rule(:colon)              { str(':') }
+        rule(:dot)                { str('.') }
+        rule(:eq)                 { str('=') }
+        rule(:at)                 { str('@') }
+        rule(:lparen)             { str('(') }
+        rule(:rparen)             { str(')') }
 
-        # rule(:names)        { name >> (comma >> space.maybe >> name).repeat }
-        # rule(:name)         { match('\w+').repeat(1) }
-        # rule(:names_as)     { name_as >> (comma >> space.maybe >> name_as).repeat }
-        # rule(:name_as)      { name.as(:original) >> (space >> ass >> space >> name.as(:new)).maybe }
-        # rule(:anything)     { match('[^\s]').repeat(1) }
-        
-        # rule(:table_ref)      { name.as(:table_name) >> lblock >> names.as(:columns) >> rblock }
-        # rule(:table_ref_opt)  { name.as(:table_name) >> (lblock >> names.as(:columns) >> rblock).maybe }
-        # rule(:rule_ref)       { name.as(:ns) >> colon >> name.as(:rule) >> colon >> name.as(:version) }
-        # rule(:join_spec)      { lblock >> lblock >> names.as(:lefts) >> rblock >> comma >> space.maybe >> lblock >> names.as(:rights) >> rblock >> rblock }
-        # rule(:includes_spec)  { lblock >> names_as >> rblock }
-        # rule(:joinish)        { usings >> space >> join_spec.as(:joins) >> space >> includes >> space >> includes_spec.as(:includes) }
+        rule(:name)               { match('\w').repeat(1) }
+        rule(:key_name)           { match('\w').repeat(1) >> (str('.') >> match('\w').repeat(1)).repeat }
+        rule(:reference)          { match('\w').repeat(1) }
+        rule(:column_reference)   { at >> key_name.as(:name) }
+        rule(:value)              { string.as(:string) | number.as(:number) }
 
-        # rule(:expects)        { name.as(:action) >> space >> table_ref }
-        # rule(:commit)         { name.as(:action) >> space >> table_ref_opt }
-        # rule(:push)           { pushs.as(:action) >> space >> name.as(:table_name) }
-        # rule(:pop)            { pops.as(:action) }
-        # rule(:duplicate)      { duplicates.as(:action) }
-        # rule(:pull)           { pulls.as(:action) >> space >> rule_ref.as(:rule_ref) >> space >> ass >> space >> name.as(:table_name) }
-        # rule(:attach)         { attachs.as(:action) >> space >> anything.as(:url) >> space >> ass >> space >> name.as(:name) }
-        # rule(:invoke)         { invokes.as(:action) >> space >> rule_ref.as(:rule_ref) }
-        # rule(:func)           { name.as(:name) >> lparen >> names.as(:args) >> rparen }
+        rule(:kw_when)            { match('[wW]') >> match('[hH]') >> match('[eE]') >> match('[nN]') }
+        rule(:kw_assemble)        { match('[aA]') >> match('[sS]') >> match('[sS]') >> match('[eE]') >> match('[mM]') >> match('[bB]') >> match('[lL]') >> match('[eE]') }
+        rule(:kw_column)          { match('[cC]') >> match('[oO]') >> match('[lL]') >> match('[uU]') >> match('[mM]') >> match('[nN]') }
+        rule(:kw_from)            { match('[fF]') >> match('[rR]') >> match('[oO]') >> match('[mM]') }
+        rule(:kw_map)             { match('[mM]') >> match('[aA]') >> match('[pP]') }
+        rule(:kw_using)           { match('[uU]') >> match('[sS]') >> match('[iI]') >> match('[nN]') >> match('[gG]') }
         
-        # rule(:table_action)   { expects | commit }
-        # rule(:joinish_action) { name.as(:action) >> space >> joinish }
-        # rule(:reduce_action)  { name.as(:action) >> space >> name.as(:column) >> space >> usings >> space >> func.as(:function) >> (space >> ass >> space >> name.as(:result)).maybe }
-        # rule(:stack_action)   { push | pop | duplicate }
-        # rule(:repo_action)    { attach | pull }
-        # rule(:rule_action)    { invoke }
-        # rule(:action)         { table_action | joinish_action | reduce_action | stack_action | repo_action | rule_action }
+        rule(:op_gte)             { str('>=') }
+        rule(:op_lte)             { str('<=') }
+        rule(:op_eq)              { str('==') }
+        rule(:op_gt)              { str('>') }
+        rule(:op_lt)              { str('<') }
 
-        root(:action)
+        rule(:op)                 { op_lte | op_gte | op_eq | op_lt | op_gt }
+        rule(:operand)            { value.as(:value) | key_name.as(:key) }
+        rule(:expr)               { operand.as(:left) >> space.maybe >> op.as(:op) >> space.maybe >> operand.as(:right) }
+        
+        rule(:when_statement)     { kw_when >> space >> name.as(:section) >> colon >> expr.as(:expr) }
+
+        rule(:assemble_column)    { kw_column >> space >> name.as(:name) >> space >> kw_from >> space >> name.as(:table_name) >> space >> kw_when >> space >> expr.as(:expr) }
+        rule(:assemble_columns)   { assemble_column >> (space >> assemble_column).repeat }
+        rule(:assemble_statement) { kw_assemble >> space >> name.as(:table_name) >> space >> assemble_columns.as(:columns) }
+
+        rule(:function_ref)       { name.as(:name) >> (lparen >> map_expr >> (space.maybe >> comma >> space.maybe >> map_expr).repeat >> rparen).as(:args) }
+        rule(:map_expr)           { function_ref.as(:func_ref) | column_reference.as(:col_ref) | value.as(:value) | key_name.as(:key) }
+        rule(:map_assignment)     { kw_using >> space >> name.as(:name) >> space.maybe >> eq >> space.maybe >> map_expr.as(:expr) }
+        rule(:map_assignments)    { map_assignment >> (space >> map_assignment).repeat }
+        rule(:map_statement)      { kw_map >> space >> reference.as(:table_ref) >> space >> map_assignments.as(:assignments) }
+        
+        rule(:statement)          { (when_statement.as(:when) | assemble_statement.as(:assemble) | map_statement.as(:map)) >> semi }
+        rule(:statements)         { statement >> (space >> statement).repeat }
+        
+        root(:statements)
       end
 
-      def parse_buffer(b, logger=nil)
-        parse(b.split(/\r?\n/).inject([]) do |a, ln|
-                ln.strip!
-                (ln.empty? || ln.start_with?('#')) ? a : a + [ln]
-              end, logger)
+      class ActionTransform < Parslet::Transform
+        rule(:key) { 'blah' }
+      end
+
+      def maybe_convert_value(v)
+        cv = [
+          [/^'(\w+)'$/, :to_s],
+          [/^([0-9]+)$/, :to_s],
+        ].map do |re|
+          m = re[0].match(v)
+          m ? m[1].send(re[1]) : nil
+        end.compact.first
+
+        cv || v
+      end
+
+      OPS = {
+        '==' => 'eq',
+        '>'  => 'gt',
+        '<'  => 'lt',
+        '>=' => 'gte',
+        '<=' => 'lte',
+      }
+      
+      def maybe_convert(k, v)
+        case k
+        when 'val'
+          maybe_convert_value(v)
+        when 'op'
+          OPS.fetch(v, v)
+        else
+          v
+        end
       end
       
-      def parse(actions, logger=nil)
-        rv = {}
-        actions.each do |act|
-          logger.debug("try to parse: #{act}") if logger
-          res = parser.parse(act)
-          rv = rv.merge(interpret(rv, res))
+      def simplify_hash(h)
+        h.inject({}) do |o, (k, v)|
+          ks = k.to_s
+          o.merge(ks => v.class == Hash ? simplify_hash(v) : maybe_convert(ks, v.to_s))
         end
-        rv
+      end
+
+      def build_operand(opr)
+        t = opr.keys.first
+        case t
+        when :key
+          { 'type' => 'key', 'value' => opr[t].to_s }
+        when :value
+          vt = opr[t].keys.first
+          case vt
+          when :string
+            { 'type' => 'string', 'value' => maybe_convert_value(opr[t][vt].to_s) }
+          when :number
+            { 'type' => 'number', 'value' => maybe_convert_value(opr[t][vt].to_s) }
+          end
+        else
+          { 'type' => 'unk' }
+        end
+      end
+      
+      def build_expr_tree(expr)
+        {
+          'left'  => build_operand(expr[:left]),
+          'right' => build_operand(expr[:right]),
+          'op'    => OPS.fetch(expr[:op].to_s, 'unk'),
+        }
+      end
+      
+      def build_assemble_tree(stm)
+        {
+          'table_name' => stm[:table_name].to_s,
+          'columns'    => stm[:columns].map do |col|
+            {
+              'name'       => col[:name].to_s,
+              'table_name' => col[:table_name].to_s,
+              'expr'       => build_expr_tree(col[:expr]),
+            }
+          end,
+        }
+      end
+
+      def build_assignment_expr(expr)
+        at = expr.keys.first
+        case at
+        when :col_ref
+          { "type" => "column", "value" => expr[at][:name].to_s }
+        when :func_ref
+          {
+            "type" => "function",
+            "name" => expr[at][:name].to_s,
+            "args" => expr[at][:args].map(&method(:build_assignment_expr)),
+          }
+        else
+          build_operand(expr)
+        end
+      end
+      
+      def build_map_tree(stm)
+        assigns = stm[:assignments]
+        assigns = [assigns] if assigns.class == Hash
+        {
+          'table_ref'   => stm[:table_ref].to_s,
+          'assignments' => assigns.inject({}) do |o, a|
+            o.merge(a[:name].to_s => build_assignment_expr(a[:expr]))
+          end
+        }
+      end
+      
+      def build_when_tree(stm)
+        {
+          'expr' => build_expr_tree(stm[:expr]),
+        }
+      end
+      
+      def parse(content)
+        tree = ActionParser.new.parse(content)
+        tree = [tree] if tree.class == Hash
+
+        tree.inject({}) do |o, stms|
+          t = stms.keys.first
+          stm = stms[t]
+          case t
+          when :when
+            section = stm[:section].to_s
+            whens = o.fetch('whens', {})
+            o.merge('whens' => whens.merge(section => whens.fetch(section, []) + [build_when_tree(stm)]))
+          when :assemble
+            o.merge('steps' => o.fetch('steps', []) + [build_assemble_tree(stm).merge('name' => 'assemble')])
+          when :map
+            o.merge('steps' => o.fetch('steps', []) + [build_map_tree(stm).merge('name' => 'map')])
+          end
+        end
       end
     end
   end

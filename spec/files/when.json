@@ -1,0 +1,76 @@
+[
+  {
+    "args" : ["WHEN envelope:type == 'invoice';"],
+    "expects" : {
+      "whens" : {
+        "envelope" : [
+          { "expr" : { "left" : { "type" : "key", "value" : "type" }, "op" : "eq", "right" : { "type" : "string", "value" : "invoice" } } }
+        ]
+      }
+    }
+  },
+  {
+    "args" : ["When envelope:type == 'invoice';"],
+    "expects" : {
+      "whens" : {
+        "envelope" : [
+          { "expr" : { "left" : { "type" : "key", "value" : "type" }, "op" : "eq", "right" : { "type" : "string", "value" : "invoice" } } }
+        ]
+      }
+    }
+  },
+  {
+    "args" : ["wHeN omega:x.y.z <= 2;"],
+    "expects" : {
+      "whens" : {
+        "omega" : [
+          { "expr" : { "left" : { "type" : "key", "value" : "x.y.z" }, "op" : "lte", "right" : { "type" : "number", "value" : "2" } } }
+        ]
+      }
+    }
+  },
+  {
+    "args" : ["WheN omega:x.y.z < 2;"],
+    "expects" : {
+      "whens" : {
+        "omega" : [
+          { "expr" : { "left" : { "type" : "key", "value" : "x.y.z" }, "op" : "lt", "right" : { "type" : "number", "value" : "2" } } }
+        ]
+      }
+    }
+  },
+  {
+    "args" : ["WHEN omega:x.y.z >= 2;"],
+    "expects" : {
+      "whens" : {
+        "omega" : [
+          { "expr" : { "left" : { "type" : "key", "value" : "x.y.z" }, "op" : "gte", "right" : { "type" : "number", "value" : "2" } } }
+        ]
+      }
+    }
+  },
+  {
+    "args" : ["WHEN omega:x.y.z > '2';"],
+    "expects" : {
+      "whens" : {
+        "omega" : [
+          { "expr" : { "left" : { "type" : "key", "value" : "x.y.z" }, "op" : "gt", "right" : { "type" : "string", "value" : "2" } } }
+        ]
+      }
+    }
+  },
+  {
+    "args" : ["WHEN omega:x.y.z > 2; WHEN alpha:a == 'foo'; WHEN omega:a == 'bar';"],
+    "expects" : {
+      "whens" : {
+        "omega" : [
+          { "expr" : { "left" : { "type" : "key", "value" : "x.y.z" }, "op" : "gt", "right" : { "type" : "number", "value" : "2" } } },
+          { "expr" : { "left" : { "type" : "key", "value" : "a" }, "op" : "eq", "right" : { "type" : "string", "value" : "bar" } } }
+        ],
+        "alpha" : [
+          { "expr" : { "left" : { "type" : "key", "value" : "a"}, "op" : "eq", "right" : { "type" : "string", "value" : "foo" } } }
+        ]
+      }
+    }
+  }
+]
