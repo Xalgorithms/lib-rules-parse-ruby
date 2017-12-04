@@ -1,0 +1,45 @@
+[
+  {
+    "args" : ["REVISE items USING @a = @x.y.z USING @b=p.q USING @c = 2 USING @d='s';"],
+    "expects" : {
+      "steps" : [
+        {
+          "name" : "revise", "table_ref" : "items",
+          "assignments" : {
+            "a" : { "type" : "column", "value" : "x.y.z" },
+            "b" : { "type" : "key",    "value" : "p.q" },
+            "c" : { "type" : "number", "value" : "2" },
+            "d" : { "type" : "string", "value" : "s" }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "args" : ["REVISE items USING @a = multiply(add(@b, 2), 2);"],
+    "expects" : {
+      "steps" : [
+        {
+          "name" : "revise", "table_ref" : "items",
+          "assignments" : {
+            "a" : {
+              "type" : "function",
+              "name" : "multiply",
+              "args" : [
+                {
+                  "type" : "function",
+                  "name" : "add",
+                  "args" : [
+                    { "type" : "column", "value" : "b" },
+                    { "type" : "number", "value" : "2" }
+                  ]
+                },
+                { "type" : "number", "value" : "2" }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+]

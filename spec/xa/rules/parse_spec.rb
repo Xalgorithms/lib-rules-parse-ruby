@@ -11,6 +11,7 @@ describe XA::Rules::Parse do
       'spec/files/when.json',
       'spec/files/assemble.json',
       'spec/files/map.json',
+      'spec/files/revise.json',
     ]
 
     load_expects(files, method(:parse)) do |ex, ac|

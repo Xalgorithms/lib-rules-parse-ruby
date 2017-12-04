@@ -30,6 +30,7 @@ module XA
         rule(:kw_from)            { match('[fF]') >> match('[rR]') >> match('[oO]') >> match('[mM]') }
         rule(:kw_map)             { match('[mM]') >> match('[aA]') >> match('[pP]') }
         rule(:kw_using)           { match('[uU]') >> match('[sS]') >> match('[iI]') >> match('[nN]') >> match('[gG]') }
+        rule(:kw_revise)          { match('[rR]') >> match('[eE]') >> match('[vV]') >> match('[iI]') >> match('[sS]') >> match('[eE]') }
         
         rule(:op_gte)             { str('>=') }
         rule(:op_lte)             { str('<=') }
@@ -47,13 +48,17 @@ module XA
         rule(:assemble_columns)   { assemble_column >> (space >> assemble_column).repeat }
         rule(:assemble_statement) { kw_assemble >> space >> name.as(:table_name) >> space >> assemble_columns.as(:columns) }
 
-        rule(:function_ref)       { name.as(:name) >> (lparen >> map_expr >> (space.maybe >> comma >> space.maybe >> map_expr).repeat >> rparen).as(:args) }
-        rule(:map_expr)           { function_ref.as(:func_ref) | column_reference.as(:col_ref) | value.as(:value) | key_name.as(:key) }
-        rule(:map_assignment)     { kw_using >> space >> name.as(:name) >> space.maybe >> eq >> space.maybe >> map_expr.as(:expr) }
+        rule(:function_ref)       { name.as(:name) >> (lparen >> assign_expr >> (space.maybe >> comma >> space.maybe >> assign_expr).repeat >> rparen).as(:args) }
+        rule(:assign_expr)        { function_ref.as(:func_ref) | column_reference.as(:col_ref) | value.as(:value) | key_name.as(:key) }
+        rule(:map_assignment)     { kw_using >> space >> name.as(:name) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
         rule(:map_assignments)    { map_assignment >> (space >> map_assignment).repeat }
         rule(:map_statement)      { kw_map >> space >> reference.as(:table_ref) >> space >> map_assignments.as(:assignments) }
+
+        rule(:revise_assignment)  { kw_using >> space >> column_reference.as(:column) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
+        rule(:revise_assignments) { revise_assignment >> (space >> revise_assignment).repeat }
+        rule(:revise_statement)   { kw_revise >> space >> reference.as(:table_ref) >> space >> revise_assignments.as(:assignments) }
         
-        rule(:statement)          { (when_statement.as(:when) | assemble_statement.as(:assemble) | map_statement.as(:map)) >> semi }
+        rule(:statement)          { (when_statement.as(:when) | assemble_statement.as(:assemble) | map_statement.as(:map) | revise_statement.as(:revise)) >> semi }
         rule(:statements)         { statement >> (space >> statement).repeat }
         
         root(:statements)
@@ -167,6 +172,17 @@ module XA
         }
       end
       
+      def build_revise_tree(stm)
+        assigns = stm[:assignments]
+        assigns = [assigns] if assigns.class == Hash
+        {
+          'table_ref'   => stm[:table_ref].to_s,
+          'assignments' => assigns.inject({}) do |o, a|
+            o.merge(a[:column][:name].to_s => build_assignment_expr(a[:expr]))
+          end
+        }
+      end
+
       def build_when_tree(stm)
         {
           'expr' => build_expr_tree(stm[:expr]),
@@ -180,6 +196,7 @@ module XA
         tree.inject({}) do |o, stms|
           t = stms.keys.first
           stm = stms[t]
+
           case t
           when :when
             section = stm[:section].to_s
@@ -189,6 +206,8 @@ module XA
             o.merge('steps' => o.fetch('steps', []) + [build_assemble_tree(stm).merge('name' => 'assemble')])
           when :map
             o.merge('steps' => o.fetch('steps', []) + [build_map_tree(stm).merge('name' => 'map')])
+          when :revise
+            o.merge('steps' => o.fetch('steps', []) + [build_revise_tree(stm).merge('name' => 'revise')])
           end
         end
       end
