@@ -10,7 +10,7 @@ module XA
         rule(:string)             { quote >> match('\w').repeat(1) >> quote }
         rule(:number)             { match('[0-9]').repeat(1) }
         rule(:semi)               { str(';') }
-        rule(:comma)               { str(',') }
+        rule(:comma)              { str(',') }
         rule(:colon)              { str(':') }
         rule(:dot)                { str('.') }
         rule(:eq)                 { str('=') }
@@ -64,10 +64,6 @@ module XA
         root(:statements)
       end
 
-      class ActionTransform < Parslet::Transform
-        rule(:key) { 'blah' }
-      end
-
       def maybe_convert_value(v)
         cv = [
           [/^'(\w+)'$/, :to_s],
@@ -88,24 +84,6 @@ module XA
         '<=' => 'lte',
       }
       
-      def maybe_convert(k, v)
-        case k
-        when 'val'
-          maybe_convert_value(v)
-        when 'op'
-          OPS.fetch(v, v)
-        else
-          v
-        end
-      end
-      
-      def simplify_hash(h)
-        h.inject({}) do |o, (k, v)|
-          ks = k.to_s
-          o.merge(ks => v.class == Hash ? simplify_hash(v) : maybe_convert(ks, v.to_s))
-        end
-      end
-
       def build_operand(opr)
         t = opr.keys.first
         case t
