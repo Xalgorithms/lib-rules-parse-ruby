@@ -16,7 +16,7 @@
 # users commonly want.
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
-require_relative './support/randomness'
+require 'radish/randomness'
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
@@ -95,7 +95,7 @@ RSpec.configure do |config|
   # as the one that triggered the failure.
   Kernel.srand config.seed
 =end
-  config.include(Randomness)
+  config.include(Radish::Randomness)
 end
 
 require 'xa/rules'
