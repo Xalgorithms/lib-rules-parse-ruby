@@ -1,0 +1,28 @@
+[
+  {
+    "args" : [
+      "WHEN envelope:type == 'invoice'; ASSEMBLE table0 COLUMN c0 FROM table0 WHEN x.y == a.b COLUMN c1 FROM table1 WHEN x<=y; MAP items USING a = @x.y.z;"
+    ],
+    "expects" : {
+      "whens" : {
+        "envelope" : [
+          { "expr" : { "left" : { "type" : "key", "value" : "type" }, "op" : "eq", "right" : { "type" : "string", "value" : "invoice" } } }
+        ]
+      },
+      "steps" : [
+        {
+          "name" : "assemble", "table_name" : "table0", "columns" : [
+            { "name" : "c0", "table_name" : "table0", "expr" : { "left" : { "type" : "key", "value" : "x.y" }, "right" : { "type" : "key", "value" : "a.b" }, "op": "eq" } },
+            { "name" : "c1", "table_name" : "table1", "expr" : { "left" : { "type" : "key", "value" : "x" }, "right" : { "type" : "key", "value" : "y" }, "op": "lte" } }
+          ]
+        },
+        {
+          "name" : "map", "table_ref" : "items",
+          "assignments" : {
+            "a" : { "type" : "column", "value" : "x.y.z" }
+          }
+        }
+      ]
+    }
+  }
+]
