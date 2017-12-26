@@ -66,13 +66,11 @@ module XA
         rule(:keep_statement)     { kw_keep >> space >> name.as(:table_name) }
         
         rule(:assign_expr)        { function_reference.as(:function) | reference | value.as(:value) }
-        rule(:map_assignment)     { kw_using >> space >> name.as(:name) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
-        rule(:map_assignments)    { map_assignment >> (space >> map_assignment).repeat }
-        rule(:map_statement)      { kw_map >> space >> table_reference.as(:table) >> space >> map_assignments.as(:assignments) }
+        rule(:assignment)         { kw_using >> space >> name.as(:name) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
+        rule(:assignments)        { assignment >> (space >> assignment).repeat }
+        rule(:map_statement)      { kw_map >> space >> table_reference.as(:table) >> space >> assignments.as(:assignments) }
 
-        rule(:revise_assignment)  { kw_using >> space >> column_reference.as(:column) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
-        rule(:revise_assignments) { revise_assignment >> (space >> revise_assignment).repeat }
-        rule(:revise_statement)   { kw_revise >> space >> reference.as(:table_ref) >> space >> revise_assignments.as(:assignments) }
+        rule(:revise_statement)   { kw_revise >> space >> table_reference.as(:table) >> space >> assignments.as(:assignments) }
         
         rule(:statement)          { (when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | keep_statement.as(:keep) | map_statement.as(:map) | revise_statement.as(:revise)) >> semi }
         rule(:statements)         { statement >> (space >> statement).repeat }
@@ -193,7 +191,7 @@ module XA
         end
       end
       
-      def build_map_tree(stm)
+      def build_assignment_tree(stm)
         assigns = stm[:assignments]
         assigns = [assigns] if assigns.class == Hash
         {
@@ -204,17 +202,6 @@ module XA
         }
       end
       
-      def build_revise_tree(stm)
-        assigns = stm[:assignments]
-        assigns = [assigns] if assigns.class == Hash
-        {
-          'table_ref'   => stm[:table_ref].to_s,
-          'assignments' => assigns.inject({}) do |o, a|
-            o.merge(a[:column][:name].to_s => build_assignment_expr(a[:expr]))
-          end
-        }
-      end
-
       def build_when_tree(stm)
         {
           'expr' => build_expr_tree(stm[:expr]),
@@ -247,9 +234,9 @@ module XA
           when :keep
             o.merge('steps' => o.fetch('steps', []) + [build_keep_tree(stm).merge('name' => 'keep')])
           when :map
-            o.merge('steps' => o.fetch('steps', []) + [build_map_tree(stm).merge('name' => 'map')])
+            o.merge('steps' => o.fetch('steps', []) + [build_assignment_tree(stm).merge('name' => 'map')])
           when :revise
-            o.merge('steps' => o.fetch('steps', []) + [build_revise_tree(stm).merge('name' => 'revise')])
+            o.merge('steps' => o.fetch('steps', []) + [build_assignment_tree(stm).merge('name' => 'revise')])
           end
         end
       end
