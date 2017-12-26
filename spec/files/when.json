@@ -1,10 +1,14 @@
 [
   {
-    "args" : ["WHEN envelope:type == 'invoice';"],
+    "args" : ["WHEN envelope:type == 'invoice'; WHEN item:a < 1; WHEN item:b == 2;"],
     "expects" : {
       "whens" : {
         "envelope" : [
-          { "expr" : { "left" : { "type" : "key", "value" : "type" }, "op" : "eq", "right" : { "type" : "string", "value" : "invoice" } } }
+          { "expr" : { "left" : { "section" : "envelope", "type" : "reference", "key" : "type" }, "op" : "eq", "right" : { "type" : "string", "value" : "invoice" } } }
+        ],
+        "item" : [
+          { "expr" : { "left" : { "section" : "item", "type" : "reference", "key" : "a" }, "op" : "lt", "right" : { "type" : "number", "value" : "1" } } },
+          { "expr" : { "left" : { "section" : "item", "type" : "reference", "key" : "b" }, "op" : "eq", "right" : { "type" : "number", "value" : "2" } } }
         ]
       }
     }
@@ -14,7 +18,7 @@
     "expects" : {
       "whens" : {
         "envelope" : [
-          { "expr" : { "left" : { "type" : "key", "value" : "type" }, "op" : "eq", "right" : { "type" : "string", "value" : "invoice" } } }
+          { "expr" : { "left" : { "type" : "reference", "section" : "envelope", "key" : "type" }, "op" : "eq", "right" : { "type" : "string", "value" : "invoice" } } }
         ]
       }
     }
@@ -24,7 +28,7 @@
     "expects" : {
       "whens" : {
         "omega" : [
-          { "expr" : { "left" : { "type" : "key", "value" : "x.y.z" }, "op" : "lte", "right" : { "type" : "number", "value" : "2" } } }
+          { "expr" : { "left" : { "type" : "reference", "section": "omega", "key" : "x.y.z" }, "op" : "lte", "right" : { "type" : "number", "value" : "2" } } }
         ]
       }
     }
@@ -34,7 +38,7 @@
     "expects" : {
       "whens" : {
         "omega" : [
-          { "expr" : { "left" : { "type" : "key", "value" : "x.y.z" }, "op" : "lt", "right" : { "type" : "number", "value" : "2" } } }
+          { "expr" : { "left" : { "type" : "reference", "section" : "omega", "key" : "x.y.z" }, "op" : "lt", "right" : { "type" : "number", "value" : "2" } } }
         ]
       }
     }
@@ -44,7 +48,7 @@
     "expects" : {
       "whens" : {
         "omega" : [
-          { "expr" : { "left" : { "type" : "key", "value" : "x.y.z" }, "op" : "gte", "right" : { "type" : "number", "value" : "2" } } }
+          { "expr" : { "left" : { "type" : "reference", "section" : "omega", "key" : "x.y.z" }, "op" : "gte", "right" : { "type" : "number", "value" : "2" } } }
         ]
       }
     }
@@ -54,7 +58,7 @@
     "expects" : {
       "whens" : {
         "omega" : [
-          { "expr" : { "left" : { "type" : "key", "value" : "x.y.z" }, "op" : "gt", "right" : { "type" : "string", "value" : "2" } } }
+          { "expr" : { "left" : { "type" : "reference", "section" : "omega", "key" : "x.y.z" }, "op" : "gt", "right" : { "type" : "string", "value" : "2" } } }
         ]
       }
     }
@@ -64,11 +68,11 @@
     "expects" : {
       "whens" : {
         "omega" : [
-          { "expr" : { "left" : { "type" : "key", "value" : "x.y.z" }, "op" : "gt", "right" : { "type" : "number", "value" : "2" } } },
-          { "expr" : { "left" : { "type" : "key", "value" : "a" }, "op" : "eq", "right" : { "type" : "string", "value" : "bar" } } }
+          { "expr" : { "left" : { "type" : "reference", "section" : "omega", "key" : "x.y.z" }, "op" : "gt", "right" : { "type" : "number", "value" : "2" } } },
+          { "expr" : { "left" : { "type" : "reference", "section" : "omega", "key" : "a" }, "op" : "eq", "right" : { "type" : "string", "value" : "bar" } } }
         ],
         "alpha" : [
-          { "expr" : { "left" : { "type" : "key", "value" : "a"}, "op" : "eq", "right" : { "type" : "string", "value" : "foo" } } }
+          { "expr" : { "left" : { "type" : "reference", "section" : "alpha", "key" : "a" }, "op" : "eq", "right" : { "type" : "string", "value" : "foo" } } }
         ]
       }
     }

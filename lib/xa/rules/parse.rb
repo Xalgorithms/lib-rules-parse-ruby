@@ -20,7 +20,6 @@ module XA
 
         rule(:name)               { match('\w').repeat(1) }
         rule(:key_name)           { match('\w').repeat(1) >> (str('.') >> match('\w').repeat(1)).repeat }
-        rule(:reference)          { match('\w').repeat(1) }
         rule(:column_reference)   { at >> key_name.as(:name) }
         rule(:value)              { string.as(:string) | number.as(:number) }
 
@@ -31,6 +30,9 @@ module XA
         rule(:kw_map)             { match('[mM]') >> match('[aA]') >> match('[pP]') }
         rule(:kw_using)           { match('[uU]') >> match('[sS]') >> match('[iI]') >> match('[nN]') >> match('[gG]') }
         rule(:kw_revise)          { match('[rR]') >> match('[eE]') >> match('[vV]') >> match('[iI]') >> match('[sS]') >> match('[eE]') }
+
+        
+        
         
         rule(:op_gte)             { str('>=') }
         rule(:op_lte)             { str('<=') }
@@ -38,11 +40,13 @@ module XA
         rule(:op_gt)              { str('>') }
         rule(:op_lt)              { str('<') }
 
+        rule(:section_reference)  { name.as(:section) >> colon >> key_name.as(:key) }
+        rule(:reference)          { section_reference.as(:section) } 
         rule(:op)                 { op_lte | op_gte | op_eq | op_lt | op_gt }
-        rule(:operand)            { value.as(:value) | key_name.as(:key) }
+        rule(:operand)            { value.as(:value) | reference.as(:reference) }
         rule(:expr)               { operand.as(:left) >> space.maybe >> op.as(:op) >> space.maybe >> operand.as(:right) }
         
-        rule(:when_statement)     { kw_when >> space >> name.as(:section) >> colon >> expr.as(:expr) }
+        rule(:when_statement)     { kw_when >> space >> expr.as(:expr) }
 
         rule(:assemble_column)    { kw_column >> space >> name.as(:name) >> space >> kw_from >> space >> name.as(:table_name) >> space >> kw_when >> space >> expr.as(:expr) }
         rule(:assemble_columns)   { assemble_column >> (space >> assemble_column).repeat }
@@ -83,10 +87,22 @@ module XA
         '>=' => 'gte',
         '<=' => 'lte',
       }
+
+      def build_reference_operand(opr)
+        t = opr.keys.first
+        case t
+        when :section
+          rv = { 'section' => opr[t][:section].to_s, 'key' => opr[t][:key].to_s }
+        end
+
+        rv.merge('type' => 'reference')
+      end
       
       def build_operand(opr)
         t = opr.keys.first
         case t
+        when :reference
+          build_reference_operand(opr[t])
         when :key
           { 'type' => 'key', 'value' => opr[t].to_s }
         when :value
@@ -166,7 +182,7 @@ module XA
           'expr' => build_expr_tree(stm[:expr]),
         }
       end
-      
+
       def parse(content)
         tree = ActionParser.new.parse(content)
         tree = [tree] if tree.class == Hash
@@ -177,9 +193,15 @@ module XA
 
           case t
           when :when
-            section = stm[:section].to_s
+            expr = build_when_tree(stm)
+            p stm
+            p expr
             whens = o.fetch('whens', {})
-            o.merge('whens' => whens.merge(section => whens.fetch(section, []) + [build_when_tree(stm)]))
+            section = expr['expr']['left']['section']
+            o.merge('whens' => whens.merge(section => whens.fetch(section, []) + [expr]))
+#            section = stm[:section].to_s
+#            whens = o.fetch('whens', {})
+#            o.merge('whens' => whens.merge(section => whens.fetch(section, []) + [build_when_tree(stm)]))
           when :assemble
             o.merge('steps' => o.fetch('steps', []) + [build_assemble_tree(stm).merge('name' => 'assemble')])
           when :map
