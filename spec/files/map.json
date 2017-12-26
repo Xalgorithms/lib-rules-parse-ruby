@@ -1,26 +1,45 @@
 [
+  // simple assignment/copy
   {
-    "args" : ["MAP items USING a = @x.y.z;"],
+    "args" : ["MAP tables:items USING a = @x.y.z;"],
     "expects" : {
       "steps" : [
         {
-          "name" : "map", "table_ref" : "items",
+          "name" : "map",
+          "table" : { "type" : "reference", "section" : "tables", "key" : "items" },
           "assignments" : {
-            "a" : { "type" : "column", "value" : "x.y.z" }
+            "a" : { "type" : "reference", "section" : "_context", "key" : "x.y.z" }
           }
         }
       ]
     }
   },
+  // reference the vtable
   {
-    "args" : ["MAP items USING a = @x.y.z USING b=p.q USING c = 2 USING d='s';"],
+    "args" : ["MAP $ USING a = @x.y.z;"],
     "expects" : {
       "steps" : [
         {
-          "name" : "map", "table_ref" : "items",
+          "name" : "map",
+          "table" : { "type" : "reference", "section" : "_virtual" },
           "assignments" : {
-            "a" : { "type" : "column", "value" : "x.y.z" },
-            "b" : { "type" : "key",    "value" : "p.q" },
+            "a" : { "type" : "reference", "section" : "_context", "key" : "x.y.z" }
+          }
+        }
+      ]
+    }
+  },
+  // multiple assignments
+  {
+    "args" : ["MAP tables:items USING a = @x.y.z USING b=@p.q USING c = 2 USING d='s';"],
+    "expects" : {
+      "steps" : [
+        {
+          "name" : "map",
+          "table" : { "type" : "reference", "section" : "tables", "key" : "items" },
+          "assignments" : {
+            "a" : { "type" : "reference", "section" : "_context", "key" : "x.y.z" },
+            "b" : { "type" : "reference", "section" : "_context", "key" : "p.q" },
             "c" : { "type" : "number", "value" : "2" },
             "d" : { "type" : "string", "value" : "s" }
           }
@@ -29,31 +48,12 @@
     }
   },
   {
-    "args" : ["MAP items USING a = multiply(@b, 2);"],
+    "args" : ["MAP tables:items USING a = multiply(add(@b, 2), 4);"],
     "expects" : {
       "steps" : [
         {
-          "name" : "map", "table_ref" : "items",
-          "assignments" : {
-            "a" : {
-              "type" : "function",
-              "name" : "multiply",
-              "args" : [
-                { "type" : "column", "value" : "b" },
-                { "type" : "number", "value" : "2" }
-              ]
-            }
-          }
-        }
-      ]
-    }
-  },
-  {
-    "args" : ["MAP items USING a = multiply(add(@b, 2), 2);"],
-    "expects" : {
-      "steps" : [
-        {
-          "name" : "map", "table_ref" : "items",
+          "name" : "map",
+          "table" : { "type" : "reference", "section" : "tables", "key" : "items" },
           "assignments" : {
             "a" : {
               "type" : "function",
@@ -63,11 +63,11 @@
                   "type" : "function",
                   "name" : "add",
                   "args" : [
-                    { "type" : "column", "value" : "b" },
+                    { "type" : "reference", "section" : "_context", "key" : "b" },
                     { "type" : "number", "value" : "2" }
                   ]
                 },
-                { "type" : "number", "value" : "2" }
+                { "type" : "number", "value" : "4" }
               ]
             }
           }

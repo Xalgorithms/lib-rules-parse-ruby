@@ -19,6 +19,7 @@ module XA
         rule(:rparen)             { str(')') }
         rule(:lsquare)            { str('[') }
         rule(:rsquare)            { str(']') }
+        rule(:dollar)             { str('$') }
 
         rule(:name)               { match('\w').repeat(1) }
         rule(:key_name)           { match('\w').repeat(1) >> (str('.') >> match('\w').repeat(1)).repeat }
@@ -43,9 +44,11 @@ module XA
         rule(:op_lt)              { str('<') }
 
         # TODO: remove (it's context_reference)
-        rule(:column_reference)   { at >> key_name.as(:name) }
         rule(:section_reference)  { name.as(:section) >> colon >> key_name.as(:key) }
         rule(:context_reference)  { at >> key_name.as(:key) }
+        rule(:vtable_reference)   { dollar }
+        rule(:table_reference)    { section_reference.as(:section) | context_reference.as(:context) | vtable_reference.as(:virtual) }
+        rule(:function_reference) { name.as(:name) >> (lparen >> assign_expr >> (space.maybe >> comma >> space.maybe >> assign_expr).repeat >> rparen).as(:args) }
         rule(:reference)          { section_reference.as(:section) | context_reference.as(:context) } 
         rule(:op)                 { op_lte | op_gte | op_eq | op_lt | op_gt }
         rule(:operand)            { value.as(:value) | reference.as(:reference) | name.as(:name) }
@@ -62,11 +65,10 @@ module XA
 
         rule(:keep_statement)     { kw_keep >> space >> name.as(:table_name) }
         
-        rule(:function_ref)       { name.as(:name) >> (lparen >> assign_expr >> (space.maybe >> comma >> space.maybe >> assign_expr).repeat >> rparen).as(:args) }
-        rule(:assign_expr)        { function_ref.as(:func_ref) | column_reference.as(:col_ref) | value.as(:value) | key_name.as(:key) }
+        rule(:assign_expr)        { function_reference.as(:function) | reference | value.as(:value) }
         rule(:map_assignment)     { kw_using >> space >> name.as(:name) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
         rule(:map_assignments)    { map_assignment >> (space >> map_assignment).repeat }
-        rule(:map_statement)      { kw_map >> space >> reference.as(:table_ref) >> space >> map_assignments.as(:assignments) }
+        rule(:map_statement)      { kw_map >> space >> table_reference.as(:table) >> space >> map_assignments.as(:assignments) }
 
         rule(:revise_assignment)  { kw_using >> space >> column_reference.as(:column) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
         rule(:revise_assignments) { revise_assignment >> (space >> revise_assignment).repeat }
@@ -105,9 +107,25 @@ module XA
           rv = { 'section' => opr[t][:section].to_s, 'key' => opr[t][:key].to_s }
         when :context
           rv = { 'section' => '_context', 'key' => opr[t][:key].to_s }
+        when :virtual
+          rv = { 'section' => '_virtual' }
         end
 
-        rv.merge('type' => 'reference')
+        rv.merge('type' => 'reference') if rv
+      end
+
+      def build_value_operand(opr)
+        t = opr.keys.first
+        case t
+        when :string
+          { 'type' => 'string', 'value' => maybe_convert_value(opr[t].to_s) }
+        when :number
+          { 'type' => 'number', 'value' => maybe_convert_value(opr[t].to_s) }
+        end
+      end
+
+      def build_assignment_operand(opr)
+        build_reference_operand(opr) || build_value_operand(opr.fetch(:value, {}))
       end
       
       def build_operand(opr)
@@ -120,13 +138,7 @@ module XA
         when :name
           { 'type' => 'name', 'value' => opr[t].to_s }
         when :value
-          vt = opr[t].keys.first
-          case vt
-          when :string
-            { 'type' => 'string', 'value' => maybe_convert_value(opr[t][vt].to_s) }
-          when :number
-            { 'type' => 'number', 'value' => maybe_convert_value(opr[t][vt].to_s) }
-          end
+          build_value_operand(opr[t])
         else
           { 'type' => 'unk' }
         end
@@ -170,16 +182,14 @@ module XA
       def build_assignment_expr(expr)
         at = expr.keys.first
         case at
-        when :col_ref
-          { "type" => "column", "value" => expr[at][:name].to_s }
-        when :func_ref
+        when :function
           {
             "type" => "function",
             "name" => expr[at][:name].to_s,
             "args" => expr[at][:args].map(&method(:build_assignment_expr)),
           }
         else
-          build_operand(expr)
+          build_assignment_operand(expr)
         end
       end
       
@@ -187,9 +197,9 @@ module XA
         assigns = stm[:assignments]
         assigns = [assigns] if assigns.class == Hash
         {
-          'table_ref'   => stm[:table_ref].to_s,
-          'assignments' => assigns.inject({}) do |o, a|
-            o.merge(a[:name].to_s => build_assignment_expr(a[:expr]))
+          'table' => build_reference_operand(stm[:table]),
+          'assignments' => assigns.inject({}) do |o, assign|
+            o.merge(assign[:name].to_s => build_assignment_expr(assign[:expr]))
           end
         }
       end
