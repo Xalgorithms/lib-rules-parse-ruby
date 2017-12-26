@@ -10,7 +10,7 @@ describe XA::Rules::Parse do
     files = [
       'spec/files/when.json',
       'spec/files/require.json',
-#      'spec/files/assemble.json',
+      'spec/files/assemble.json',
 #      'spec/files/map.json',
 #      'spec/files/revise.json',
 #      'spec/files/mixed.json',

@@ -22,7 +22,6 @@ module XA
 
         rule(:name)               { match('\w').repeat(1) }
         rule(:key_name)           { match('\w').repeat(1) >> (str('.') >> match('\w').repeat(1)).repeat }
-        rule(:column_reference)   { at >> key_name.as(:name) }
         rule(:value)              { string.as(:string) | number.as(:number) }
 
         rule(:kw_when)            { match('[wW]') >> match('[hH]') >> match('[eE]') >> match('[nN]') }
@@ -42,10 +41,13 @@ module XA
         rule(:op_gt)              { str('>') }
         rule(:op_lt)              { str('<') }
 
+        # TODO: remove (it's context_reference)
+        rule(:column_reference)   { at >> key_name.as(:name) }
         rule(:section_reference)  { name.as(:section) >> colon >> key_name.as(:key) }
-        rule(:reference)          { section_reference.as(:section) } 
+        rule(:context_reference)  { at >> key_name.as(:key) }
+        rule(:reference)          { section_reference.as(:section) | context_reference.as(:context) } 
         rule(:op)                 { op_lte | op_gte | op_eq | op_lt | op_gt }
-        rule(:operand)            { value.as(:value) | reference.as(:reference) }
+        rule(:operand)            { value.as(:value) | reference.as(:reference) | name.as(:name) }
         rule(:expr)               { operand.as(:left) >> space.maybe >> op.as(:op) >> space.maybe >> operand.as(:right) }
         
         rule(:when_statement)     { kw_when >> space >> expr.as(:expr) }
@@ -53,7 +55,7 @@ module XA
         rule(:require_indexes)    { kw_index >> space >> lsquare >> name.as(:column) >> (comma >> space.maybe >> name.as(:column)).repeat >> rsquare } 
         rule(:require_statement)  { kw_require >> space >> name.as(:id) >> (space >> require_indexes.as(:indexes)).maybe >> (space >> kw_as >> space >> name.as(:name)).maybe }
 
-        rule(:assemble_column)    { kw_column >> space >> name.as(:name) >> space >> kw_from >> space >> name.as(:table_name) >> space >> kw_when >> space >> expr.as(:expr) }
+        rule(:assemble_column)    { kw_column >> space >> name.as(:source) >> (space >> kw_as >> space >> name.as(:name)).maybe >> space >> kw_from >> space >> name.as(:table_name) >> space >> kw_when >> space >> expr.as(:expr) }
         rule(:assemble_columns)   { assemble_column >> (space >> assemble_column).repeat }
         rule(:assemble_statement) { kw_assemble >> space >> name.as(:table_name) >> space >> assemble_columns.as(:columns) }
 
@@ -98,6 +100,8 @@ module XA
         case t
         when :section
           rv = { 'section' => opr[t][:section].to_s, 'key' => opr[t][:key].to_s }
+        when :context
+          rv = { 'section' => '_context', 'key' => opr[t][:key].to_s }
         end
 
         rv.merge('type' => 'reference')
@@ -110,6 +114,8 @@ module XA
           build_reference_operand(opr[t])
         when :key
           { 'type' => 'key', 'value' => opr[t].to_s }
+        when :name
+          { 'type' => 'name', 'value' => opr[t].to_s }
         when :value
           vt = opr[t].keys.first
           case vt
@@ -132,14 +138,24 @@ module XA
       end
       
       def build_assemble_tree(stm)
+        cols = stm[:columns]
+        cols = [cols] if cols.class == Hash
         {
           'table_name' => stm[:table_name].to_s,
-          'columns'    => stm[:columns].map do |col|
+          'columns'    => cols.map do |col|
+            source = col[:source].to_s
             {
-              'name'       => col[:name].to_s,
-              'table_name' => col[:table_name].to_s,
-              'expr'       => build_expr_tree(col[:expr]),
+              table: col[:table_name].to_s,
+              col: {
+                'name'       => col.fetch(:name, source).to_s,
+                'source'     => source,
+                'expr'       => build_expr_tree(col[:expr]),
+              }
             }
+          end.inject({}) do |o, col|
+            table_name = col[:table]
+            table_cols = o.fetch(table_name, [])
+            o.merge(table_name => table_cols + [col[:col]])
           end,
         }
       end
@@ -189,6 +205,7 @@ module XA
       end
 
       def parse(content)
+        p content
         tree = ActionParser.new.parse(content)
         tree = [tree] if tree.class == Hash
 
@@ -209,6 +226,7 @@ module XA
             requires = o.fetch('requires', [])
             o.merge('requires' => requires + [{ 'id' => id, 'name' => name, 'indexes' => indexes }])
           when :assemble
+            p stm
             o.merge('steps' => o.fetch('steps', []) + [build_assemble_tree(stm).merge('name' => 'assemble')])
           when :map
             o.merge('steps' => o.fetch('steps', []) + [build_map_tree(stm).merge('name' => 'map')])
