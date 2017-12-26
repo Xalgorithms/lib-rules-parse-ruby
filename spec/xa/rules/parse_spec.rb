@@ -9,6 +9,7 @@ describe XA::Rules::Parse do
   it 'should parse the syntax' do
     files = [
       'spec/files/when.json',
+      'spec/files/require.json',
 #      'spec/files/assemble.json',
 #      'spec/files/map.json',
 #      'spec/files/revise.json',

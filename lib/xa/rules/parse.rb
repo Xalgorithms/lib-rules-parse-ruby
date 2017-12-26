@@ -17,6 +17,8 @@ module XA
         rule(:at)                 { str('@') }
         rule(:lparen)             { str('(') }
         rule(:rparen)             { str(')') }
+        rule(:lsquare)            { str('[') }
+        rule(:rsquare)            { str(']') }
 
         rule(:name)               { match('\w').repeat(1) }
         rule(:key_name)           { match('\w').repeat(1) >> (str('.') >> match('\w').repeat(1)).repeat }
@@ -29,11 +31,11 @@ module XA
         rule(:kw_from)            { match('[fF]') >> match('[rR]') >> match('[oO]') >> match('[mM]') }
         rule(:kw_map)             { match('[mM]') >> match('[aA]') >> match('[pP]') }
         rule(:kw_using)           { match('[uU]') >> match('[sS]') >> match('[iI]') >> match('[nN]') >> match('[gG]') }
+        rule(:kw_require)         { match('[rR]') >> match('[eE]') >> match('[qQ]') >> match('[uU]') >> match('[iI]') >> match('[rR]') >> match('[eE]') }
         rule(:kw_revise)          { match('[rR]') >> match('[eE]') >> match('[vV]') >> match('[iI]') >> match('[sS]') >> match('[eE]') }
+        rule(:kw_index)           { match('[iI]') >> match('[nN]') >> match('[dD]') >> match('[eE]') >> match('[xX]') }
+        rule(:kw_as)              { match('[aA]') >> match('[sS]') }
 
-        
-        
-        
         rule(:op_gte)             { str('>=') }
         rule(:op_lte)             { str('<=') }
         rule(:op_eq)              { str('==') }
@@ -47,6 +49,9 @@ module XA
         rule(:expr)               { operand.as(:left) >> space.maybe >> op.as(:op) >> space.maybe >> operand.as(:right) }
         
         rule(:when_statement)     { kw_when >> space >> expr.as(:expr) }
+
+        rule(:require_indexes)    { kw_index >> space >> lsquare >> name.as(:column) >> (comma >> space.maybe >> name.as(:column)).repeat >> rsquare } 
+        rule(:require_statement)  { kw_require >> space >> name.as(:id) >> (space >> require_indexes.as(:indexes)).maybe >> (space >> kw_as >> space >> name.as(:name)).maybe }
 
         rule(:assemble_column)    { kw_column >> space >> name.as(:name) >> space >> kw_from >> space >> name.as(:table_name) >> space >> kw_when >> space >> expr.as(:expr) }
         rule(:assemble_columns)   { assemble_column >> (space >> assemble_column).repeat }
@@ -62,7 +67,7 @@ module XA
         rule(:revise_assignments) { revise_assignment >> (space >> revise_assignment).repeat }
         rule(:revise_statement)   { kw_revise >> space >> reference.as(:table_ref) >> space >> revise_assignments.as(:assignments) }
         
-        rule(:statement)          { (when_statement.as(:when) | assemble_statement.as(:assemble) | map_statement.as(:map) | revise_statement.as(:revise)) >> semi }
+        rule(:statement)          { (when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | map_statement.as(:map) | revise_statement.as(:revise)) >> semi }
         rule(:statements)         { statement >> (space >> statement).repeat }
         
         root(:statements)
@@ -194,14 +199,15 @@ module XA
           case t
           when :when
             expr = build_when_tree(stm)
-            p stm
-            p expr
             whens = o.fetch('whens', {})
             section = expr['expr']['left']['section']
             o.merge('whens' => whens.merge(section => whens.fetch(section, []) + [expr]))
-#            section = stm[:section].to_s
-#            whens = o.fetch('whens', {})
-#            o.merge('whens' => whens.merge(section => whens.fetch(section, []) + [build_when_tree(stm)]))
+          when :require
+            id = stm[:id].to_s
+            name = stm.fetch(:name, id).to_s
+            indexes = stm.fetch(:indexes, []).map { |col| col[:column].to_s }
+            requires = o.fetch('requires', [])
+            o.merge('requires' => requires + [{ 'id' => id, 'name' => name, 'indexes' => indexes }])
           when :assemble
             o.merge('steps' => o.fetch('steps', []) + [build_assemble_tree(stm).merge('name' => 'assemble')])
           when :map
