@@ -68,9 +68,9 @@ module XA
         rule(:assign_expr)        { function_reference.as(:function) | reference | value.as(:value) }
         rule(:assignment)         { kw_using >> space >> name.as(:name) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
         rule(:assignments)        { assignment >> (space >> assignment).repeat }
-        rule(:map_statement)      { kw_map >> space >> table_reference.as(:table) >> space >> assignments.as(:assignments) }
-
-        rule(:revise_statement)   { kw_revise >> space >> table_reference.as(:table) >> space >> assignments.as(:assignments) }
+        rule(:assign_statement)   { table_reference.as(:table) >> space >> assignments.as(:assignments) }
+        rule(:map_statement)      { kw_map >> space >> assign_statement }
+        rule(:revise_statement)   { kw_revise >> space >> assign_statement }
         
         rule(:statement)          { (when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | keep_statement.as(:keep) | map_statement.as(:map) | revise_statement.as(:revise)) >> semi }
         rule(:statements)         { statement >> (space >> statement).repeat }
@@ -209,7 +209,6 @@ module XA
       end
 
       def parse(content)
-        p content
         tree = ActionParser.new.parse(content)
         tree = [tree] if tree.class == Hash
 
