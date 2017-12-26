@@ -142,7 +142,7 @@ module XA
         end
       end
       
-      def build_expr_tree(expr)
+      def build_expr(expr)
         {
           'left'  => build_operand(expr[:left]),
           'right' => build_operand(expr[:right]),
@@ -150,7 +150,7 @@ module XA
         }
       end
       
-      def build_assemble_tree(stm)
+      def build_assemble(stm)
         cols = stm[:columns]
         cols = [cols] if cols.class == Hash
         {
@@ -162,7 +162,7 @@ module XA
               col: {
                 'name'       => col.fetch(:name, source).to_s,
                 'source'     => source,
-                'expr'       => build_expr_tree(col[:expr]),
+                'expr'       => build_expr(col[:expr]),
               }
             }
           end.inject({}) do |o, col|
@@ -173,7 +173,7 @@ module XA
         }
       end
 
-      def build_keep_tree(stm)
+      def build_keep(stm)
         { 'table_name' => stm[:table_name].to_s }
       end
 
@@ -191,7 +191,7 @@ module XA
         end
       end
       
-      def build_assignment_tree(stm)
+      def build_assignment(stm)
         assigns = stm[:assignments]
         assigns = [assigns] if assigns.class == Hash
         {
@@ -202,13 +202,20 @@ module XA
         }
       end
       
-      def build_when_tree(stm)
+      def build_when(stm)
         {
-          'expr' => build_expr_tree(stm[:expr]),
+          'expr' => build_expr(stm[:expr]),
         }
       end
 
       def parse(content)
+        @step_fns ||= {
+          assemble: method(:build_assemble),
+          keep: method(:build_keep),
+          map: method(:build_assignment),
+          revise: method(:build_assignment),
+        }
+        
         tree = ActionParser.new.parse(content)
         tree = [tree] if tree.class == Hash
 
@@ -218,7 +225,7 @@ module XA
 
           case t
           when :when
-            expr = build_when_tree(stm)
+            expr = build_when(stm)
             whens = o.fetch('whens', {})
             section = expr['expr']['left']['section']
             o.merge('whens' => whens.merge(section => whens.fetch(section, []) + [expr]))
@@ -228,14 +235,8 @@ module XA
             indexes = stm.fetch(:indexes, []).map { |col| col[:column].to_s }
             requires = o.fetch('requires', [])
             o.merge('requires' => requires + [{ 'id' => id, 'name' => name, 'indexes' => indexes }])
-          when :assemble
-            o.merge('steps' => o.fetch('steps', []) + [build_assemble_tree(stm).merge('name' => 'assemble')])
-          when :keep
-            o.merge('steps' => o.fetch('steps', []) + [build_keep_tree(stm).merge('name' => 'keep')])
-          when :map
-            o.merge('steps' => o.fetch('steps', []) + [build_assignment_tree(stm).merge('name' => 'map')])
-          when :revise
-            o.merge('steps' => o.fetch('steps', []) + [build_assignment_tree(stm).merge('name' => 'revise')])
+          else
+            o.merge('steps' => o.fetch('steps', []) + [@step_fns[t].call(stm).merge('name' => t.to_s)])
           end
         end
       end
