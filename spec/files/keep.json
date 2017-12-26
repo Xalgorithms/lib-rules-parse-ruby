@@ -1,0 +1,22 @@
+[
+  {
+    "args": ["KEEP table0;"],
+    "expects" : {
+      "steps" : [
+        {
+          "name" : "keep", "table_name" : "table0"
+        }
+      ]
+    }
+  },
+  {
+    "args": ["KEEP table1;"],
+    "expects" : {
+      "steps" : [
+        {
+          "name" : "keep", "table_name" : "table1"
+        }
+      ]
+    }
+  }
+]

@@ -34,6 +34,7 @@ module XA
         rule(:kw_revise)          { match('[rR]') >> match('[eE]') >> match('[vV]') >> match('[iI]') >> match('[sS]') >> match('[eE]') }
         rule(:kw_index)           { match('[iI]') >> match('[nN]') >> match('[dD]') >> match('[eE]') >> match('[xX]') }
         rule(:kw_as)              { match('[aA]') >> match('[sS]') }
+        rule(:kw_keep)            { match('[kK]') >> match('[eE]') >> match('[eE]') >> match('[pP]') }
 
         rule(:op_gte)             { str('>=') }
         rule(:op_lte)             { str('<=') }
@@ -59,6 +60,8 @@ module XA
         rule(:assemble_columns)   { assemble_column >> (space >> assemble_column).repeat }
         rule(:assemble_statement) { kw_assemble >> space >> name.as(:table_name) >> space >> assemble_columns.as(:columns) }
 
+        rule(:keep_statement)     { kw_keep >> space >> name.as(:table_name) }
+        
         rule(:function_ref)       { name.as(:name) >> (lparen >> assign_expr >> (space.maybe >> comma >> space.maybe >> assign_expr).repeat >> rparen).as(:args) }
         rule(:assign_expr)        { function_ref.as(:func_ref) | column_reference.as(:col_ref) | value.as(:value) | key_name.as(:key) }
         rule(:map_assignment)     { kw_using >> space >> name.as(:name) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
@@ -69,7 +72,7 @@ module XA
         rule(:revise_assignments) { revise_assignment >> (space >> revise_assignment).repeat }
         rule(:revise_statement)   { kw_revise >> space >> reference.as(:table_ref) >> space >> revise_assignments.as(:assignments) }
         
-        rule(:statement)          { (when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | map_statement.as(:map) | revise_statement.as(:revise)) >> semi }
+        rule(:statement)          { (when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | keep_statement.as(:keep) | map_statement.as(:map) | revise_statement.as(:revise)) >> semi }
         rule(:statements)         { statement >> (space >> statement).repeat }
         
         root(:statements)
@@ -160,6 +163,10 @@ module XA
         }
       end
 
+      def build_keep_tree(stm)
+        { 'table_name' => stm[:table_name].to_s }
+      end
+
       def build_assignment_expr(expr)
         at = expr.keys.first
         case at
@@ -226,8 +233,9 @@ module XA
             requires = o.fetch('requires', [])
             o.merge('requires' => requires + [{ 'id' => id, 'name' => name, 'indexes' => indexes }])
           when :assemble
-            p stm
             o.merge('steps' => o.fetch('steps', []) + [build_assemble_tree(stm).merge('name' => 'assemble')])
+          when :keep
+            o.merge('steps' => o.fetch('steps', []) + [build_keep_tree(stm).merge('name' => 'keep')])
           when :map
             o.merge('steps' => o.fetch('steps', []) + [build_map_tree(stm).merge('name' => 'map')])
           when :revise

@@ -11,6 +11,7 @@ describe XA::Rules::Parse do
       'spec/files/when.json',
       'spec/files/require.json',
       'spec/files/assemble.json',
+      'spec/files/keep.json',
 #      'spec/files/map.json',
 #      'spec/files/revise.json',
 #      'spec/files/mixed.json',
