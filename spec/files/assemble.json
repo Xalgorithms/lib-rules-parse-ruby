@@ -1,26 +1,51 @@
 [
   {
-    "args": ["ASSEMBLE table0 COLUMN c0 FROM table0 WHEN x.y == a.b COLUMN c1 FROM table1 WHEN x<=y;"],
+    "args": ["ASSEMBLE table0 COLUMN c0 FROM table1 WHEN envelope:x.y == @a.b;"],
     "expects" : {
       "steps" : [
         {
-          "name" : "assemble", "table_name" : "table0", "columns" : [
-            { "name" : "c0", "table_name" : "table0", "expr" : { "left" : { "type" : "key", "value" : "x.y" }, "right" : { "type" : "key", "value" : "a.b" }, "op": "eq" } },
-            { "name" : "c1", "table_name" : "table1", "expr" : { "left" : { "type" : "key", "value" : "x" }, "right" : { "type" : "key", "value" : "y" }, "op": "lte" } }
-          ]
+          "name" : "assemble", "table_name" : "table0", "columns" : {
+            "table1" : [
+              {
+                "source": "c0", "name" : "c0", "expr" : {
+                "left" : { "type" : "reference", "section" : "envelope", "key" : "x.y" },
+                "right" : { "type" : "reference", "section" : "_context", "key" : "a.b" },
+                "op": "eq" }
+              }
+            ]
+          }
         }
       ]
     }
   },
   {
-    "args": ["ASSEMBLE table0 COLUMN c0 FROM table0 WHEN x.y <= 10 COLUMN c1 FROM table1 WHEN x=='100';"],
+    "args": ["ASSEMBLE table0 COLUMN c0 AS nc0 FROM table1 WHEN envelope:x.y <= 2;"],
     "expects" : {
       "steps" : [
         {
-          "name" : "assemble", "table_name" : "table0", "columns" : [
-            { "name" : "c0", "table_name" : "table0", "expr" : { "left" : { "type" : "key", "value" : "x.y" }, "right" : { "type": "number", "value" : "10" }, "op": "lte" } },
-            { "name" : "c1", "table_name" : "table1", "expr" : { "left" : { "type" : "key", "value" : "x" }, "right" :  { "type": "string", "value" : "100" }, "op": "eq" } }
-          ]
+          "name" : "assemble", "table_name" : "table0", "columns" : {
+            "table1" : [
+              { "source" : "c0", "name" : "nc0", "expr" : { "left" : { "type" : "reference", "section" : "envelope", "key" : "x.y" }, "right" : { "type" : "number", "value" : "2" }, "op": "lte" } }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "args": ["ASSEMBLE table0 COLUMN c0 AS nc0 FROM table1 WHEN envelope:x.y <= 2 COLUMN c1 AS nc1 FROM table1 WHEN nc0 == 3 COLUMN b0 AS nc2 FROM table2 WHEN envelope:p.q == 3;"],
+    "expects" : {
+      "steps" : [
+        {
+          "name" : "assemble", "table_name" : "table0", "columns" : {
+            "table1" : [
+              { "source" : "c0", "name" : "nc0", "expr" : { "left" : { "type" : "reference", "section" : "envelope", "key" : "x.y" }, "right" : { "type" : "number", "value" : "2" }, "op" : "lte" } },
+              { "source" : "c1", "name" : "nc1", "expr" : { "left" : { "type" : "name", "value": "nc0" }, "right" : { "type" : "number", "value" : "3" }, "op": "eq" } }
+            ],
+            "table2" : [
+              { "source" : "b0", "name" : "nc2", "expr" : { "left" : { "type" : "reference", "section" : "envelope", "key" : "p.q" }, "right" : { "type" : "number", "value" : "3" }, "op": "eq" } }
+            ]
+          }
         }
       ]
     }

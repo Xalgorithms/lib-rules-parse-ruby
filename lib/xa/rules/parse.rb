@@ -17,11 +17,12 @@ module XA
         rule(:at)                 { str('@') }
         rule(:lparen)             { str('(') }
         rule(:rparen)             { str(')') }
+        rule(:lsquare)            { str('[') }
+        rule(:rsquare)            { str(']') }
+        rule(:dollar)             { str('$') }
 
         rule(:name)               { match('\w').repeat(1) }
         rule(:key_name)           { match('\w').repeat(1) >> (str('.') >> match('\w').repeat(1)).repeat }
-        rule(:reference)          { match('\w').repeat(1) }
-        rule(:column_reference)   { at >> key_name.as(:name) }
         rule(:value)              { string.as(:string) | number.as(:number) }
 
         rule(:kw_when)            { match('[wW]') >> match('[hH]') >> match('[eE]') >> match('[nN]') }
@@ -30,35 +31,48 @@ module XA
         rule(:kw_from)            { match('[fF]') >> match('[rR]') >> match('[oO]') >> match('[mM]') }
         rule(:kw_map)             { match('[mM]') >> match('[aA]') >> match('[pP]') }
         rule(:kw_using)           { match('[uU]') >> match('[sS]') >> match('[iI]') >> match('[nN]') >> match('[gG]') }
+        rule(:kw_require)         { match('[rR]') >> match('[eE]') >> match('[qQ]') >> match('[uU]') >> match('[iI]') >> match('[rR]') >> match('[eE]') }
         rule(:kw_revise)          { match('[rR]') >> match('[eE]') >> match('[vV]') >> match('[iI]') >> match('[sS]') >> match('[eE]') }
-        
+        rule(:kw_index)           { match('[iI]') >> match('[nN]') >> match('[dD]') >> match('[eE]') >> match('[xX]') }
+        rule(:kw_as)              { match('[aA]') >> match('[sS]') }
+        rule(:kw_keep)            { match('[kK]') >> match('[eE]') >> match('[eE]') >> match('[pP]') }
+
         rule(:op_gte)             { str('>=') }
         rule(:op_lte)             { str('<=') }
         rule(:op_eq)              { str('==') }
         rule(:op_gt)              { str('>') }
         rule(:op_lt)              { str('<') }
 
+        # TODO: remove (it's context_reference)
+        rule(:section_reference)  { name.as(:section) >> colon >> key_name.as(:key) }
+        rule(:context_reference)  { at >> key_name.as(:key) }
+        rule(:vtable_reference)   { dollar }
+        rule(:table_reference)    { section_reference.as(:section) | context_reference.as(:context) | vtable_reference.as(:virtual) }
+        rule(:function_reference) { name.as(:name) >> (lparen >> assign_expr >> (space.maybe >> comma >> space.maybe >> assign_expr).repeat >> rparen).as(:args) }
+        rule(:reference)          { section_reference.as(:section) | context_reference.as(:context) } 
         rule(:op)                 { op_lte | op_gte | op_eq | op_lt | op_gt }
-        rule(:operand)            { value.as(:value) | key_name.as(:key) }
+        rule(:operand)            { value.as(:value) | reference.as(:reference) | name.as(:name) }
         rule(:expr)               { operand.as(:left) >> space.maybe >> op.as(:op) >> space.maybe >> operand.as(:right) }
         
-        rule(:when_statement)     { kw_when >> space >> name.as(:section) >> colon >> expr.as(:expr) }
+        rule(:when_statement)     { kw_when >> space >> expr.as(:expr) }
 
-        rule(:assemble_column)    { kw_column >> space >> name.as(:name) >> space >> kw_from >> space >> name.as(:table_name) >> space >> kw_when >> space >> expr.as(:expr) }
+        rule(:require_indexes)    { kw_index >> space >> lsquare >> name.as(:column) >> (comma >> space.maybe >> name.as(:column)).repeat >> rsquare } 
+        rule(:require_statement)  { kw_require >> space >> name.as(:id) >> (space >> require_indexes.as(:indexes)).maybe >> (space >> kw_as >> space >> name.as(:name)).maybe }
+
+        rule(:assemble_column)    { kw_column >> space >> name.as(:source) >> (space >> kw_as >> space >> name.as(:name)).maybe >> space >> kw_from >> space >> name.as(:table_name) >> space >> kw_when >> space >> expr.as(:expr) }
         rule(:assemble_columns)   { assemble_column >> (space >> assemble_column).repeat }
         rule(:assemble_statement) { kw_assemble >> space >> name.as(:table_name) >> space >> assemble_columns.as(:columns) }
 
-        rule(:function_ref)       { name.as(:name) >> (lparen >> assign_expr >> (space.maybe >> comma >> space.maybe >> assign_expr).repeat >> rparen).as(:args) }
-        rule(:assign_expr)        { function_ref.as(:func_ref) | column_reference.as(:col_ref) | value.as(:value) | key_name.as(:key) }
-        rule(:map_assignment)     { kw_using >> space >> name.as(:name) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
-        rule(:map_assignments)    { map_assignment >> (space >> map_assignment).repeat }
-        rule(:map_statement)      { kw_map >> space >> reference.as(:table_ref) >> space >> map_assignments.as(:assignments) }
-
-        rule(:revise_assignment)  { kw_using >> space >> column_reference.as(:column) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
-        rule(:revise_assignments) { revise_assignment >> (space >> revise_assignment).repeat }
-        rule(:revise_statement)   { kw_revise >> space >> reference.as(:table_ref) >> space >> revise_assignments.as(:assignments) }
+        rule(:keep_statement)     { kw_keep >> space >> name.as(:table_name) }
         
-        rule(:statement)          { (when_statement.as(:when) | assemble_statement.as(:assemble) | map_statement.as(:map) | revise_statement.as(:revise)) >> semi }
+        rule(:assign_expr)        { function_reference.as(:function) | reference | value.as(:value) }
+        rule(:assignment)         { kw_using >> space >> name.as(:name) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
+        rule(:assignments)        { assignment >> (space >> assignment).repeat }
+        rule(:assign_statement)   { table_reference.as(:table) >> space >> assignments.as(:assignments) }
+        rule(:map_statement)      { kw_map >> space >> assign_statement }
+        rule(:revise_statement)   { kw_revise >> space >> assign_statement }
+        
+        rule(:statement)          { (when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | keep_statement.as(:keep) | map_statement.as(:map) | revise_statement.as(:revise)) >> semi }
         rule(:statements)         { statement >> (space >> statement).repeat }
         
         root(:statements)
@@ -83,26 +97,52 @@ module XA
         '>=' => 'gte',
         '<=' => 'lte',
       }
+
+      def build_reference_operand(opr)
+        t = opr.keys.first
+        case t
+        when :section
+          rv = { 'section' => opr[t][:section].to_s, 'key' => opr[t][:key].to_s }
+        when :context
+          rv = { 'section' => '_context', 'key' => opr[t][:key].to_s }
+        when :virtual
+          rv = { 'section' => '_virtual' }
+        end
+
+        rv.merge('type' => 'reference') if rv
+      end
+
+      def build_value_operand(opr)
+        t = opr.keys.first
+        case t
+        when :string
+          { 'type' => 'string', 'value' => maybe_convert_value(opr[t].to_s) }
+        when :number
+          { 'type' => 'number', 'value' => maybe_convert_value(opr[t].to_s) }
+        end
+      end
+
+      def build_assignment_operand(opr)
+        build_reference_operand(opr) || build_value_operand(opr.fetch(:value, {}))
+      end
       
       def build_operand(opr)
         t = opr.keys.first
         case t
+        when :reference
+          build_reference_operand(opr[t])
         when :key
           { 'type' => 'key', 'value' => opr[t].to_s }
+        when :name
+          { 'type' => 'name', 'value' => opr[t].to_s }
         when :value
-          vt = opr[t].keys.first
-          case vt
-          when :string
-            { 'type' => 'string', 'value' => maybe_convert_value(opr[t][vt].to_s) }
-          when :number
-            { 'type' => 'number', 'value' => maybe_convert_value(opr[t][vt].to_s) }
-          end
+          build_value_operand(opr[t])
         else
           { 'type' => 'unk' }
         end
       end
       
-      def build_expr_tree(expr)
+      def build_expr(expr)
         {
           'left'  => build_operand(expr[:left]),
           'right' => build_operand(expr[:right]),
@@ -110,64 +150,72 @@ module XA
         }
       end
       
-      def build_assemble_tree(stm)
+      def build_assemble(stm)
+        cols = stm[:columns]
+        cols = [cols] if cols.class == Hash
         {
           'table_name' => stm[:table_name].to_s,
-          'columns'    => stm[:columns].map do |col|
+          'columns'    => cols.map do |col|
+            source = col[:source].to_s
             {
-              'name'       => col[:name].to_s,
-              'table_name' => col[:table_name].to_s,
-              'expr'       => build_expr_tree(col[:expr]),
+              table: col[:table_name].to_s,
+              col: {
+                'name'       => col.fetch(:name, source).to_s,
+                'source'     => source,
+                'expr'       => build_expr(col[:expr]),
+              }
             }
+          end.inject({}) do |o, col|
+            table_name = col[:table]
+            table_cols = o.fetch(table_name, [])
+            o.merge(table_name => table_cols + [col[:col]])
           end,
         }
+      end
+
+      def build_keep(stm)
+        { 'table_name' => stm[:table_name].to_s }
       end
 
       def build_assignment_expr(expr)
         at = expr.keys.first
         case at
-        when :col_ref
-          { "type" => "column", "value" => expr[at][:name].to_s }
-        when :func_ref
+        when :function
           {
             "type" => "function",
             "name" => expr[at][:name].to_s,
             "args" => expr[at][:args].map(&method(:build_assignment_expr)),
           }
         else
-          build_operand(expr)
+          build_assignment_operand(expr)
         end
       end
       
-      def build_map_tree(stm)
+      def build_assignment(stm)
         assigns = stm[:assignments]
         assigns = [assigns] if assigns.class == Hash
         {
-          'table_ref'   => stm[:table_ref].to_s,
-          'assignments' => assigns.inject({}) do |o, a|
-            o.merge(a[:name].to_s => build_assignment_expr(a[:expr]))
+          'table' => build_reference_operand(stm[:table]),
+          'assignments' => assigns.inject({}) do |o, assign|
+            o.merge(assign[:name].to_s => build_assignment_expr(assign[:expr]))
           end
         }
       end
       
-      def build_revise_tree(stm)
-        assigns = stm[:assignments]
-        assigns = [assigns] if assigns.class == Hash
+      def build_when(stm)
         {
-          'table_ref'   => stm[:table_ref].to_s,
-          'assignments' => assigns.inject({}) do |o, a|
-            o.merge(a[:column][:name].to_s => build_assignment_expr(a[:expr]))
-          end
+          'expr' => build_expr(stm[:expr]),
         }
       end
 
-      def build_when_tree(stm)
-        {
-          'expr' => build_expr_tree(stm[:expr]),
-        }
-      end
-      
       def parse(content)
+        @step_fns ||= {
+          assemble: method(:build_assemble),
+          keep: method(:build_keep),
+          map: method(:build_assignment),
+          revise: method(:build_assignment),
+        }
+        
         tree = ActionParser.new.parse(content)
         tree = [tree] if tree.class == Hash
 
@@ -177,15 +225,18 @@ module XA
 
           case t
           when :when
-            section = stm[:section].to_s
+            expr = build_when(stm)
             whens = o.fetch('whens', {})
-            o.merge('whens' => whens.merge(section => whens.fetch(section, []) + [build_when_tree(stm)]))
-          when :assemble
-            o.merge('steps' => o.fetch('steps', []) + [build_assemble_tree(stm).merge('name' => 'assemble')])
-          when :map
-            o.merge('steps' => o.fetch('steps', []) + [build_map_tree(stm).merge('name' => 'map')])
-          when :revise
-            o.merge('steps' => o.fetch('steps', []) + [build_revise_tree(stm).merge('name' => 'revise')])
+            section = expr['expr']['left']['section']
+            o.merge('whens' => whens.merge(section => whens.fetch(section, []) + [expr]))
+          when :require
+            id = stm[:id].to_s
+            name = stm.fetch(:name, id).to_s
+            indexes = stm.fetch(:indexes, []).map { |col| col[:column].to_s }
+            requires = o.fetch('requires', [])
+            o.merge('requires' => requires + [{ 'id' => id, 'name' => name, 'indexes' => indexes }])
+          else
+            o.merge('steps' => o.fetch('steps', []) + [@step_fns[t].call(stm).merge('name' => t.to_s)])
           end
         end
       end
