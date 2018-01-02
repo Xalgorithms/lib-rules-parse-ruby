@@ -73,7 +73,7 @@ module XA
         rule(:revise_statement)   { kw_revise >> space >> assign_statement }
         
         rule(:statement)          { (when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | keep_statement.as(:keep) | map_statement.as(:map) | revise_statement.as(:revise)) >> semi }
-        rule(:statements)         { statement >> (space >> statement).repeat }
+        rule(:statements)         { statement >> (space >> statement).repeat >> space.maybe }
         
         root(:statements)
       end

@@ -1,0 +1,16 @@
+[
+  {
+    "args" : ["WHEN envelope:type == 'invoice';\t\nWHEN item:a < 1; WHEN item:b == 2;\n"],
+    "expects" : {
+      "whens" : {
+        "envelope" : [
+          { "expr" : { "left" : { "section" : "envelope", "type" : "reference", "key" : "type" }, "op" : "eq", "right" : { "type" : "string", "value" : "invoice" } } }
+        ],
+        "item" : [
+          { "expr" : { "left" : { "section" : "item", "type" : "reference", "key" : "a" }, "op" : "lt", "right" : { "type" : "number", "value" : "1" } } },
+          { "expr" : { "left" : { "section" : "item", "type" : "reference", "key" : "b" }, "op" : "eq", "right" : { "type" : "number", "value" : "2" } } }
+        ]
+      }
+    }
+  }
+]
