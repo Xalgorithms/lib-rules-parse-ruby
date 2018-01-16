@@ -169,6 +169,11 @@ module XA
             table_name = col[:table]
             table_cols = o.fetch(table_name, [])
             o.merge(table_name => table_cols + [col[:col]])
+          end.map do |k, v|
+            {
+              'table'   => k,
+              'sources' => v
+            }
           end,
         }
       end
@@ -196,8 +201,8 @@ module XA
         assigns = [assigns] if assigns.class == Hash
         {
           'table' => build_reference_operand(stm[:table]),
-          'assignments' => assigns.inject({}) do |o, assign|
-            o.merge(assign[:name].to_s => build_assignment_expr(assign[:expr]))
+          'assignments' => assigns.inject([]) do |a, assign|
+            a + [build_assignment_expr(assign[:expr]).merge({ 'column' => assign[:name].to_s })]
           end
         }
       end

@@ -7,9 +7,9 @@
         {
           "name" : "map",
           "table" : { "type" : "reference", "section" : "tables", "key" : "items" },
-          "assignments" : {
-            "a" : { "type" : "reference", "section" : "_context", "key" : "x.y.z" }
-          }
+          "assignments" : [
+            { "column" : "a", "type" : "reference", "section" : "_context", "key" : "x.y.z" }
+          ]
         }
       ]
     }
@@ -22,9 +22,9 @@
         {
           "name" : "map",
           "table" : { "type" : "reference", "section" : "_virtual" },
-          "assignments" : {
-            "a" : { "type" : "reference", "section" : "_context", "key" : "x.y.z" }
-          }
+          "assignments" : [
+            { "column": "a", "type" : "reference", "section" : "_context", "key" : "x.y.z" }
+          ]
         }
       ]
     }
@@ -37,12 +37,12 @@
         {
           "name" : "map",
           "table" : { "type" : "reference", "section" : "tables", "key" : "items" },
-          "assignments" : {
-            "a" : { "type" : "reference", "section" : "_context", "key" : "x.y.z" },
-            "b" : { "type" : "reference", "section" : "_context", "key" : "p.q" },
-            "c" : { "type" : "number", "value" : "2" },
-            "d" : { "type" : "string", "value" : "s" }
-          }
+          "assignments" : [
+            { "column": "a", "type" : "reference", "section" : "_context", "key" : "x.y.z" },
+            { "column": "b", "type" : "reference", "section" : "_context", "key" : "p.q" },
+            { "column": "c", "type" : "number", "value" : "2" },
+            { "column": "d", "type" : "string", "value" : "s" }
+          ]
         }
       ]
     }
@@ -54,8 +54,9 @@
         {
           "name" : "map",
           "table" : { "type" : "reference", "section" : "tables", "key" : "items" },
-          "assignments" : {
-            "a" : {
+          "assignments" : [
+            {
+              "column" : "a",
               "type" : "function",
               "name" : "multiply",
               "args" : [
@@ -70,7 +71,7 @@
                 { "type" : "number", "value" : "4" }
               ]
             }
-          }
+          ]
         }
       ]
     }
