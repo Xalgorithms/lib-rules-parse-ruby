@@ -20,4 +20,13 @@ describe XA::Rules::Parse do
       expect(ac).to eql(ex)
     end
   end
+
+  it 'should parse complete rule files' do
+    files = Dir.glob('spec/files/rules/*.rule')
+    files.each do |ffn|
+      (dn, fn) = File.split(ffn)
+      ex = MultiJson.decode(File.read(File.join(dn, "#{File.basename(ffn, '.rule')}.json")))
+      expect(parse(IO.read(ffn))).to eql(ex)
+    end
+  end
 end

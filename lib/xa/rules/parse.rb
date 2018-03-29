@@ -73,7 +73,7 @@ module XA
         rule(:revise_statement)   { kw_revise >> space >> assign_statement }
         
         rule(:statement)          { (when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | keep_statement.as(:keep) | map_statement.as(:map) | revise_statement.as(:revise)) >> semi }
-        rule(:statements)         { statement >> (space >> statement).repeat >> space.maybe }
+        rule(:statements)         { statement >> (space.maybe >> statement).repeat >> space.maybe }
         
         root(:statements)
       end
@@ -222,8 +222,10 @@ module XA
           map: method(:build_assignment),
           revise: method(:build_assignment),
         }
-        
-        tree = ActionParser.new.parse(content)
+
+        content = content.split(/\n/).map { |ln| ln.gsub(/\#.*/, '') }.join('')
+
+        tree = content.empty? ? [] : ActionParser.new.parse(content)
         tree = [tree] if tree.class == Hash
 
         tree.inject({}) do |o, stms|

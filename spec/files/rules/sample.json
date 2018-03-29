@@ -1,0 +1,34 @@
+{
+  "whens" : {
+    "envelope" : [
+      {
+        "expr" : {
+          "left" :  { "section" : "envelope", "key" : "type", "type" : "reference" },
+          "right" : { "type" : "string", "value" : "invoice" },
+          "op" : "eq"
+        }
+      }
+    ]
+  },
+  "steps" : [
+    {
+      "table_name" : "table0",
+      "columns" : [
+        {
+          "table" : "table1",
+          "sources" : [
+            {
+              "name" : "c0",
+              "source" : "c0",
+              "expr" : {
+                "left" : {"section" : "envelope", "key" : "x.y", "type" : "reference"},
+                "right" : {"section" : "_context", "key" : "a.b", "type" : "reference"},
+                "op" : "eq"
+              }
+            }
+          ]
+        }
+      ],
+      "name" : "assemble"}
+  ]
+}
