@@ -1,5 +1,28 @@
 [
   {
+    "args": ["ASSEMBLE table0 COLUMN c0 FROM table1 WHEN x.y == @a.b;"],
+    "expects" : {
+      "steps" : [
+        {
+          "name" : "assemble", "table_name" : "table0", "columns" : [
+            {
+              "table" : "table1",
+              "sources" : [
+                {
+                  "source": "c0", "name" : "c0", "expr" : {
+                    "left" : { "type" : "reference", "section" : "_local", "key" : "x.y" },
+                    "right" : { "type" : "reference", "section" : "_context", "key" : "a.b" },
+                    "op": "eq"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
     "args": ["ASSEMBLE table0 COLUMN c0 FROM table1 WHEN envelope:x.y == @a.b;"],
     "expects" : {
       "steps" : [
@@ -44,7 +67,7 @@
               "table" : "table1",
               "sources" : [
                 { "source" : "c0", "name" : "nc0", "expr" : { "left" : { "type" : "reference", "section" : "envelope", "key" : "x.y" }, "right" : { "type" : "number", "value" : "2" }, "op" : "lte" } },
-                { "source" : "c1", "name" : "nc1", "expr" : { "left" : { "type" : "name", "value": "nc0" }, "right" : { "type" : "number", "value" : "3" }, "op": "eq" } }
+                { "source" : "c1", "name" : "nc1", "expr" : { "left" : { "type" : "reference", "section" : "_local", "key": "nc0" }, "right" : { "type" : "number", "value" : "3" }, "op": "eq" } }
               ]
             },
             {

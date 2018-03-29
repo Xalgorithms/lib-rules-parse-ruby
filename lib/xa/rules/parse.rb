@@ -7,8 +7,6 @@ module XA
         rule(:nl)                 { str('\n') }
         rule(:space)              { match('\s').repeat(1) }
         rule(:quote)              { str("'") }
-        rule(:string)             { quote >> match('\w').repeat(1) >> quote }
-        rule(:number)             { match('[0-9]').repeat(1) }
         rule(:semi)               { str(';') }
         rule(:comma)              { str(',') }
         rule(:colon)              { str(':') }
@@ -20,10 +18,6 @@ module XA
         rule(:lsquare)            { str('[') }
         rule(:rsquare)            { str(']') }
         rule(:dollar)             { str('$') }
-
-        rule(:name)               { match('\w').repeat(1) }
-        rule(:key_name)           { match('\w').repeat(1) >> (str('.') >> match('\w').repeat(1)).repeat }
-        rule(:value)              { string.as(:string) | number.as(:number) }
 
         rule(:kw_when)            { match('[wW]') >> match('[hH]') >> match('[eE]') >> match('[nN]') }
         rule(:kw_assemble)        { match('[aA]') >> match('[sS]') >> match('[sS]') >> match('[eE]') >> match('[mM]') >> match('[bB]') >> match('[lL]') >> match('[eE]') }
@@ -43,15 +37,21 @@ module XA
         rule(:op_gt)              { str('>') }
         rule(:op_lt)              { str('<') }
 
-        # TODO: remove (it's context_reference)
+        rule(:string)             { quote >> match('\w').repeat(1) >> quote }
+        rule(:number)             { match('[0-9]').repeat(1) }
+        rule(:name)               { match('[a-zA-Z]') >> match('\w').repeat }
+        rule(:key_name)           { name >> (str('.') >> name).repeat }
+        rule(:value)              { string.as(:string) | number.as(:number) }
+
         rule(:section_reference)  { name.as(:section) >> colon >> key_name.as(:key) }
         rule(:context_reference)  { at >> key_name.as(:key) }
+        rule(:local_reference)    { key_name.as(:key) }
         rule(:vtable_reference)   { dollar }
         rule(:table_reference)    { section_reference.as(:section) | context_reference.as(:context) | vtable_reference.as(:virtual) }
         rule(:function_reference) { name.as(:name) >> (lparen >> assign_expr >> (space.maybe >> comma >> space.maybe >> assign_expr).repeat >> rparen).as(:args) }
-        rule(:reference)          { section_reference.as(:section) | context_reference.as(:context) } 
+        rule(:reference)          { section_reference.as(:section) | context_reference.as(:context) | local_reference.as(:local) } 
+        rule(:operand)            { value.as(:value) | reference.as(:reference) }
         rule(:op)                 { op_lte | op_gte | op_eq | op_lt | op_gt }
-        rule(:operand)            { value.as(:value) | reference.as(:reference) | name.as(:name) }
         rule(:expr)               { operand.as(:left) >> space.maybe >> op.as(:op) >> space.maybe >> operand.as(:right) }
         
         rule(:when_statement)     { kw_when >> space >> expr.as(:expr) }
@@ -107,6 +107,8 @@ module XA
           rv = { 'section' => '_context', 'key' => opr[t][:key].to_s }
         when :virtual
           rv = { 'section' => '_virtual' }
+        when :local
+          rv = { 'section' => '_local', 'key' => opr[t][:key].to_s }
         end
 
         rv.merge('type' => 'reference') if rv
