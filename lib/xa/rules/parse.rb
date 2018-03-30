@@ -41,6 +41,7 @@ module XA
         rule(:number)             { match('[0-9]').repeat(1) }
         rule(:name)               { match('[a-zA-Z]') >> match('\w').repeat }
         rule(:key_name)           { name >> (str('.') >> name).repeat }
+        rule(:version)            { number >> dot >> number >> dot >> number }
         rule(:value)              { string.as(:string) | number.as(:number) }
 
         rule(:section_reference)  { name.as(:section) >> colon >> key_name.as(:key) }
@@ -56,8 +57,9 @@ module XA
         
         rule(:when_statement)     { kw_when >> space >> expr.as(:expr) }
 
-        rule(:require_indexes)    { kw_index >> space >> lsquare >> name.as(:column) >> (comma >> space.maybe >> name.as(:column)).repeat >> rsquare } 
-        rule(:require_statement)  { kw_require >> space >> name.as(:id) >> (space >> require_indexes.as(:indexes)).maybe >> (space >> kw_as >> space >> name.as(:name)).maybe }
+        rule(:require_indexes)    { kw_index >> space >> lsquare >> name.as(:column) >> (comma >> space.maybe >> name.as(:column)).repeat >> rsquare }
+        rule(:require_reference)  { key_name.as(:package) >> colon >> name.as(:id) >> colon >> version.as(:version) }
+        rule(:require_statement)  { kw_require >> space >> require_reference.as(:reference) >> (space >> require_indexes.as(:indexes)).maybe >> (space >> kw_as >> space >> name.as(:name)).maybe }
 
         rule(:assemble_column)    { kw_column >> space >> name.as(:source) >> (space >> kw_as >> space >> name.as(:name)).maybe >> space >> kw_from >> space >> name.as(:table_name) >> space >> kw_when >> space >> expr.as(:expr) }
         rule(:assemble_columns)   { assemble_column >> (space >> assemble_column).repeat }
@@ -239,11 +241,12 @@ module XA
             section = expr['expr']['left']['section']
             o.merge('whens' => whens.merge(section => whens.fetch(section, []) + [expr]))
           when :require
-            id = stm[:id].to_s
-            name = stm.fetch(:name, id).to_s
+            req = [:package, :id, :version].inject({}) do |o, k|
+              o.merge(k.to_s => stm[:reference][k].to_s)
+            end
             indexes = stm.fetch(:indexes, []).map { |col| col[:column].to_s }
-            requires = o.fetch('requires', [])
-            o.merge('requires' => requires + [{ 'id' => id, 'name' => name, 'indexes' => indexes }])
+            name = stm.fetch(:name, req['id']).to_s
+            o.merge('requires' => o.fetch('requires', []) + [req.merge('indexes' => indexes, 'name' => name)])
           else
             o.merge('steps' => o.fetch('steps', []) + [@step_fns[t].call(stm).merge('name' => t.to_s)])
           end
