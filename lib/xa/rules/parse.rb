@@ -22,6 +22,7 @@ module XA
         rule(:kw_when)            { match('[wW]') >> match('[hH]') >> match('[eE]') >> match('[nN]') }
         rule(:kw_assemble)        { match('[aA]') >> match('[sS]') >> match('[sS]') >> match('[eE]') >> match('[mM]') >> match('[bB]') >> match('[lL]') >> match('[eE]') }
         rule(:kw_column)          { match('[cC]') >> match('[oO]') >> match('[lL]') >> match('[uU]') >> match('[mM]') >> match('[nN]') }
+        rule(:kw_columns)         { match('[cC]') >> match('[oO]') >> match('[lL]') >> match('[uU]') >> match('[mM]') >> match('[nN]') >> match('[sS]') }
         rule(:kw_from)            { match('[fF]') >> match('[rR]') >> match('[oO]') >> match('[mM]') }
         rule(:kw_map)             { match('[mM]') >> match('[aA]') >> match('[pP]') }
         rule(:kw_using)           { match('[uU]') >> match('[sS]') >> match('[iI]') >> match('[nN]') >> match('[gG]') }
@@ -40,6 +41,7 @@ module XA
         rule(:string)             { quote >> match('\w').repeat(1) >> quote }
         rule(:number)             { match('[0-9]').repeat(1) }
         rule(:name)               { match('[a-zA-Z]') >> match('\w').repeat }
+        rule(:name_list)          { name.as(:name) >> (comma >> space.maybe >> name.as(:name)).repeat }
         rule(:key_name)           { name >> (str('.') >> name).repeat }
         rule(:version)            { number >> dot >> number >> dot >> number }
         rule(:value)              { string.as(:string) | number.as(:number) }
@@ -62,7 +64,9 @@ module XA
         rule(:require_statement)  { kw_require >> space >> require_reference.as(:reference) >> (space >> require_indexes.as(:indexes)).maybe >> (space >> kw_as >> space >> name.as(:name)).maybe }
 
         rule(:assemble_column)    { kw_column >> space >> name.as(:source) >> (space >> kw_as >> space >> name.as(:name)).maybe >> space >> kw_from >> space >> reference.as(:reference) >> space >> kw_when >> space >> expr.as(:expr) }
-        rule(:assemble_columns)   { assemble_column >> (space >> assemble_column).repeat }
+        rule(:assemble_column_import) { kw_columns >> space >> (lparen >> name_list.as(:column_names) >> rparen >> space).maybe >> kw_from >> space >> reference.as(:reference) }
+        rule(:assemble_columnset) { assemble_column.as(:column) | assemble_column_import.as(:column_import) } 
+        rule(:assemble_columns)   { assemble_columnset >> (space >> assemble_columnset).repeat }
         rule(:assemble_statement) { kw_assemble >> space >> name.as(:table_name) >> space >> assemble_columns.as(:columns) }
 
         rule(:keep_statement)     { kw_keep >> space >> name.as(:table_name) }
@@ -153,32 +157,55 @@ module XA
           'op'    => OPS.fetch(expr[:op].to_s, 'unk'),
         }
       end
+
+      def build_column(col)
+        source = col[:source].to_s
+        {
+          table: build_reference_operand(col[:reference]),
+          col: {
+            'name'       => col.fetch(:name, source).to_s,
+            'source'     => source,
+            'expr'       => build_expr(col[:expr]),
+          }
+        }
+      end
+
+      def build_column_import(col)
+        {
+          table: build_reference_operand(col[:reference]),
+          col: {
+            'columns' => col.fetch(:column_names, []).map { |o| o[:name].to_s },
+          }
+        }
+      end
+      
+      def build_columns(cols)
+        cols.map do |col|
+          t = col.keys.first
+          case t
+          when :column
+            build_column(col[t])
+          when :column_import
+            build_column_import(col[t])
+          end
+        end.inject({}) do |o, col|
+          table_name = col[:table]
+          table_cols = o.fetch(table_name, [])
+          o.merge(table_name => table_cols + [col[:col]])
+        end.map do |k, v|
+          {
+            'table'   => k,
+            'sources' => v
+          }
+        end
+      end
       
       def build_assemble(stm)
         cols = stm[:columns]
         cols = [cols] if cols.class == Hash
         {
           'table_name' => stm[:table_name].to_s,
-          'columns'    => cols.map do |col|
-            source = col[:source].to_s
-            {
-              table: build_reference_operand(col[:reference]),
-              col: {
-                'name'       => col.fetch(:name, source).to_s,
-                'source'     => source,
-                'expr'       => build_expr(col[:expr]),
-              }
-            }
-          end.inject({}) do |o, col|
-            table_name = col[:table]
-            table_cols = o.fetch(table_name, [])
-            o.merge(table_name => table_cols + [col[:col]])
-          end.map do |k, v|
-            {
-              'table'   => k,
-              'sources' => v
-            }
-          end,
+          'columns'    => build_columns(cols),
         }
       end
 

@@ -82,6 +82,40 @@
         }
       ]
     }
+  },
+  {
+    "args": ["ASSEMBLE table0 COLUMNS FROM tables:table1;"],
+    "expects" : {
+      "steps" : [
+        {
+          "name" : "assemble", "table_name" : "table0", "columns" : [
+            {
+              "table" : { "type" : "reference", "section" : "tables", "key" : "table1" },
+              "sources" : [
+                { "columns" : [] }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "args": ["ASSEMBLE table0 COLUMNS (c0, c1, c2) FROM tables:table1;"],
+    "expects" : {
+      "steps" : [
+        {
+          "name" : "assemble", "table_name" : "table0", "columns" : [
+            {
+              "table" : { "type" : "reference", "section" : "tables", "key" : "table1" },
+              "sources" : [
+                { "columns" : ["c0", "c1", "c2"] }
+              ]
+            }
+          ]
+        }
+      ]
+    }
   }
 ]
   
