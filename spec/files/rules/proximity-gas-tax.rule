@@ -50,8 +50,8 @@ MAP table:sellers_reductions
 #   { 3, 0.06, 1.3, 1.7 }
 # ]
 #
-#FILTER table:sellers_reductions
-#  WHEN @difference >= 0;
+FILTER table:sellers_reductions
+  WHEN @difference >= 0;
 
 # Reduce always finishes with a single row based on the calculation
 # done in the USING and the condition in the WHEN:

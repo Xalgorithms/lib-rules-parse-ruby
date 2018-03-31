@@ -9,6 +9,7 @@ describe XA::Rules::Parse do
   it 'should parse individual keyword syntax' do
     files = [
       'assemble',
+      'filter',
       'keep',
       'map',
       'require',

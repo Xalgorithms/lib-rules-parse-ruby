@@ -31,6 +31,7 @@ module XA
         rule(:kw_index)           { match('[iI]') >> match('[nN]') >> match('[dD]') >> match('[eE]') >> match('[xX]') }
         rule(:kw_as)              { match('[aA]') >> match('[sS]') }
         rule(:kw_keep)            { match('[kK]') >> match('[eE]') >> match('[eE]') >> match('[pP]') }
+        rule(:kw_filter)          { match('[fF]') >> match('[iI]') >> match('[lL]') >> match('[tT]') >> match('[eE]') >> match('[rR]') }
 
         rule(:op_gte)             { str('>=') }
         rule(:op_lte)             { str('<=') }
@@ -58,6 +59,7 @@ module XA
         rule(:expr)               { operand.as(:left) >> space.maybe >> op.as(:op) >> space.maybe >> operand.as(:right) }
         
         rule(:when_statement)     { kw_when >> space >> expr.as(:expr) }
+        rule(:when_statements)    { when_statement >> (space >> when_statement).repeat }
 
         rule(:require_indexes)    { kw_index >> space >> lsquare >> name.as(:column) >> (comma >> space.maybe >> name.as(:column)).repeat >> rsquare }
         rule(:require_reference)  { key_name.as(:package) >> colon >> name.as(:id) >> colon >> version.as(:version) }
@@ -77,8 +79,10 @@ module XA
         rule(:assign_statement)   { table_reference.as(:table) >> space >> assignments.as(:assignments) }
         rule(:map_statement)      { kw_map >> space >> assign_statement }
         rule(:revise_statement)   { kw_revise >> space >> assign_statement }
+
+        rule(:filter_statement)   { kw_filter >> space >> table_reference.as(:table) >> space >> when_statements.as(:whens) }
         
-        rule(:statement)          { (when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | keep_statement.as(:keep) | map_statement.as(:map) | revise_statement.as(:revise)) >> semi }
+        rule(:statement)          { (when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | keep_statement.as(:keep) | map_statement.as(:map) | revise_statement.as(:revise) | filter_statement.as(:filter)) >> semi }
         rule(:statements)         { statement >> (space.maybe >> statement).repeat >> space.maybe }
         
         root(:statements)
@@ -209,6 +213,17 @@ module XA
         }
       end
 
+      def build_filter(stm)
+        whens = stm.fetch(:whens, [])
+        whens = [whens] if whens.class == Hash
+        {
+          'table'   => build_reference_operand(stm[:table]),
+          'filters' => whens.map do |when_stm|
+            build_expr(when_stm[:expr])
+          end
+        }
+      end
+      
       def build_keep(stm)
         { 'table_name' => stm[:table_name].to_s }
       end
@@ -237,7 +252,7 @@ module XA
           end
         }
       end
-      
+
       def build_when(stm)
         {
           'expr' => build_expr(stm[:expr]),
@@ -247,6 +262,7 @@ module XA
       def parse(content)
         @step_fns ||= {
           assemble: method(:build_assemble),
+          filter: method(:build_filter),
           keep: method(:build_keep),
           map: method(:build_assignment),
           revise: method(:build_assignment),
