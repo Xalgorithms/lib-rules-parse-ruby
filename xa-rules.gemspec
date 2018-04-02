@@ -8,8 +8,6 @@ Gem::Specification.new do |s|
   s.summary     = "XA Rules"
   s.description = "Shared rule gem"
 
-  s.add_dependency 'faraday'
-  s.add_dependency 'faraday_middleware'
   s.add_dependency 'parslet'
 
   s.add_development_dependency 'rspec'
