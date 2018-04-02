@@ -125,6 +125,92 @@
         }
       ]
     }
+  },
+  {
+    "args": ["ASSEMBLE table0 COLUMN c0 FROM tables:table1 WHEN envelope:x.y == @a.b WHEN @c > 1 WHEN @d <= 3;"],
+    "expects" : {
+      "steps" : [
+        {
+          "name" : "assemble", "table_name" : "table0", "columns" : [
+            {
+              "table" : { "type" : "reference", "section" : "tables", "key" : "table1" },
+              "sources" : [
+                {
+                  "source": "c0", "name" : "c0", "whens" : [
+                    {
+                      "left" : { "type" : "reference", "section" : "envelope", "key" : "x.y" },
+                      "right" : { "type" : "reference", "section" : "_context", "key" : "a.b" },
+                      "op": "eq"
+                    },
+                    {
+                      "left" : { "type" : "reference", "section" : "_context", "key" : "c" },
+                      "right" : { "type" : "number", "value" : "1" },
+                      "op": "gt"
+                    },
+                    {
+                      "left" : { "type" : "reference", "section" : "_context", "key" : "d" },
+                      "right" : { "type" : "number", "value" : "3" },
+                      "op": "lte"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "args": ["ASSEMBLE table0 COLUMN c0 FROM tables:table1;"],
+    "expects" : {
+      "steps" : [
+        {
+          "name" : "assemble", "table_name" : "table0", "columns" : [
+            {
+              "table" : { "type" : "reference", "section" : "tables", "key" : "table1" },
+              "sources" : [
+                {
+                  "source": "c0",
+                  "name" : "c0"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "args": ["ASSEMBLE table0 COLUMNS (c0, c1, c2) FROM tables:table1 WHEN @a == @b WHEN @c < 1;"],
+    "expects" : {
+      "steps" : [
+        {
+          "name" : "assemble", "table_name" : "table0", "columns" : [
+            {
+              "table" : { "type" : "reference", "section" : "tables", "key" : "table1" },
+              "sources" : [
+                {
+                  "columns" : ["c0", "c1", "c2"],
+                  "whens" : [
+                    {
+                      "left" : { "type" : "reference", "section" : "_context", "key" : "a" },
+                      "right" : { "type" : "reference", "section" : "_context", "key" : "b" },
+                      "op": "eq"
+                    },
+                    {
+                      "left" : { "type" : "reference", "section" : "_context", "key" : "c" },
+                      "right" : { "type" : "number", "value" : "1" },
+                      "op": "lt"
+                    }                    
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
   }
 ]
   

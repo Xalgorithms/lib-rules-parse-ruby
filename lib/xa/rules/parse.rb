@@ -68,8 +68,8 @@ module XA
         rule(:require_reference)  { key_name.as(:package) >> colon >> name.as(:id) >> colon >> version.as(:version) }
         rule(:require_statement)  { kw_require >> space >> require_reference.as(:reference) >> (space >> require_indexes.as(:indexes)).maybe >> (space >> kw_as >> space >> name.as(:name)).maybe }
 
-        rule(:assemble_column)    { kw_column >> space >> name.as(:source) >> (space >> kw_as >> space >> name.as(:name)).maybe >> space >> kw_from >> space >> reference.as(:reference) >> space >> kw_when >> space >> expr.as(:expr) }
-        rule(:assemble_column_import) { kw_columns >> space >> (lparen >> name_list.as(:column_names) >> rparen >> space).maybe >> kw_from >> space >> reference.as(:reference) }
+        rule(:assemble_column)    { kw_column >> space >> name.as(:source) >> (space >> kw_as >> space >> name.as(:name)).maybe >> space >> kw_from >> space >> reference.as(:reference) >> (space >> when_statements.as(:whens)).maybe }
+        rule(:assemble_column_import) { kw_columns >> space >> (lparen >> name_list.as(:column_names) >> rparen >> space).maybe >> kw_from >> space >> reference.as(:reference) >> (space >> when_statements.as(:whens)).maybe }
         rule(:assemble_columnset) { assemble_column.as(:column) | assemble_column_import.as(:column_import) } 
         rule(:assemble_columns)   { assemble_columnset >> (space >> assemble_columnset).repeat }
         rule(:assemble_statement) { kw_assemble >> space >> name.as(:table_name) >> space >> assemble_columns.as(:columns) }
@@ -166,23 +166,30 @@ module XA
       end
 
       def build_column(col)
+        whens = col[:whens]
+        whens = [whens] if whens.class == Hash
         source = col[:source].to_s
         {
           table: build_reference_operand(col[:reference]),
           col: {
             'name'       => col.fetch(:name, source).to_s,
             'source'     => source,
-            'whens'      => [build_expr(col[:expr])],
-          }
+          }.tap do |col|
+            col['whens'] = whens.map { |wh| build_expr(wh[:expr]) } if whens
+          end,
         }
       end
 
       def build_column_import(col)
+        whens = col[:whens]
+        whens = [whens] if whens.class == Hash
         {
           table: build_reference_operand(col[:reference]),
           col: {
             'columns' => col.fetch(:column_names, []).map { |o| o[:name].to_s },
-          }
+          }.tap do |col|
+            col['whens'] = whens.map { |wh| build_expr(wh[:expr]) } if whens
+          end
         }
       end
       

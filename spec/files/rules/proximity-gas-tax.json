@@ -149,6 +149,38 @@
           "right": {"section": "_context", "key": "min_difference", "type": "reference"},
           "op": "eq"}
       ], "name": "reduce"
+    },
+    {
+      "table_name": "item_reductions",
+      "columns": [
+        {
+          "table": { "section": "table", "key": "items", "type": "reference"},
+          "sources": [
+            {
+              "columns": ["id", "classification", "price"],
+              "whens": [
+                {
+                  "left": {"section": "_context", "key": "classification.list_name", "type": "reference"},
+                  "right": {"type": "string", "value": "UNSPSC"},
+                  "op": "eq"
+                },
+                {
+                  "left": {"section": "_context", "key": "classification.value", "type": "reference"},
+                  "right": {"type": "string", "value": "506505"},
+                  "op": "eq"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "table": {"section": "table", "key": "sellers_reductions", "type": "reference"},
+          "sources": [
+            {"name": "reduction", "source": "reduction"}
+          ]
+        }
+      ],
+      "name": "assemble"
     }
   ]
 }
