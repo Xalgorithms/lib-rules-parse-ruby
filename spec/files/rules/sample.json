@@ -20,11 +20,13 @@
             {
               "name" : "c0",
               "source" : "c0",
-              "expr" : {
-                "left" : {"section" : "envelope", "key" : "x.y", "type" : "reference"},
-                "right" : {"section" : "_context", "key" : "a.b", "type" : "reference"},
-                "op" : "eq"
-              }
+              "whens" : [
+                {
+                  "left" : {"section" : "envelope", "key" : "x.y", "type" : "reference"},
+                  "right" : {"section" : "_context", "key" : "a.b", "type" : "reference"},
+                  "op" : "eq"
+                }
+              ]
             }
           ]
         }

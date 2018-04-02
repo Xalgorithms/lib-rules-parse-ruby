@@ -87,11 +87,13 @@
             {
               "name" : "seller_distance",
               "source" : "seller_distance",
-              "expr" : {
-                "left" : {"section" : "envelope", "key" : "parties.suppler.id.value", "type" : "reference"},
-                "right" : {"section" : "_context", "key" : "supplier_id", "type" : "reference"},
-                "op" : "eq"
-              }
+              "whens" : [
+                {
+                  "left" : {"section" : "envelope", "key" : "parties.suppler.id.value", "type" : "reference"},
+                  "right" : {"section" : "_context", "key" : "supplier_id", "type" : "reference"},
+                  "op" : "eq"
+                }
+              ]
             }
           ]
         }

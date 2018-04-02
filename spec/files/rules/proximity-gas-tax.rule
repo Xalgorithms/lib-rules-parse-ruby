@@ -66,13 +66,15 @@ REDUCE table:sellers_reductions
 
 # This create a new table that includes the relevant fields from the
 # items table, joining the reduction from above.
-#ASSEMBLE table:item_reductions
+# fails b/c ASSEMBLE/COLUMN doesn't allow no WHEN
+#ASSEMBLE item_reductions
 #  COLUMNS (id, classification, price) FROM table:items
 #    WHEN item:classification.list_name == 'UNSPSC'
 #    WHEN item:classification.value == '506505'
 #  COLUMN reduction FROM table:sellers_reductions;
 
 # Adds the UBL-ish allowance to the item table that we computed above.
+# NOT PARSING due to dotted key path on left
 #MAP table:item_reductions
 #  USING allowance.charge = false
 #  USING allowance.amount.value = multiply(@price.value, @reduction)

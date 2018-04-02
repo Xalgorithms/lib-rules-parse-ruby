@@ -172,7 +172,7 @@ module XA
           col: {
             'name'       => col.fetch(:name, source).to_s,
             'source'     => source,
-            'expr'       => build_expr(col[:expr]),
+            'whens'      => [build_expr(col[:expr])],
           }
         }
       end

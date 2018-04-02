@@ -9,11 +9,15 @@
               "table" : { "type" : "reference", "section" : "tables", "key" : "table1" },
               "sources" : [
                 {
-                  "source": "c0", "name" : "c0", "expr" : {
-                    "left" : { "type" : "reference", "section" : "_local", "key" : "x.y" },
-                    "right" : { "type" : "reference", "section" : "_context", "key" : "a.b" },
-                    "op": "eq"
-                  }
+                  "source": "c0",
+                  "name" : "c0",
+                  "whens" : [
+                    {
+                      "left" : { "type" : "reference", "section" : "_local", "key" : "x.y" },
+                      "right" : { "type" : "reference", "section" : "_context", "key" : "a.b" },
+                      "op": "eq"
+                    }
+                  ]
                 }
               ]
             }
@@ -30,12 +34,17 @@
           "name" : "assemble", "table_name" : "table0", "columns" : [
             {
               "table" : { "type" : "reference", "section" : "tables", "key" : "table1" },
-              "sources" : [{
-                "source": "c0", "name" : "c0", "expr" : {
-                "left" : { "type" : "reference", "section" : "envelope", "key" : "x.y" },
-                "right" : { "type" : "reference", "section" : "_context", "key" : "a.b" },
-                "op": "eq" }
-              }]
+              "sources" : [
+                {
+                  "source": "c0", "name" : "c0", "whens" : [
+                    {
+                      "left" : { "type" : "reference", "section" : "envelope", "key" : "x.y" },
+                      "right" : { "type" : "reference", "section" : "_context", "key" : "a.b" },
+                      "op": "eq"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -51,7 +60,7 @@
             {
               "table" : { "type" : "reference", "section" : "tables", "key" : "table1" },
               "sources" : [
-                { "source" : "c0", "name" : "nc0", "expr" : { "left" : { "type" : "reference", "section" : "envelope", "key" : "x.y" }, "right" : { "type" : "number", "value" : "2" }, "op": "lte" } }
+                { "source" : "c0", "name" : "nc0", "whens" : [{ "left" : { "type" : "reference", "section" : "envelope", "key" : "x.y" }, "right" : { "type" : "number", "value" : "2" }, "op": "lte" }] }
               ]
             }
           ]
@@ -68,14 +77,14 @@
             {
               "table" : { "type" : "reference", "section" : "tables", "key" : "table1" },
               "sources" : [
-                { "source" : "c0", "name" : "nc0", "expr" : { "left" : { "type" : "reference", "section" : "envelope", "key" : "x.y" }, "right" : { "type" : "number", "value" : "2" }, "op" : "lte" } },
-                { "source" : "c1", "name" : "nc1", "expr" : { "left" : { "type" : "reference", "section" : "_local", "key": "nc0" }, "right" : { "type" : "number", "value" : "3" }, "op": "eq" } }
+                { "source" : "c0", "name" : "nc0", "whens" : [{ "left" : { "type" : "reference", "section" : "envelope", "key" : "x.y" }, "right" : { "type" : "number", "value" : "2" }, "op" : "lte" }] },
+                { "source" : "c1", "name" : "nc1", "whens" : [{ "left" : { "type" : "reference", "section" : "_local", "key": "nc0" }, "right" : { "type" : "number", "value" : "3" }, "op": "eq" }] }
               ]
             },
             {
               "table" : { "type" : "reference", "section" : "tables", "key" : "table2" },
               "sources" : [
-                { "source" : "b0", "name" : "nc2", "expr" : { "left" : { "type" : "reference", "section" : "envelope", "key" : "p.q" }, "right" : { "type" : "number", "value" : "3" }, "op": "eq" } }
+                { "source" : "b0", "name" : "nc2", "whens" : [{ "left" : { "type" : "reference", "section" : "envelope", "key" : "p.q" }, "right" : { "type" : "number", "value" : "3" }, "op": "eq" }] }
               ]
             }
           ]
