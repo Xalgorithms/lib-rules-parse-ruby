@@ -32,6 +32,7 @@ module XA
         rule(:kw_as)              { match('[aA]') >> match('[sS]') }
         rule(:kw_keep)            { match('[kK]') >> match('[eE]') >> match('[eE]') >> match('[pP]') }
         rule(:kw_filter)          { match('[fF]') >> match('[iI]') >> match('[lL]') >> match('[tT]') >> match('[eE]') >> match('[rR]') }
+        rule(:kw_reduce)          { match('[rR]') >> match('[eE]') >> match('[dD]') >> match('[uU]') >> match('[cC]') >> match('[eE]') }
 
         rule(:op_gte)             { str('>=') }
         rule(:op_lte)             { str('<=') }
@@ -61,6 +62,8 @@ module XA
         rule(:when_statement)     { kw_when >> space >> expr.as(:expr) }
         rule(:when_statements)    { when_statement >> (space >> when_statement).repeat }
 
+        rule(:reduce_statement)   { kw_reduce >> space >> table_reference.as(:table) >> space >> assignments.as(:assignments) >> space >> when_statements.as(:whens) }
+        
         rule(:require_indexes)    { kw_index >> space >> lsquare >> name.as(:column) >> (comma >> space.maybe >> name.as(:column)).repeat >> rsquare }
         rule(:require_reference)  { key_name.as(:package) >> colon >> name.as(:id) >> colon >> version.as(:version) }
         rule(:require_statement)  { kw_require >> space >> require_reference.as(:reference) >> (space >> require_indexes.as(:indexes)).maybe >> (space >> kw_as >> space >> name.as(:name)).maybe }
@@ -82,7 +85,7 @@ module XA
 
         rule(:filter_statement)   { kw_filter >> space >> table_reference.as(:table) >> space >> when_statements.as(:whens) }
         
-        rule(:statement)          { (when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | keep_statement.as(:keep) | map_statement.as(:map) | revise_statement.as(:revise) | filter_statement.as(:filter)) >> semi }
+        rule(:statement)          { (when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | keep_statement.as(:keep) | map_statement.as(:map) | revise_statement.as(:revise) | filter_statement.as(:filter) | reduce_statement.as(:reduce)) >> semi }
         rule(:statements)         { statement >> (space.maybe >> statement).repeat >> space.maybe }
         
         root(:statements)
@@ -253,6 +256,22 @@ module XA
         }
       end
 
+      def build_reduce(stm)
+        assigns = stm[:assignments]
+        assigns = [assigns] if assigns.class == Hash
+        whens = stm.fetch(:whens, [])
+        whens = [whens] if whens.class == Hash
+        {
+          'table' => build_reference_operand(stm[:table]),
+          'assignments' => assigns.inject([]) do |a, assign|
+            a + [build_assignment_expr(assign[:expr]).merge({ 'column' => assign[:name].to_s })]
+          end,
+          'filters' => whens.map do |when_stm|
+            build_expr(when_stm[:expr])
+          end,
+        }
+      end
+      
       def build_when(stm)
         {
           'expr' => build_expr(stm[:expr]),
@@ -265,6 +284,7 @@ module XA
           filter: method(:build_filter),
           keep: method(:build_keep),
           map: method(:build_assignment),
+          reduce: method(:build_reduce),
           revise: method(:build_assignment),
         }
 

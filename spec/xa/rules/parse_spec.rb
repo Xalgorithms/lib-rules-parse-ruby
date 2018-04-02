@@ -11,6 +11,7 @@ describe XA::Rules::Parse do
     'filter',
     'keep',
     'map',
+    'reduce',
     'require',
     'revise',
     'when',

@@ -127,6 +127,26 @@
         }
       ],
       "name" : "filter"
+    },
+    {
+      "table": {"section": "table", "key": "sellers_reductions", "type": "reference"},
+      "assignments": [
+        {
+          "type": "function",
+          "name": "min",
+          "args": [
+            {"section": "_local", "key": "min_difference", "type": "reference"},
+            {"section": "_context", "key": "difference", "type": "reference"}
+          ],
+          "column": "min_difference"
+        }
+      ],
+      "filters": [
+        {
+          "left": {"section": "_local", "key": "difference", "type": "reference"},
+          "right": {"section": "_context", "key": "min_difference", "type": "reference"},
+          "op": "eq"}
+      ], "name": "reduce"
     }
   ]
 }
