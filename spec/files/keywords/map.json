@@ -14,6 +14,20 @@
       ]
     }
   },
+  {
+    "args" : ["MAP tables:items USING a.b.c = @x.y.z;"],
+    "expects" : {
+      "steps" : [
+        {
+          "name" : "map",
+          "table" : { "type" : "reference", "section" : "tables", "key" : "items" },
+          "assignments" : [
+            { "column" : "a.b.c", "type" : "reference", "section" : "_context", "key" : "x.y.z" }
+          ]
+        }
+      ]
+    }
+  },
   // reference the vtable
   {
     "args" : ["MAP $ USING a = @x.y.z;"],

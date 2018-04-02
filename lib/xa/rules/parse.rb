@@ -77,7 +77,7 @@ module XA
         rule(:keep_statement)     { kw_keep >> space >> name.as(:table_name) }
         
         rule(:assign_expr)        { function_reference.as(:function) | reference | value.as(:value) }
-        rule(:assignment)         { kw_using >> space >> name.as(:name) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
+        rule(:assignment)         { kw_using >> space >> key_name.as(:name) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
         rule(:assignments)        { assignment >> (space >> assignment).repeat }
         rule(:assign_statement)   { table_reference.as(:table) >> space >> assignments.as(:assignments) }
         rule(:map_statement)      { kw_map >> space >> assign_statement }

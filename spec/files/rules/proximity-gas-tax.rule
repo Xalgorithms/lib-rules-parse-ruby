@@ -74,10 +74,10 @@ ASSEMBLE item_reductions
 
 # Adds the UBL-ish allowance to the item table that we computed above.
 # NOT PARSING due to dotted key path on left
-#MAP table:item_reductions
-#  USING allowance.charge = false
-#  USING allowance.amount.value = multiply(@price.value, @reduction)
-#  USING allowance.amount.currency_code = @price.currency_code;
+MAP table:item_reductions
+  USING allowance.charge = false
+  USING allowance.amount.value = multiply(@price.value, @reduction)
+  USING allowance.amount.currency_code = @price.currency_code;
 
 # This issues a revision of the original items table, adding the
 # allowance column.

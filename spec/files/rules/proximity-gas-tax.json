@@ -181,6 +181,23 @@
         }
       ],
       "name": "assemble"
+    },
+    {
+      "table": {"section": "table", "key": "item_reductions", "type": "reference"},
+      "assignments": [
+        { "section": "_local", "key": "false", "type": "reference", "column": "allowance.charge"},
+        {
+          "type": "function",
+          "name": "multiply",
+          "args": [
+            {"section": "_context", "key": "price.value", "type": "reference"},
+            {"section": "_context", "key": "reduction", "type": "reference"}
+          ],
+          "column": "allowance.amount.value"
+        },
+        {"section": "_context", "key": "price.currency_code", "type": "reference", "column": "allowance.amount.currency_code"}
+      ],
+      "name": "map"
     }
   ]
 }
