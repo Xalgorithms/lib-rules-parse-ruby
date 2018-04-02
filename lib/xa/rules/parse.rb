@@ -33,6 +33,9 @@ module XA
         rule(:kw_keep)            { match('[kK]') >> match('[eE]') >> match('[eE]') >> match('[pP]') }
         rule(:kw_filter)          { match('[fF]') >> match('[iI]') >> match('[lL]') >> match('[tT]') >> match('[eE]') >> match('[rR]') }
         rule(:kw_reduce)          { match('[rR]') >> match('[eE]') >> match('[dD]') >> match('[uU]') >> match('[cC]') >> match('[eE]') }
+        rule(:kw_add)             { match('[aA]') >> match('[dD]') >> match('[dD]') }
+        rule(:kw_update)          { match('[uU]') >> match('[pP]') >> match('[dD]') >> match('[aA]') >> match('[tT]') >> match('[eE]') }
+        rule(:kw_delete)          { match('[dD]') >> match('[eE]') >> match('[lL]') >> match('[eE]') >> match('[tT]') >> match('[eE]') }
 
         rule(:op_gte)             { str('>=') }
         rule(:op_lte)             { str('<=') }
@@ -81,7 +84,11 @@ module XA
         rule(:assignments)        { assignment >> (space >> assignment).repeat }
         rule(:assign_statement)   { table_reference.as(:table) >> space >> assignments.as(:assignments) }
         rule(:map_statement)      { kw_map >> space >> assign_statement }
-        rule(:revise_statement)   { kw_revise >> space >> assign_statement }
+
+        rule(:revision_op)        { kw_add | kw_update | kw_delete }
+        rule(:revision_statement) { revision_op.as(:op) >> space >> key_name.as(:key) >> (space >> kw_from >> space >> table_reference.as(:table)).maybe >> space >> when_statements.as(:whens) }
+        rule(:revision_statements) { revision_statement >> (space >> revision_statement).repeat }
+        rule(:revise_statement)   { kw_revise >> space >> table_reference.as(:table) >> space >> revision_statements.as(:revisions) }
 
         rule(:filter_statement)   { kw_filter >> space >> table_reference.as(:table) >> space >> when_statements.as(:whens) }
         
@@ -285,6 +292,30 @@ module XA
         }
       end
 
+      def build_revise(stm)
+        revisions = stm[:revisions]
+        revisions = [revisions] if revisions.class == Hash
+        {
+          'table'   => build_reference_operand(stm[:table]),
+          'revisions' => revisions.map do |rev|
+            whens = rev.fetch(:whens, [])
+            whens = [whens] if whens.class == Hash
+            
+            {
+              'op'     => rev[:op].to_s.downcase,
+              'source' => {
+                'column' => rev[:key].to_s,
+                'whens'  => whens.map do |when_stm|
+                  build_expr(when_stm[:expr])
+                end,
+              }.tap do |o|
+                o['table'] = build_reference_operand(rev[:table]) if rev.key?(:table)
+              end,
+            }
+          end
+        }
+      end
+      
       def parse(content)
         @step_fns ||= {
           assemble: method(:build_assemble),
@@ -292,7 +323,7 @@ module XA
           keep: method(:build_keep),
           map: method(:build_assignment),
           reduce: method(:build_reduce),
-          revise: method(:build_assignment),
+          revise: method(:build_revise),
         }
 
         content = content.split(/\n/).map { |ln| ln.gsub(/\#.*/, '') }.join('')

@@ -198,6 +198,26 @@
         {"section": "_context", "key": "price.currency_code", "type": "reference", "column": "allowance.amount.currency_code"}
       ],
       "name": "map"
+    },
+    {
+      "table": {"section": "table", "key": "items", "type": "reference"},
+      "revisions": [
+        {
+          "op": "add",
+          "source": {
+            "column": "allowance",
+            "whens": [
+              {
+                "left": {"section": "_local", "key": "id.value", "type": "reference"},
+                "right": {"section": "_context", "key": "id.value", "type": "reference"},
+                "op": "eq"
+              }
+            ],
+            "table": {"section": "table", "key": "item_reductions", "type": "reference"}
+          }
+        }
+      ],
+      "name": "revise"
     }
   ]
 }
