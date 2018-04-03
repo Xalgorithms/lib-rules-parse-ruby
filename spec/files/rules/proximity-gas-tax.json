@@ -47,23 +47,27 @@
       }
     ]
   },
-  "requires" : [
+  "steps" : [
     {
-      "package":"ca.qc.tax",
-      "id":"station_distances",
-      "version":"0.0.1",
-      "indexes":[],
-      "name":"distances"
+      "name" : "require",
+      "reference": {
+        "package":"ca.qc.tax",
+        "id":"station_distances",
+        "version":"0.0.1",
+        "name":"distances"
+      },
+      "indexes":[]
     },
     {
-      "package":"ca.qc.tax",
-      "id":"reductions_by_distance",
-      "version":"0.0.1",
-      "indexes":[],
-      "name":"reductions_by_distance"
-    }
-  ],
-  "steps" : [
+      "name" : "require",
+      "reference": {
+        "package":"ca.qc.tax",
+        "id":"reductions_by_distance",
+        "version":"0.0.1",
+        "name":"reductions_by_distance"
+      },
+      "indexes":[]
+    },
     {
       "table_name" : "sellers_reductions",
       "columns" : [

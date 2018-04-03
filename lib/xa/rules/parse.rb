@@ -315,6 +315,19 @@ module XA
           end
         }
       end
+
+      def build_require(stm)
+        {
+          'reference' => [:package, :id, :version].inject({}) do |o, k|
+            o.merge(k.to_s => stm[:reference][k].to_s)
+          end.tap do |o|
+            o['name'] = stm.fetch(:name, o['id']).to_s
+          end,
+          'indexes' => stm.fetch(:indexes, []).map do |idx|
+            idx[:column].to_s
+          end,
+        }
+      end
       
       def parse(content)
         @step_fns ||= {
@@ -323,6 +336,7 @@ module XA
           keep: method(:build_keep),
           map: method(:build_assignment),
           reduce: method(:build_reduce),
+          require: method(:build_require),
           revise: method(:build_revise),
         }
 
@@ -341,13 +355,6 @@ module XA
             whens = o.fetch('whens', {})
             section = expr['expr']['left']['section']
             o.merge('whens' => whens.merge(section => whens.fetch(section, []) + [expr]))
-          when :require
-            req = [:package, :id, :version].inject({}) do |o, k|
-              o.merge(k.to_s => stm[:reference][k].to_s)
-            end
-            indexes = stm.fetch(:indexes, []).map { |col| col[:column].to_s }
-            name = stm.fetch(:name, req['id']).to_s
-            o.merge('requires' => o.fetch('requires', []) + [req.merge('indexes' => indexes, 'name' => name)])
           else
             o.merge('steps' => o.fetch('steps', []) + [@step_fns[t].call(stm).merge('name' => t.to_s)])
           end
