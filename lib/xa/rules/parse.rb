@@ -7,8 +7,6 @@ module XA
         rule(:nl)                 { str('\n') }
         rule(:space)              { match('\s').repeat(1) }
         rule(:quote)              { str("'") }
-        rule(:string)             { quote >> match('\w').repeat(1) >> quote }
-        rule(:number)             { match('[0-9]').repeat(1) }
         rule(:semi)               { str(';') }
         rule(:comma)              { str(',') }
         rule(:colon)              { str(':') }
@@ -21,13 +19,10 @@ module XA
         rule(:rsquare)            { str(']') }
         rule(:dollar)             { str('$') }
 
-        rule(:name)               { match('\w').repeat(1) }
-        rule(:key_name)           { match('\w').repeat(1) >> (str('.') >> match('\w').repeat(1)).repeat }
-        rule(:value)              { string.as(:string) | number.as(:number) }
-
         rule(:kw_when)            { match('[wW]') >> match('[hH]') >> match('[eE]') >> match('[nN]') }
         rule(:kw_assemble)        { match('[aA]') >> match('[sS]') >> match('[sS]') >> match('[eE]') >> match('[mM]') >> match('[bB]') >> match('[lL]') >> match('[eE]') }
         rule(:kw_column)          { match('[cC]') >> match('[oO]') >> match('[lL]') >> match('[uU]') >> match('[mM]') >> match('[nN]') }
+        rule(:kw_columns)         { match('[cC]') >> match('[oO]') >> match('[lL]') >> match('[uU]') >> match('[mM]') >> match('[nN]') >> match('[sS]') }
         rule(:kw_from)            { match('[fF]') >> match('[rR]') >> match('[oO]') >> match('[mM]') }
         rule(:kw_map)             { match('[mM]') >> match('[aA]') >> match('[pP]') }
         rule(:kw_using)           { match('[uU]') >> match('[sS]') >> match('[iI]') >> match('[nN]') >> match('[gG]') }
@@ -36,6 +31,11 @@ module XA
         rule(:kw_index)           { match('[iI]') >> match('[nN]') >> match('[dD]') >> match('[eE]') >> match('[xX]') }
         rule(:kw_as)              { match('[aA]') >> match('[sS]') }
         rule(:kw_keep)            { match('[kK]') >> match('[eE]') >> match('[eE]') >> match('[pP]') }
+        rule(:kw_filter)          { match('[fF]') >> match('[iI]') >> match('[lL]') >> match('[tT]') >> match('[eE]') >> match('[rR]') }
+        rule(:kw_reduce)          { match('[rR]') >> match('[eE]') >> match('[dD]') >> match('[uU]') >> match('[cC]') >> match('[eE]') }
+        rule(:kw_add)             { match('[aA]') >> match('[dD]') >> match('[dD]') }
+        rule(:kw_update)          { match('[uU]') >> match('[pP]') >> match('[dD]') >> match('[aA]') >> match('[tT]') >> match('[eE]') }
+        rule(:kw_delete)          { match('[dD]') >> match('[eE]') >> match('[lL]') >> match('[eE]') >> match('[tT]') >> match('[eE]') }
 
         rule(:op_gte)             { str('>=') }
         rule(:op_lte)             { str('<=') }
@@ -43,37 +43,57 @@ module XA
         rule(:op_gt)              { str('>') }
         rule(:op_lt)              { str('<') }
 
-        # TODO: remove (it's context_reference)
+        rule(:string)             { quote >> match('\w').repeat(1) >> quote }
+        rule(:number)             { match('[0-9]').repeat(1) }
+        rule(:name)               { match('[a-zA-Z]') >> match('\w').repeat }
+        rule(:name_list)          { name.as(:name) >> (comma >> space.maybe >> name.as(:name)).repeat }
+        rule(:key_name)           { name >> (str('.') >> name).repeat }
+        rule(:version)            { number >> dot >> number >> dot >> number }
+        rule(:value)              { string.as(:string) | number.as(:number) }
+
         rule(:section_reference)  { name.as(:section) >> colon >> key_name.as(:key) }
         rule(:context_reference)  { at >> key_name.as(:key) }
+        rule(:local_reference)    { key_name.as(:key) }
         rule(:vtable_reference)   { dollar }
         rule(:table_reference)    { section_reference.as(:section) | context_reference.as(:context) | vtable_reference.as(:virtual) }
         rule(:function_reference) { name.as(:name) >> (lparen >> assign_expr >> (space.maybe >> comma >> space.maybe >> assign_expr).repeat >> rparen).as(:args) }
-        rule(:reference)          { section_reference.as(:section) | context_reference.as(:context) } 
+        rule(:reference)          { section_reference.as(:section) | context_reference.as(:context) | local_reference.as(:local) } 
+        rule(:operand)            { value.as(:value) | reference.as(:reference) }
         rule(:op)                 { op_lte | op_gte | op_eq | op_lt | op_gt }
-        rule(:operand)            { value.as(:value) | reference.as(:reference) | name.as(:name) }
         rule(:expr)               { operand.as(:left) >> space.maybe >> op.as(:op) >> space.maybe >> operand.as(:right) }
         
         rule(:when_statement)     { kw_when >> space >> expr.as(:expr) }
+        rule(:when_statements)    { when_statement >> (space >> when_statement).repeat }
 
-        rule(:require_indexes)    { kw_index >> space >> lsquare >> name.as(:column) >> (comma >> space.maybe >> name.as(:column)).repeat >> rsquare } 
-        rule(:require_statement)  { kw_require >> space >> name.as(:id) >> (space >> require_indexes.as(:indexes)).maybe >> (space >> kw_as >> space >> name.as(:name)).maybe }
+        rule(:reduce_statement)   { kw_reduce >> space >> table_reference.as(:table) >> space >> assignments.as(:assignments) >> space >> when_statements.as(:whens) }
+        
+        rule(:require_indexes)    { kw_index >> space >> lsquare >> name.as(:column) >> (comma >> space.maybe >> name.as(:column)).repeat >> rsquare }
+        rule(:require_reference)  { key_name.as(:package) >> colon >> name.as(:id) >> colon >> version.as(:version) }
+        rule(:require_statement)  { kw_require >> space >> require_reference.as(:reference) >> (space >> require_indexes.as(:indexes)).maybe >> (space >> kw_as >> space >> name.as(:name)).maybe }
 
-        rule(:assemble_column)    { kw_column >> space >> name.as(:source) >> (space >> kw_as >> space >> name.as(:name)).maybe >> space >> kw_from >> space >> name.as(:table_name) >> space >> kw_when >> space >> expr.as(:expr) }
-        rule(:assemble_columns)   { assemble_column >> (space >> assemble_column).repeat }
+        rule(:assemble_column)    { kw_column >> space >> name.as(:source) >> (space >> kw_as >> space >> name.as(:name)).maybe >> space >> kw_from >> space >> reference.as(:reference) >> (space >> when_statements.as(:whens)).maybe }
+        rule(:assemble_column_import) { kw_columns >> space >> (lparen >> name_list.as(:column_names) >> rparen >> space).maybe >> kw_from >> space >> reference.as(:reference) >> (space >> when_statements.as(:whens)).maybe }
+        rule(:assemble_columnset) { assemble_column.as(:column) | assemble_column_import.as(:column_import) } 
+        rule(:assemble_columns)   { assemble_columnset >> (space >> assemble_columnset).repeat }
         rule(:assemble_statement) { kw_assemble >> space >> name.as(:table_name) >> space >> assemble_columns.as(:columns) }
 
         rule(:keep_statement)     { kw_keep >> space >> name.as(:table_name) }
         
         rule(:assign_expr)        { function_reference.as(:function) | reference | value.as(:value) }
-        rule(:assignment)         { kw_using >> space >> name.as(:name) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
+        rule(:assignment)         { kw_using >> space >> key_name.as(:name) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
         rule(:assignments)        { assignment >> (space >> assignment).repeat }
         rule(:assign_statement)   { table_reference.as(:table) >> space >> assignments.as(:assignments) }
         rule(:map_statement)      { kw_map >> space >> assign_statement }
-        rule(:revise_statement)   { kw_revise >> space >> assign_statement }
+
+        rule(:revision_op)        { kw_add | kw_update | kw_delete }
+        rule(:revision_statement) { revision_op.as(:op) >> space >> key_name.as(:key) >> (space >> kw_from >> space >> table_reference.as(:table)).maybe >> space >> when_statements.as(:whens) }
+        rule(:revision_statements) { revision_statement >> (space >> revision_statement).repeat }
+        rule(:revise_statement)   { kw_revise >> space >> table_reference.as(:table) >> space >> revision_statements.as(:revisions) }
+
+        rule(:filter_statement)   { kw_filter >> space >> table_reference.as(:table) >> space >> when_statements.as(:whens) }
         
-        rule(:statement)          { (when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | keep_statement.as(:keep) | map_statement.as(:map) | revise_statement.as(:revise)) >> semi }
-        rule(:statements)         { statement >> (space >> statement).repeat >> space.maybe }
+        rule(:statement)          { (when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | keep_statement.as(:keep) | map_statement.as(:map) | revise_statement.as(:revise) | filter_statement.as(:filter) | reduce_statement.as(:reduce)) >> semi }
+        rule(:statements)         { statement >> (space.maybe >> statement).repeat >> space.maybe }
         
         root(:statements)
       end
@@ -107,6 +127,8 @@ module XA
           rv = { 'section' => '_context', 'key' => opr[t][:key].to_s }
         when :virtual
           rv = { 'section' => '_virtual' }
+        when :local
+          rv = { 'section' => '_local', 'key' => opr[t][:key].to_s }
         end
 
         rv.merge('type' => 'reference') if rv
@@ -149,35 +171,76 @@ module XA
           'op'    => OPS.fetch(expr[:op].to_s, 'unk'),
         }
       end
+
+      def build_column(col)
+        whens = col[:whens]
+        whens = [whens] if whens.class == Hash
+        source = col[:source].to_s
+        {
+          table: build_reference_operand(col[:reference]),
+          col: {
+            'name'       => col.fetch(:name, source).to_s,
+            'source'     => source,
+          }.tap do |col|
+            col['whens'] = whens.map { |wh| build_expr(wh[:expr]) } if whens
+          end,
+        }
+      end
+
+      def build_column_import(col)
+        whens = col[:whens]
+        whens = [whens] if whens.class == Hash
+        {
+          table: build_reference_operand(col[:reference]),
+          col: {
+            'columns' => col.fetch(:column_names, []).map { |o| o[:name].to_s },
+          }.tap do |col|
+            col['whens'] = whens.map { |wh| build_expr(wh[:expr]) } if whens
+          end
+        }
+      end
+      
+      def build_columns(cols)
+        cols.map do |col|
+          t = col.keys.first
+          case t
+          when :column
+            build_column(col[t])
+          when :column_import
+            build_column_import(col[t])
+          end
+        end.inject({}) do |o, col|
+          table_name = col[:table]
+          table_cols = o.fetch(table_name, [])
+          o.merge(table_name => table_cols + [col[:col]])
+        end.map do |k, v|
+          {
+            'table'   => k,
+            'sources' => v
+          }
+        end
+      end
       
       def build_assemble(stm)
         cols = stm[:columns]
         cols = [cols] if cols.class == Hash
         {
           'table_name' => stm[:table_name].to_s,
-          'columns'    => cols.map do |col|
-            source = col[:source].to_s
-            {
-              table: col[:table_name].to_s,
-              col: {
-                'name'       => col.fetch(:name, source).to_s,
-                'source'     => source,
-                'expr'       => build_expr(col[:expr]),
-              }
-            }
-          end.inject({}) do |o, col|
-            table_name = col[:table]
-            table_cols = o.fetch(table_name, [])
-            o.merge(table_name => table_cols + [col[:col]])
-          end.map do |k, v|
-            {
-              'table'   => k,
-              'sources' => v
-            }
-          end,
+          'columns'    => build_columns(cols),
         }
       end
 
+      def build_filter(stm)
+        whens = stm.fetch(:whens, [])
+        whens = [whens] if whens.class == Hash
+        {
+          'table'   => build_reference_operand(stm[:table]),
+          'filters' => whens.map do |when_stm|
+            build_expr(when_stm[:expr])
+          end
+        }
+      end
+      
       def build_keep(stm)
         { 'table_name' => stm[:table_name].to_s }
       end
@@ -206,6 +269,22 @@ module XA
           end
         }
       end
+
+      def build_reduce(stm)
+        assigns = stm[:assignments]
+        assigns = [assigns] if assigns.class == Hash
+        whens = stm.fetch(:whens, [])
+        whens = [whens] if whens.class == Hash
+        {
+          'table' => build_reference_operand(stm[:table]),
+          'assignments' => assigns.inject([]) do |a, assign|
+            a + [build_assignment_expr(assign[:expr]).merge({ 'column' => assign[:name].to_s })]
+          end,
+          'filters' => whens.map do |when_stm|
+            build_expr(when_stm[:expr])
+          end,
+        }
+      end
       
       def build_when(stm)
         {
@@ -213,15 +292,57 @@ module XA
         }
       end
 
+      def build_revise(stm)
+        revisions = stm[:revisions]
+        revisions = [revisions] if revisions.class == Hash
+        {
+          'table'   => build_reference_operand(stm[:table]),
+          'revisions' => revisions.map do |rev|
+            whens = rev.fetch(:whens, [])
+            whens = [whens] if whens.class == Hash
+            
+            {
+              'op'     => rev[:op].to_s.downcase,
+              'source' => {
+                'column' => rev[:key].to_s,
+                'whens'  => whens.map do |when_stm|
+                  build_expr(when_stm[:expr])
+                end,
+              }.tap do |o|
+                o['table'] = build_reference_operand(rev[:table]) if rev.key?(:table)
+              end,
+            }
+          end
+        }
+      end
+
+      def build_require(stm)
+        {
+          'reference' => [:package, :id, :version].inject({}) do |o, k|
+            o.merge(k.to_s => stm[:reference][k].to_s)
+          end.tap do |o|
+            o['name'] = stm.fetch(:name, o['id']).to_s
+          end,
+          'indexes' => stm.fetch(:indexes, []).map do |idx|
+            idx[:column].to_s
+          end,
+        }
+      end
+      
       def parse(content)
         @step_fns ||= {
           assemble: method(:build_assemble),
+          filter: method(:build_filter),
           keep: method(:build_keep),
           map: method(:build_assignment),
-          revise: method(:build_assignment),
+          reduce: method(:build_reduce),
+          require: method(:build_require),
+          revise: method(:build_revise),
         }
-        
-        tree = ActionParser.new.parse(content)
+
+        content = content.split(/\n/).map { |ln| ln.gsub(/\#.*/, '') }.join('')
+
+        tree = content.empty? ? [] : ActionParser.new.parse(content)
         tree = [tree] if tree.class == Hash
 
         tree.inject({}) do |o, stms|
@@ -234,12 +355,6 @@ module XA
             whens = o.fetch('whens', {})
             section = expr['expr']['left']['section']
             o.merge('whens' => whens.merge(section => whens.fetch(section, []) + [expr]))
-          when :require
-            id = stm[:id].to_s
-            name = stm.fetch(:name, id).to_s
-            indexes = stm.fetch(:indexes, []).map { |col| col[:column].to_s }
-            requires = o.fetch('requires', [])
-            o.merge('requires' => requires + [{ 'id' => id, 'name' => name, 'indexes' => indexes }])
           else
             o.merge('steps' => o.fetch('steps', []) + [@step_fns[t].call(stm).merge('name' => t.to_s)])
           end

@@ -1,0 +1,40 @@
+[
+  {
+    "args" : ["REQUIRE package:id:1.2.34;"],
+    "expects" : {
+      "steps" : [
+        {
+          "name" : "require",
+          "reference" : {
+            "package" : "package", "id" : "id", "version" : "1.2.34", "name" : "id"
+          },
+          "indexes" : []
+        }
+      ]
+    }
+  },
+  {
+    "args" : ["REQUIRE package:id:1.2.34 AS tableX;"],
+    "expects" : {
+      "steps" : [
+        {
+          "name" : "require",
+          "reference" : { "package" : "package", "id" : "id", "version" : "1.2.34", "name" : "tableX" },
+          "indexes" : []
+        }
+      ]
+    }
+  },
+  {
+    "args" : ["REQUIRE package:id:1.2.34 INDEX [a, b, c] AS table0;"],
+    "expects" : {
+      "steps" : [
+        {
+          "name" : "require",
+          "reference" : { "package" : "package", "id" : "id", "version" : "1.2.34", "name" : "table0" },
+          "indexes" : ["a", "b", "c"]
+        }
+      ]
+    }
+  }
+]

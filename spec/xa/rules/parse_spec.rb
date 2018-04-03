@@ -1,25 +1,34 @@
+require 'multi_json'
 require 'radish/expects'
-
 require 'xa/rules/parse'
 
 describe XA::Rules::Parse do
   include XA::Rules::Parse
   include Radish::Expects
 
-  it 'should parse the syntax' do
-    files = [
-      'spec/files/when.json',
-      'spec/files/require.json',
-      'spec/files/assemble.json',
-      'spec/files/keep.json',
-      'spec/files/map.json',
-      'spec/files/revise.json',
-      'spec/files/whitespace.json'
-#      'spec/files/mixed.json',
-    ]
+  [
+    'assemble',
+    'filter',
+    'keep',
+    'map',
+    'reduce',
+    'require',
+    'revise',
+    'when',
+    'whitespace',
+  ].each do |n|
+    it "should parse syntax for #{n.upcase}" do
+      load_expects(["spec/files/keywords/#{n}.json"], method(:parse)) do |ex, ac|
+        expect(ac).to eql(ex)
+      end
+    end
+  end
 
-    load_expects(files, method(:parse)) do |ex, ac|
-      expect(ac).to eql(ex)
+  Dir.glob('spec/files/rules/*.rule').each do |ffn|
+    (dn, fn) = File.split(ffn)
+    it "should parse: #{fn}" do
+      ex = MultiJson.decode(File.read(File.join(dn, "#{File.basename(ffn, '.rule')}.json")))
+      expect(parse(IO.read(ffn))).to eql(ex)
     end
   end
 end

@@ -1,0 +1,23 @@
+[
+  {
+    "args": ["REDUCE tables:foo USING a = @b WHEN @c == @a;"],
+    "expects": {
+      "steps" : [
+        {
+          "name" : "reduce",
+          "table" : { "type" : "reference", "section" : "tables", "key" : "foo" },
+          "assignments" : [
+            { "column" : "a", "type" : "reference", "section" : "_context", "key" : "b" }
+          ],
+          "filters" : [
+            {
+              "left" : { "type" : "reference", "section" : "_context", "key" : "c" },
+              "right" : { "type" : "reference", "section" : "_context", "key" : "a" },
+              "op": "eq"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]
