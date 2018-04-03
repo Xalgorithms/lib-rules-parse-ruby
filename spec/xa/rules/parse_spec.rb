@@ -28,7 +28,11 @@ describe XA::Rules::Parse do
     (dn, fn) = File.split(ffn)
     it "should parse: #{fn}" do
       ex = MultiJson.decode(File.read(File.join(dn, "#{File.basename(ffn, '.rule')}.json")))
-      expect(parse(IO.read(ffn))).to eql(ex)
+      ac = parse(IO.read(ffn))
+      expect(ac['whens']).to eql(ex['whens'])
+      ac['steps'].each_with_index do |ac_step, i|
+        expect(ac_step).to eql(ex['steps'][i])
+      end
     end
   end
 end

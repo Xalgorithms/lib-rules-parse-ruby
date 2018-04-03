@@ -259,13 +259,13 @@ module XA
         end
       end
       
-      def build_assignment(stm)
+      def build_map(stm)
         assigns = stm[:assignments]
         assigns = [assigns] if assigns.class == Hash
         {
           'table' => build_reference_operand(stm[:table]),
           'assignments' => assigns.inject([]) do |a, assign|
-            a + [build_assignment_expr(assign[:expr]).merge({ 'column' => assign[:name].to_s })]
+            a + [{ 'source' => build_assignment_expr(assign[:expr]), 'target' => assign[:name].to_s }]
           end
         }
       end
@@ -278,7 +278,7 @@ module XA
         {
           'table' => build_reference_operand(stm[:table]),
           'assignments' => assigns.inject([]) do |a, assign|
-            a + [build_assignment_expr(assign[:expr]).merge({ 'column' => assign[:name].to_s })]
+            a + [{ "source" => build_assignment_expr(assign[:expr]), 'target' => assign[:name].to_s }]
           end,
           'filters' => whens.map do |when_stm|
             build_expr(when_stm[:expr])
@@ -334,7 +334,7 @@ module XA
           assemble: method(:build_assemble),
           filter: method(:build_filter),
           keep: method(:build_keep),
-          map: method(:build_assignment),
+          map: method(:build_map),
           reduce: method(:build_reduce),
           require: method(:build_require),
           revise: method(:build_revise),

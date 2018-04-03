@@ -182,32 +182,45 @@
     }
   },
   {
-    "args": ["ASSEMBLE table0 COLUMNS (c0, c1, c2) FROM tables:table1 WHEN @a == @b WHEN @c < 1;"],
+    "args": ["ASSEMBLE table0 COLUMNS (c0, c1, c2) FROM tables:table0 WHEN @a == @b COLUMN x AS y FROM tables:table1 WHEN x == 1;"],
     "expects" : {
       "steps" : [
         {
-          "name" : "assemble", "table_name" : "table0", "columns" : [
+          "table_name": "table0",
+          "columns": [
             {
-              "table" : { "type" : "reference", "section" : "tables", "key" : "table1" },
-              "sources" : [
+              "table": {"section": "tables", "key": "table0", "type": "reference"},
+              "sources": [
                 {
-                  "columns" : ["c0", "c1", "c2"],
-                  "whens" : [
+                  "columns": ["c0", "c1", "c2"],
+                  "whens": [
                     {
-                      "left" : { "type" : "reference", "section" : "_context", "key" : "a" },
-                      "right" : { "type" : "reference", "section" : "_context", "key" : "b" },
+                      "left": {"section": "_context", "key": "a", "type": "reference"},
+                      "right": {"section": "_context", "key": "b", "type": "reference"},
                       "op": "eq"
-                    },
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "table": {"section": "tables", "key": "table1", "type": "reference"},
+              "sources": [
+                {
+                  "name": "y",
+                  "source": "x",
+                  "whens": [
                     {
-                      "left" : { "type" : "reference", "section" : "_context", "key" : "c" },
-                      "right" : { "type" : "number", "value" : "1" },
-                      "op": "lt"
-                    }                    
+                      "left": {"section": "_local", "key": "x", "type": "reference"},
+                      "right": {"type": "number", "value": "1"},
+                      "op": "eq"
+                    }
                   ]
                 }
               ]
             }
-          ]
+          ],
+          "name": "assemble"
         }
       ]
     }

@@ -112,13 +112,15 @@
       },
       "assignments" : [
         {
-          "type" : "function",
-          "name" : "subtract",
-          "args" : [
-            {"section" : "_context", "key" : "distance", "type" : "reference"},
-            {"section" : "_context", "key" : "seller_distance", "type" : "reference"}
-          ],
-          "column" : "difference"
+          "source" : {
+            "type" : "function",
+            "name" : "subtract",
+            "args" : [
+              {"section" : "_context", "key" : "distance", "type" : "reference"},
+              {"section" : "_context", "key" : "seller_distance", "type" : "reference"}
+            ]
+          },
+          "target" : "difference"
         }
       ],
       "name" : "map"
@@ -138,13 +140,15 @@
       "table": {"section": "table", "key": "sellers_reductions", "type": "reference"},
       "assignments": [
         {
-          "type": "function",
-          "name": "min",
-          "args": [
-            {"section": "_local", "key": "min_difference", "type": "reference"},
-            {"section": "_context", "key": "difference", "type": "reference"}
-          ],
-          "column": "min_difference"
+          "source" : {
+            "type": "function",
+            "name": "min",
+            "args": [
+              {"section": "_local", "key": "min_difference", "type": "reference"},
+              {"section": "_context", "key": "difference", "type": "reference"}
+            ]
+          },
+          "target": "min_difference"
         }
       ],
       "filters": [
@@ -189,17 +193,25 @@
     {
       "table": {"section": "table", "key": "item_reductions", "type": "reference"},
       "assignments": [
-        { "section": "_local", "key": "false", "type": "reference", "column": "allowance.charge"},
         {
-          "type": "function",
-          "name": "multiply",
-          "args": [
-            {"section": "_context", "key": "price.value", "type": "reference"},
-            {"section": "_context", "key": "reduction", "type": "reference"}
-          ],
-          "column": "allowance.amount.value"
+          "source" : { "section": "_local", "key": "false", "type": "reference" },
+          "target": "allowance.charge"
         },
-        {"section": "_context", "key": "price.currency_code", "type": "reference", "column": "allowance.amount.currency_code"}
+        {
+          "source" : {
+            "type": "function",
+            "name": "multiply",
+            "args": [
+              {"section": "_context", "key": "price.value", "type": "reference"},
+              {"section": "_context", "key": "reduction", "type": "reference"}
+            ]
+          },
+          "target": "allowance.amount.value"
+        },
+        {
+          "source" : { "section": "_context", "key": "price.currency_code", "type": "reference" },
+          "target": "allowance.amount.currency_code"
+        }
       ],
       "name": "map"
     },

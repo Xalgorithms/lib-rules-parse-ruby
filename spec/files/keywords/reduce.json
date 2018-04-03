@@ -7,7 +7,7 @@
           "name" : "reduce",
           "table" : { "type" : "reference", "section" : "tables", "key" : "foo" },
           "assignments" : [
-            { "column" : "a", "type" : "reference", "section" : "_context", "key" : "b" }
+            { "target" : "a", "source" : { "type" : "reference", "section" : "_context", "key" : "b" } }
           ],
           "filters" : [
             {
