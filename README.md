@@ -67,7 +67,7 @@ $ bundle exec ruby cli.rb <path to .rule> <path to output .rule.json>
 For example:
 
 ```
-$ test-runs/map/map.rule test-runs/map/map.rule.json
+$ bundle exec ruby cli.rb test-runs/map/map.rule test-runs/map/map.rule.json
 ```
 
 This compiles a test rule from the [interpreter
