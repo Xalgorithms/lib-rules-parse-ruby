@@ -52,7 +52,7 @@ $ bundle exec rspec
 
 Both of these commands should complete successfully **if the build
 status badge above is indicating that the latest build is
-successful**. If yur encounter an error, please log an issue in this
+successful**. If you encounter an error, please log an issue in this
 project (include the output of the failure).
 
 ### Compiling Rules to JSON
