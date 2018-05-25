@@ -222,13 +222,6 @@
           "op": "add",
           "source": {
             "column": "allowance",
-            "whens": [
-              {
-                "left": {"section": "_local", "key": "id.value", "type": "reference"},
-                "right": {"section": "_context", "key": "id.value", "type": "reference"},
-                "op": "eq"
-              }
-            ],
             "table": {"section": "table", "key": "item_reductions", "type": "reference"}
           }
         }
