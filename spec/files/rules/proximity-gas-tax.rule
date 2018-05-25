@@ -82,4 +82,4 @@ MAP table:item_reductions
 # This issues a revision of the original items table, adding the
 # allowance column.
 REVISE table:items
-  ADD allowance FROM table:item_reductions WHEN id.value == @id.value;
+  ADD allowance FROM table:item_reductions;

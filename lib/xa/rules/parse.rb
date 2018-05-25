@@ -109,7 +109,7 @@ module XA
         rule(:map_statement)      { kw_map >> space >> assign_statement }
 
         rule(:revision_op)        { kw_add | kw_update | kw_delete }
-        rule(:revision_statement) { revision_op.as(:op) >> space >> key_name.as(:key) >> (space >> kw_from >> space >> table_reference.as(:table)).maybe >> space >> when_statements.as(:whens) }
+        rule(:revision_statement) { revision_op.as(:op) >> space >> key_name.as(:key) >> (space >> kw_from >> space >> table_reference.as(:table)).maybe }
         rule(:revision_statements) { revision_statement >> (space >> revision_statement).repeat }
         rule(:revise_statement)   { kw_revise >> space >> table_reference.as(:table) >> space >> revision_statements.as(:revisions) }
 
@@ -321,16 +321,10 @@ module XA
         {
           'table'   => build_reference_operand(stm[:table]),
           'revisions' => revisions.map do |rev|
-            whens = rev.fetch(:whens, [])
-            whens = [whens] if whens.class == Hash
-            
             {
               'op'     => rev[:op].to_s.downcase,
               'source' => {
-                'column' => rev[:key].to_s,
-                'whens'  => whens.map do |when_stm|
-                  build_expr(when_stm[:expr])
-                end,
+                'column' => rev[:key].to_s
               }.tap do |o|
                 o['table'] = build_reference_operand(rev[:table]) if rev.key?(:table)
               end,

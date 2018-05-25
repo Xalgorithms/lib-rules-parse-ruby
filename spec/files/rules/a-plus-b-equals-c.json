@@ -1,0 +1,60 @@
+{
+  "whens" : {
+    "envelope": [
+      {
+        "expr": {
+          "left": {"section": "envelope", "key": "type", "type": "reference"},
+          "right": {"type": "string", "value": "invoice"}, "op": "eq"}
+      }
+    ],
+    "item": [
+      {
+        "expr": {
+          "left": {"section": "item", "key": "quantity.value", "type": "reference"},
+          "right": {"type": "number", "value": "0"}, "op": "gt"}
+      }
+    ]
+  },
+  "steps" : [
+    {"reference": {"package": "ca.on.tax", "id": "flatfee_b", "version": "0.1.0", "name": "flatfee_b"}, "indexes": [], "name": "require"},
+    {
+      "table_name": "changes",
+      "columns": [
+        {"table": {"section": "table", "key": "items", "type": "reference"}, "sources": [{"columns": []}]},
+        {"table": {"section": "table", "key": "flatfee_b", "type": "reference"}, "sources": [{"columns": []}]}
+      ],
+      "name": "assemble"
+    },
+    {
+      "table": {"section": "table", "key": "changes", "type": "reference"},
+      "filters": [
+        {
+          "left": {"section": "_context", "key": "id.value", "type": "reference"},
+          "right": {"section": "_context", "key": "code", "type": "reference"},
+          "op": "eq"
+        }
+      ],
+      "name": "filter"
+    },
+    {
+      "table": {"section": "table", "key": "changes", "type": "reference"},
+      "assignments": [
+        {"source": {"type": "function", "name": "add", "args": [{"section": "_context", "key": "price.value", "type": "reference"}, {"section": "_context", "key": "b", "type": "reference"}]}, "target": "new_price"}
+      ],
+      "name": "map"
+    },
+    {
+      "table": {"section": "table", "key": "items", "type": "reference"},
+      "revisions": [
+        {
+          "op": "update",
+          "source": {
+            "column": "price.value",
+            "table": {"section": "table", "key": "changes", "type": "reference"}
+          }
+        }
+      ],
+      "name": "revise"
+    }
+  ]
+}
