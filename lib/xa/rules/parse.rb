@@ -22,6 +22,7 @@
 # License along with this program. If not, see
 # <http://www.gnu.org/licenses/>.
 require 'parslet'
+require 'parslet/convenience'
 
 module XA
   module Rules
@@ -59,6 +60,11 @@ module XA
         rule(:kw_add)             { match('[aA]') >> match('[dD]') >> match('[dD]') }
         rule(:kw_update)          { match('[uU]') >> match('[pP]') >> match('[dD]') >> match('[aA]') >> match('[tT]') >> match('[eE]') }
         rule(:kw_delete)          { match('[dD]') >> match('[eE]') >> match('[lL]') >> match('[eE]') >> match('[tT]') >> match('[eE]') }
+        rule(:kw_in)              { match('[iI]') >> match('[nN]') }
+        rule(:kw_to)              { match('[tT]') >> match('[oO]') }
+        rule(:kw_timezone)        { match('[tT]') >> match('[iI]') >> match('[mM]') >> match('[eE]') >> match('[zZ]') >> match('[oO]') >> match('[nN]') >> match('[eE]') }
+        rule(:kw_for)              { match('[fF]') >> match('[oO]') >> match('[rR]') }
+        rule(:kw_effective)        { match('[eE]') >> match('[fF]') >> match('[fF]') >> match('[eE]') >> match('[cC]') >> match('[tT]') >> match('[iI]') >> match('[vV]') >> match('[eE]') }
 
         rule(:op_gte)             { str('>=') }
         rule(:op_lte)             { str('<=') }
@@ -114,8 +120,19 @@ module XA
         rule(:revise_statement)   { kw_revise >> space >> table_reference.as(:table) >> space >> revision_statements.as(:revisions) }
 
         rule(:filter_statement)   { kw_filter >> space >> table_reference.as(:table) >> space >> when_statements.as(:whens) }
+
+        rule(:effective_key)       { match('[a-zA-Z0-9]') >> (match('\w') | match('-') | match(':') | match('/')).repeat }
+        rule(:effective_key_list)  { effective_key.as(:key) >> (comma >> space.maybe >> effective_key.as(:key)).repeat }
+        rule(:effective_in)        { kw_in >> space >> effective_key_list.as(:in) }
+        rule(:effective_from)      { kw_from >> space >> effective_key.as(:from) }
+        rule(:effective_to)        { kw_to >> space >> effective_key.as(:to) }
+        rule(:effective_timezone)  { kw_timezone >> space >> effective_key.as(:timezone) }
+        rule(:effective_for)       { kw_for >> space >> effective_key_list.as(:for) }
+        rule(:effective_expr)      { effective_in | effective_from | effective_to | effective_timezone | effective_for }
+        rule(:effective_expr_list) { effective_expr >> (space >> effective_expr).repeat }
+        rule(:effective_statement) { kw_effective >> space >> effective_expr_list.as(:exprs) }
         
-        rule(:statement)          { (when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | keep_statement.as(:keep) | map_statement.as(:map) | revise_statement.as(:revise) | filter_statement.as(:filter) | reduce_statement.as(:reduce)) >> semi }
+        rule(:statement)          { (when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | keep_statement.as(:keep) | map_statement.as(:map) | revise_statement.as(:revise) | filter_statement.as(:filter) | reduce_statement.as(:reduce) | effective_statement.as(:effective)) >> semi }
         rule(:statements)         { statement >> (space.maybe >> statement).repeat >> space.maybe }
         
         root(:statements)
@@ -345,6 +362,26 @@ module XA
           end,
         }
       end
+
+      def build_effective(stm)
+        stm.fetch(:exprs, []).inject({}) do |o, expr|
+          k = expr.keys.first
+          v = nil
+          case k
+          when :in
+            v = { 'jurisdictions' => expr[k].class == Hash ? [expr[k][:key].to_s] : expr[k].map { |o| o[:key].to_s } }
+          when :for
+            v = { 'keys' => expr[k].class == Hash ? [expr[k][:key].to_s] : expr[k].map { |o| o[:key].to_s } }
+          when :from
+            v = { 'starts' => expr[k].to_s }
+          when :to
+            v = { 'ends' => expr[k].to_s }
+          when :timezone
+            v = { 'timezone' => expr[k].to_s }
+          end
+          v ? o.merge(v) : o
+        end
+      end
       
       def parse(content)
         @step_fns ||= {
@@ -359,10 +396,10 @@ module XA
 
         content = content.split(/\n/).map { |ln| ln.gsub(/\#.*/, '') }.join('')
 
-        tree = content.empty? ? [] : ActionParser.new.parse(content)
+        tree = content.empty? ? [] : ActionParser.new.parse_with_debug(content)
         tree = [tree] if tree.class == Hash
 
-        tree.inject({}) do |o, stms|
+        (tree || []).inject({}) do |o, stms|
           t = stms.keys.first
           stm = stms[t]
 
@@ -372,6 +409,10 @@ module XA
             whens = o.fetch('whens', {})
             section = expr['expr']['left']['section']
             o.merge('whens' => whens.merge(section => whens.fetch(section, []) + [expr]))
+          when :effective
+            expr = build_effective(stm)
+            effectives = o.fetch('effective', [])
+            o.merge('effective' => effectives << expr)
           else
             o.merge('steps' => o.fetch('steps', []) + [@step_fns[t].call(stm).merge('name' => t.to_s)])
           end

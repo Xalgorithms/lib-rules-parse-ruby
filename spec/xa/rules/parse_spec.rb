@@ -39,6 +39,7 @@ describe XA::Rules::Parse do
     'revise',
     'when',
     'whitespace',
+    'effective',
   ].each do |n|
     it "should parse syntax for #{n.upcase}" do
       load_expects(["spec/files/keywords/#{n}.json"], method(:parse)) do |ex, ac|

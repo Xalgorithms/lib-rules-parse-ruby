@@ -1,0 +1,37 @@
+[
+  {
+    "args" : ["EFFECTIVE IN CA-ON, CA-NS,CA-NB FROM 2018-04-01T00:00 TO 9999-12-30T23:59 TIMEZONE America/Halifax FOR a, b,c;"],
+    "expects" : {
+      "effective" : [
+        {
+          "timezone" : "America/Halifax",
+          "starts" : "2018-04-01T00:00",
+          "ends" : "9999-12-30T23:59",
+          "jurisdictions": ["CA-ON", "CA-NS", "CA-NB"],
+          "keys" : ["a", "b", "c"]
+        }
+      ]
+    }
+  },
+  {
+    "args" : ["EFFECTIVE IN CA-NB FROM 2018-04-01T00:00 TO 9999-12-30T23:59 TIMEZONE America/Montreal FOR a;EFFECTIVE IN CA-NS FROM 2017-04-01T00:00 TO 9999-12-30T23:59 TIMEZONE America/Halifax FOR b;"],
+    "expects" : {
+      "effective" : [
+        {
+          "timezone" : "America/Montreal",
+          "starts" : "2018-04-01T00:00",
+          "ends" : "9999-12-30T23:59",
+          "jurisdictions": ["CA-NB"],
+          "keys" : ["a"]
+        },
+        {
+          "timezone" : "America/Halifax",
+          "starts" : "2017-04-01T00:00",
+          "ends" : "9999-12-30T23:59",
+          "jurisdictions": ["CA-NS"],
+          "keys" : ["b"]
+        }
+      ]
+    }
+  }
+]
