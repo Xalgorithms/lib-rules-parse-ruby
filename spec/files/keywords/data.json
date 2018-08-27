@@ -1,0 +1,37 @@
+[
+  {
+    "args": "DATA foo.json 1234;",
+    "expects" : {
+      "steps" : [
+        {
+          "name" : "data",
+          "location" : "foo.json",
+          "checksum" : "1234"
+        }
+      ]
+    }
+  },
+  {
+    "args": "DATA foo.json;",
+    "expects" : {
+      "steps" : [
+        {
+          "name" : "data",
+          "location" : "foo.json"
+        }
+      ]
+    }
+  },
+  {
+    "args": "DATA http://bar.com/foo.json 1234;",
+    "expects" : {
+      "steps" : [
+        {
+          "name" : "data",
+          "location" : "http://bar.com/foo.json",
+          "checksum" : "1234"
+        }
+      ]
+    }
+  }
+]

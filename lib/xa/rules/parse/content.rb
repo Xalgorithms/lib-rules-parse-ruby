@@ -291,6 +291,14 @@ module XA
             o.merge({ k.to_s => expr[k].to_s.gsub('"', '')})
           end
         end
+
+        def build_data(stm)
+          {
+            'location' => stm[:location].to_s,
+          }.tap do |o|
+            o['checksum'] = stm[:checksum].to_s if stm.key?(:checksum)
+          end
+        end
         
         def parse(klass, content)
           @step_fns ||= {
@@ -301,6 +309,7 @@ module XA
             reduce: method(:build_reduce),
             require: method(:build_require),
             revise: method(:build_revise),
+            data: method(:build_data),
           }
 
           content = content.split(/\n/).map { |ln| ln.gsub(/\#.*/, '') }.join('')

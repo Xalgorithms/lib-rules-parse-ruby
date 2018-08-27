@@ -31,9 +31,9 @@ module XA
       class TableParser < BasicParser
         rule(:kw_data)             { match('[dD]') >> match('[aA]') >> match('[tT]') >> match('[aA]') }
         
-        rule(:data_statement)      { kw_data }
+        rule(:data_statement)      { kw_data >> space >> meta_key.as(:location) >> (space >> meta_key.as(:checksum)).maybe }
         
-        rule(:extension_statement) { data_statement }
+        rule(:extension_statement) { data_statement.as(:data) }
       end
     end
   end

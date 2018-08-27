@@ -46,6 +46,7 @@ describe XA::Rules::Parse do
     table: [
       'effective',
       'meta',
+      'data',
     ],
   }.each do |t, vals|
     vals.each do |n|
