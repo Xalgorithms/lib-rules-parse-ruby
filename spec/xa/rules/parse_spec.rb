@@ -23,28 +23,32 @@
 # <http://www.gnu.org/licenses/>.
 require 'multi_json'
 require 'radish/expects'
-require 'xa/rules/parse'
+require 'xa/rules/parse/content'
 
 describe XA::Rules::Parse do
-  include XA::Rules::Parse
+  include XA::Rules::Parse::Content
   include Radish::Expects
 
-  [
-    'assemble',
-    'filter',
-    'keep',
-    'map',
-    'reduce',
-    'require',
-    'revise',
-    'when',
-    'whitespace',
-    'effective',
-    'meta',
-  ].each do |n|
-    it "should parse syntax for #{n.upcase}" do
-      load_expects(["spec/files/keywords/#{n}.json"], method(:parse)) do |ex, ac|
-        expect(ac).to eql(ex)
+  {
+    rule: [
+      'assemble',
+      'filter',
+      'keep',
+      'map',
+      'reduce',
+      'require',
+      'revise',
+      'when',
+      'whitespace',
+      'effective',
+      'meta',
+    ]
+  }.each do |t, vals|
+    vals.each do |n|
+      it "should parse syntax (#{t}/#{n})" do
+        load_expects(["spec/files/keywords/#{n}.json"], method("parse_#{t}")) do |ex, ac|
+          expect(ac).to eql(ex)
+        end
       end
     end
   end
@@ -53,7 +57,7 @@ describe XA::Rules::Parse do
     (dn, fn) = File.split(ffn)
     it "should parse: #{fn}" do
       ex = MultiJson.decode(File.read(File.join(dn, "#{File.basename(ffn, '.rule')}.json")))
-      ac = parse(IO.read(ffn))
+      ac = parse_rule(IO.read(ffn))
       expect(ac['whens']).to eql(ex['whens'])
       ac['steps'].each_with_index do |ac_step, i|
         expect(ac_step).to eql(ex['steps'][i])
