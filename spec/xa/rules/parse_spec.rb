@@ -42,7 +42,11 @@ describe XA::Rules::Parse do
       'whitespace',
       'effective',
       'meta',
-    ]
+    ],
+    table: [
+      'effective',
+      'meta',
+    ],
   }.each do |t, vals|
     vals.each do |n|
       it "should parse syntax (#{t}/#{n})" do

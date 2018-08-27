@@ -30,25 +30,10 @@ module XA
   module Rules
     module Parse
       class RuleParser < BasicParser
-        rule(:nl)                 { str('\n') }
-        rule(:space)              { match('\s').repeat(1) }
-        rule(:quote)              { str("'") }
-        rule(:comma)              { str(',') }
-        rule(:colon)              { str(':') }
-        rule(:dot)                { str('.') }
-        rule(:eq)                 { str('=') }
-        rule(:at)                 { str('@') }
-        rule(:lparen)             { str('(') }
-        rule(:rparen)             { str(')') }
-        rule(:lsquare)            { str('[') }
-        rule(:rsquare)            { str(']') }
-        rule(:dollar)             { str('$') }
-
         rule(:kw_when)            { match('[wW]') >> match('[hH]') >> match('[eE]') >> match('[nN]') }
         rule(:kw_assemble)        { match('[aA]') >> match('[sS]') >> match('[sS]') >> match('[eE]') >> match('[mM]') >> match('[bB]') >> match('[lL]') >> match('[eE]') }
         rule(:kw_column)          { match('[cC]') >> match('[oO]') >> match('[lL]') >> match('[uU]') >> match('[mM]') >> match('[nN]') }
         rule(:kw_columns)         { match('[cC]') >> match('[oO]') >> match('[lL]') >> match('[uU]') >> match('[mM]') >> match('[nN]') >> match('[sS]') }
-        rule(:kw_from)            { match('[fF]') >> match('[rR]') >> match('[oO]') >> match('[mM]') }
         rule(:kw_map)             { match('[mM]') >> match('[aA]') >> match('[pP]') }
         rule(:kw_using)           { match('[uU]') >> match('[sS]') >> match('[iI]') >> match('[nN]') >> match('[gG]') }
         rule(:kw_require)         { match('[rR]') >> match('[eE]') >> match('[qQ]') >> match('[uU]') >> match('[iI]') >> match('[rR]') >> match('[eE]') }

@@ -27,9 +27,23 @@ module XA
   module Rules
     module Parse
       class BasicParser < Parslet::Parser
+        rule(:nl)                 { str('\n') }
+        rule(:space)              { match('\s').repeat(1) }
+        rule(:quote)              { str("'") }
+        rule(:comma)              { str(',') }
+        rule(:colon)              { str(':') }
+        rule(:dot)                { str('.') }
+        rule(:eq)                 { str('=') }
+        rule(:at)                 { str('@') }
+        rule(:lparen)             { str('(') }
+        rule(:rparen)             { str(')') }
+        rule(:lsquare)            { str('[') }
+        rule(:rsquare)            { str(']') }
+        rule(:dollar)             { str('$') }
         rule(:semi)               { str(';') }
         rule(:space)              { match('\s').repeat(1) }
 
+        rule(:kw_from)            { match('[fF]') >> match('[rR]') >> match('[oO]') >> match('[mM]') }
         rule(:kw_in)              { match('[iI]') >> match('[nN]') }
         rule(:kw_to)              { match('[tT]') >> match('[oO]') }
         rule(:kw_timezone)        { match('[tT]') >> match('[iI]') >> match('[mM]') >> match('[eE]') >> match('[zZ]') >> match('[oO]') >> match('[nN]') >> match('[eE]') }

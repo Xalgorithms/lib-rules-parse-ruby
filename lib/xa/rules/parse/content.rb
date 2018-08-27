@@ -23,6 +23,7 @@
 # <http://www.gnu.org/licenses/>.
 
 require_relative './rule_parser'
+require_relative './table_parser'
 
 module XA
   module Rules
@@ -33,6 +34,7 @@ module XA
         end
 
         def parse_table(content)
+          parse(XA::Rules::Parse::TableParser, content)
         end
 
         private
