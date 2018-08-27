@@ -309,7 +309,6 @@ module XA
             reduce: method(:build_reduce),
             require: method(:build_require),
             revise: method(:build_revise),
-            data: method(:build_data),
           }
 
           content = content.split(/\n/).map { |ln| ln.gsub(/\#.*/, '') }.join('')
@@ -335,6 +334,10 @@ module XA
               expr = build_meta(stm)
               meta = o.fetch('meta', {})
               o.merge('meta' => meta.merge(expr))
+            when :data
+              expr = build_data(stm)
+              data = o.fetch('data', [])
+              o.merge('data' => data + [expr])
             else
               o.merge('steps' => o.fetch('steps', []) + [@step_fns[t].call(stm).merge('name' => t.to_s)])
             end
