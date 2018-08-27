@@ -1,0 +1,66 @@
+[
+  {
+    "args": "META VERSION \"1.2.3\";",
+    "expects" : {
+      "meta" : {
+        "version" : "1.2.3"
+      }
+    }
+  },
+  {
+    "args": "META RUNTIME \"1.2.3\";",
+    "expects" : {
+      "meta" : {
+        "runtime" : "1.2.3"
+      }
+    }
+  },
+  {
+    "args": "META MANAGER \"Bob Smith <bob@smith.com>\";",
+    "expects" : {
+      "meta" : {
+        "manager": "Bob Smith <bob@smith.com>"
+      }
+    }
+  },
+  {
+    "args": "META MAINTAINER \"Bob Smith <bob@smith.com>\";",
+    "expects" : {
+      "meta" : {
+        "maintainer": "Bob Smith <bob@smith.com>"
+      }
+    }
+  },
+  {
+    "args": "META CRITICALITY \"high\";",
+    "expects" : {
+      "meta" : {
+        "criticality": "high"
+      }
+    }
+  },
+  {
+    "args": "META CRITICALITY \"high\"; META VERSION \"1.2.3\"; META RUNTIME \"1.2.3\"; META MANAGER \"Bob Smith <bob@smith.com>\"; META MAINTAINER \"Bob Smith <bob@smith.com>\";",
+    "expects" : {
+      "meta" : {
+        "version" : "1.2.3",
+        "criticality": "high",
+        "runtime" : "1.2.3",
+        "manager": "Bob Smith <bob@smith.com>",
+        "maintainer": "Bob Smith <bob@smith.com>"
+      }
+    }
+  },
+  {
+    "args": "META CRITICALITY \"high\" VERSION \"1.2.3\" RUNTIME \"1.2.3\" MANAGER \"Bob Smith <bob@smith.com>\" MAINTAINER \"Bob Smith <bob@smith.com>\";",
+    "expects" : {
+      "meta" : {
+        "version" : "1.2.3",
+        "criticality": "high",
+        "runtime" : "1.2.3",
+        "manager": "Bob Smith <bob@smith.com>",
+        "maintainer": "Bob Smith <bob@smith.com>"
+      }
+    }
+  }
+]

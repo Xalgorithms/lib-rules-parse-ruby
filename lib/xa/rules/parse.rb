@@ -63,9 +63,15 @@ module XA
         rule(:kw_in)              { match('[iI]') >> match('[nN]') }
         rule(:kw_to)              { match('[tT]') >> match('[oO]') }
         rule(:kw_timezone)        { match('[tT]') >> match('[iI]') >> match('[mM]') >> match('[eE]') >> match('[zZ]') >> match('[oO]') >> match('[nN]') >> match('[eE]') }
-        rule(:kw_for)              { match('[fF]') >> match('[oO]') >> match('[rR]') }
-        rule(:kw_effective)        { match('[eE]') >> match('[fF]') >> match('[fF]') >> match('[eE]') >> match('[cC]') >> match('[tT]') >> match('[iI]') >> match('[vV]') >> match('[eE]') }
-
+        rule(:kw_for)             { match('[fF]') >> match('[oO]') >> match('[rR]') }
+        rule(:kw_effective)       { match('[eE]') >> match('[fF]') >> match('[fF]') >> match('[eE]') >> match('[cC]') >> match('[tT]') >> match('[iI]') >> match('[vV]') >> match('[eE]') }
+        rule(:kw_meta)            { match('[mM]') >> match('[eE]') >> match('[tT]') >> match('[aA]') }
+        rule(:kw_criticality)     { match('[cC]') >> match('[rR]') >> match('[iI]') >> match('[tT]') >> match('[iI]') >> match('[cC]') >> match('[aA]') >> match('[lL]') >> match('[iI]') >> match('[tT]') >> match('[yY]') }
+        rule(:kw_version)         { match('[vV]') >> match('[eE]') >> match('[rR]') >> match('[sS]') >> match('[iI]') >> match('[oO]') >> match('[nN]') }
+        rule(:kw_runtime)         { match('[rR]') >> match('[uU]') >> match('[nN]') >> match('[tT]') >> match('[iI]') >> match('[mM]') >> match('[eE]') }
+        rule(:kw_manager)         { match('[mM]') >> match('[aA]') >> match('[nN]') >> match('[aA]') >> match('[gG]') >> match('[eE]') >> match('[rR]') }
+        rule(:kw_maintainer)      { match('[mM]') >> match('[aA]') >> match('[iI]') >> match('[nN]') >> match('[tT]') >> match('[aA]') >> match('[iI]') >> match('[nN]') >> match('[eE]') >> match('[rR]') }
+        
         rule(:op_gte)             { str('>=') }
         rule(:op_lte)             { str('<=') }
         rule(:op_eq)              { str('==') }
@@ -121,8 +127,9 @@ module XA
 
         rule(:filter_statement)   { kw_filter >> space >> table_reference.as(:table) >> space >> when_statements.as(:whens) }
 
-        rule(:effective_key)       { match('[a-zA-Z0-9]') >> (match('\w') | match('-') | match(':') | match('/')).repeat }
+        rule(:effective_key)       { (match('\w') | str('-') | str(':') | str('/') | str('.')).repeat }
         rule(:effective_key_list)  { effective_key.as(:key) >> (comma >> space.maybe >> effective_key.as(:key)).repeat }
+        
         rule(:effective_in)        { kw_in >> space >> effective_key_list.as(:in) }
         rule(:effective_from)      { kw_from >> space >> effective_key.as(:from) }
         rule(:effective_to)        { kw_to >> space >> effective_key.as(:to) }
@@ -131,8 +138,19 @@ module XA
         rule(:effective_expr)      { effective_in | effective_from | effective_to | effective_timezone | effective_for }
         rule(:effective_expr_list) { effective_expr >> (space >> effective_expr).repeat }
         rule(:effective_statement) { kw_effective >> space >> effective_expr_list.as(:exprs) }
+
+        rule(:meta_key)            { (match('\w') | str('-') | str(':') | str('/') | str('.') | str('@') | str('<') | str('>') | str('.')).repeat }
         
-        rule(:statement)          { (when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | keep_statement.as(:keep) | map_statement.as(:map) | revise_statement.as(:revise) | filter_statement.as(:filter) | reduce_statement.as(:reduce) | effective_statement.as(:effective)) >> semi }
+        rule(:meta_criticality)    { kw_criticality >> space >> str('"') >> meta_key.as(:criticality) >> str('"') }
+        rule(:meta_version)        { kw_version >> space >> str('"') >> meta_key.as(:version) >> str('"') }
+        rule(:meta_runtime)        { kw_runtime >> space >> str('"') >> meta_key.as(:runtime) >> str('"') }
+        rule(:meta_manager)        { kw_manager >> space >> str('"') >> (meta_key >> (space >> meta_key).repeat).as(:manager) >> str('"') }
+        rule(:meta_maintainer)     { kw_maintainer >> space >> str('"') >> (meta_key >> (space >> meta_key).repeat).as(:maintainer) >> str('"') }
+        rule(:meta_expr)           { meta_criticality | meta_version | meta_runtime | meta_manager | meta_maintainer }
+        rule(:meta_expr_list)      { meta_expr >> (space >> meta_expr).repeat }
+        rule(:meta_statement)      { kw_meta >> space >> meta_expr_list.as(:exprs) }
+        
+        rule(:statement)          { (when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | keep_statement.as(:keep) | map_statement.as(:map) | revise_statement.as(:revise) | filter_statement.as(:filter) | reduce_statement.as(:reduce) | effective_statement.as(:effective) | meta_statement.as(:meta)) >> semi }
         rule(:statements)         { statement >> (space.maybe >> statement).repeat >> space.maybe }
         
         root(:statements)
@@ -382,6 +400,14 @@ module XA
           v ? o.merge(v) : o
         end
       end
+
+      def build_meta(stm)
+        exprs = stm.fetch(:exprs, [])
+        (exprs.class == Hash ? [exprs] : exprs).inject({}) do |o, expr|
+          k = expr.keys.first
+          o.merge({ k.to_s => expr[k].to_s.gsub('"', '')})
+        end
+      end
       
       def parse(content)
         @step_fns ||= {
@@ -413,6 +439,10 @@ module XA
             expr = build_effective(stm)
             effectives = o.fetch('effective', [])
             o.merge('effective' => effectives << expr)
+          when :meta
+            expr = build_meta(stm)
+            meta = o.fetch('meta', {})
+            o.merge('meta' => meta.merge(expr))
           else
             o.merge('steps' => o.fetch('steps', []) + [@step_fns[t].call(stm).merge('name' => t.to_s)])
           end
