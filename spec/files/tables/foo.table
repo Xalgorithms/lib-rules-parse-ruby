@@ -1,0 +1,4 @@
+META VERSION "1.0.0" RUNTIME "2.0";
+EFFECTIVE IN CA-NB FROM 2018-04-01T00:00 TO 9999-12-30T23:59 TIMEZONE America/Montreal FOR a;
+DATA http://foo.com/foo.json;
+DATA bar.json 4444;

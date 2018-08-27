@@ -1,0 +1,24 @@
+{
+  "meta" : {
+    "version" : "1.0.0",
+    "runtime" : "2.0"
+  },
+  "effective" : [
+    {
+      "timezone" : "America/Montreal",
+      "starts" : "2018-04-01T00:00",
+      "ends" : "9999-12-30T23:59",
+      "jurisdictions": ["CA-NB"],
+      "keys" : ["a"]
+    }
+  ],
+  "data" : [
+    {
+      "location" : "http://foo.com/foo.json"
+    },
+    {
+      "location" : "bar.json",
+      "checksum" : "4444"
+    }
+  ]
+}

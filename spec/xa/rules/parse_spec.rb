@@ -69,4 +69,15 @@ describe XA::Rules::Parse do
       end
     end
   end
+
+  Dir.glob('spec/files/tables/*.table').each do |ffn|
+    (dn, fn) = File.split(ffn)
+    it "should parse: #{fn}" do
+      ex = MultiJson.decode(File.read(File.join(dn, "#{File.basename(ffn, '.table')}.json")))
+      ac = parse_table(IO.read(ffn))
+      expect(ac['data']).to eql(ex['data'])
+      expect(ac['meta']).to eql(ex['meta'])
+      expect(ac['effective']).to eql(ex['effective'])
+    end
+  end
 end
