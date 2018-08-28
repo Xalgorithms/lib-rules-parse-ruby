@@ -1,7 +1,7 @@
 # coding: utf-8
 Gem::Specification.new do |s|  
   s.name        = 'xa-rules'
-  s.version     = '0.3.0'
+  s.version     = '0.4.0'
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Don Kelly"]
   s.email       = ["karfai@gmail.com"]
