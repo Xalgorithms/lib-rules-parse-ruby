@@ -1,4 +1,4 @@
-WHEN envelope:type == 'invoice';
+WHEN envelope:type == "invoice";
 WHEN item:quantity.value > 0;
 
 REQUIRE ca.on.tax:flatfee_b:0.1.0 AS flatfee_b;

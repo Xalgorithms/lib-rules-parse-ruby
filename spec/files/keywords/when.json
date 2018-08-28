@@ -1,6 +1,6 @@
 [
   {
-    "args" : ["WHEN envelope:type == 'invoice'; WHEN item:a < 1; WHEN item:b == 2;"],
+    "args" : ["WHEN envelope:type == \"invoice\"; WHEN item:a < 1; WHEN item:b == 2;"],
     "expects" : {
       "whens" : {
         "envelope" : [
@@ -14,7 +14,7 @@
     }
   },
   {
-    "args" : ["When envelope:type == 'invoice';"],
+    "args" : ["When envelope:type == \"invoice\";"],
     "expects" : {
       "whens" : {
         "envelope" : [
@@ -54,7 +54,7 @@
     }
   },
   {
-    "args" : ["WHEN omega:x.y.z > '2';"],
+    "args" : ["WHEN omega:x.y.z > \"2\";"],
     "expects" : {
       "whens" : {
         "omega" : [
@@ -64,7 +64,7 @@
     }
   },
   {
-    "args" : ["WHEN omega:x.y.z > 2; WHEN alpha:a == 'foo'; WHEN omega:a == 'bar';"],
+    "args" : ["WHEN omega:x.y.z > 2; WHEN alpha:a == \"foo\"; WHEN omega:a == \"bar\";"],
     "expects" : {
       "whens" : {
         "omega" : [

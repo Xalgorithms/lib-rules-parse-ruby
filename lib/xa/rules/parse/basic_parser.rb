@@ -29,7 +29,7 @@ module XA
       class BasicParser < Parslet::Parser
         rule(:nl)                 { str('\n') }
         rule(:space)              { match('\s').repeat(1) }
-        rule(:quote)              { str("'") }
+        rule(:quote)              { str('"') }
         rule(:comma)              { str(',') }
         rule(:colon)              { str(':') }
         rule(:dot)                { str('.') }

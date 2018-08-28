@@ -45,7 +45,7 @@
   },
   // multiple assignments
   {
-    "args" : ["MAP tables:items USING a = @x.y.z USING b=@p.q USING c = 2 USING d='s';"],
+    "args" : ["MAP tables:items USING a = @x.y.z USING b=@p.q USING c = 2 USING d=\"s\";"],
     "expects" : {
       "steps" : [
         {

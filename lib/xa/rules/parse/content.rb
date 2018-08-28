@@ -41,7 +41,7 @@ module XA
         
         def maybe_convert_value(v)
           cv = [
-            [/^'(\w+)'$/, :to_s],
+            [/^"(\w+)"$/, :to_s],
             [/^([0-9]+)$/, :to_s],
           ].map do |re|
             m = re[0].match(v)
