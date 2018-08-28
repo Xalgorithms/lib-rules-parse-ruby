@@ -55,28 +55,27 @@ module XA
         rule(:kw_runtime)         { match('[rR]') >> match('[uU]') >> match('[nN]') >> match('[tT]') >> match('[iI]') >> match('[mM]') >> match('[eE]') }
         rule(:kw_manager)         { match('[mM]') >> match('[aA]') >> match('[nN]') >> match('[aA]') >> match('[gG]') >> match('[eE]') >> match('[rR]') }
         rule(:kw_maintainer)      { match('[mM]') >> match('[aA]') >> match('[iI]') >> match('[nN]') >> match('[tT]') >> match('[aA]') >> match('[iI]') >> match('[nN]') >> match('[eE]') >> match('[rR]') }
-
-        rule(:effective_key)       { (match('\w') | str('-') | str(':') | str('/') | str('.')).repeat }
-        rule(:effective_key_list)  { effective_key.as(:key) >> (comma >> space.maybe >> effective_key.as(:key)).repeat }
         rule(:kw_doi)              { match('[dD]') >> match('[oO]') >> match('[iI]') }
         
-        rule(:effective_in)        { kw_in >> space >> effective_key_list.as(:in) }
-        rule(:effective_from)      { kw_from >> space >> effective_key.as(:from) }
-        rule(:effective_to)        { kw_to >> space >> effective_key.as(:to) }
-        rule(:effective_timezone)  { kw_timezone >> space >> effective_key.as(:timezone) }
-        rule(:effective_for)       { kw_for >> space >> effective_key_list.as(:for) }
+        rule(:key_value)            { (match('\w') | str('-') | str(':') | str('/') | str('.') | str('@') | str('<') | str('>') | str('.')).repeat }
+        
+        rule(:key_value_list)      { str('"') >> key_value.as(:key) >> str('"') >> (comma >> space.maybe >> str('"') >> key_value.as(:key) >> str('"')).repeat }
+        
+        rule(:effective_in)        { kw_in >> space >> key_value_list.as(:in) }
+        rule(:effective_from)      { kw_from >> space >> str('"') >> key_value.as(:from)  >> str('"')}
+        rule(:effective_to)        { kw_to >> space >> str('"') >> key_value.as(:to) >> str('"') }
+        rule(:effective_timezone)  { kw_timezone >> space >> str('"') >> key_value.as(:timezone) >> str('"') }
+        rule(:effective_for)       { kw_for >> space >> key_value_list.as(:for) }
         rule(:effective_expr)      { effective_in | effective_from | effective_to | effective_timezone | effective_for }
         rule(:effective_expr_list) { effective_expr >> (space >> effective_expr).repeat }
         rule(:effective_statement) { kw_effective >> space >> effective_expr_list.as(:exprs) }
 
-        rule(:meta_key)            { (match('\w') | str('-') | str(':') | str('/') | str('.') | str('@') | str('<') | str('>') | str('.')).repeat }
-        
-        rule(:meta_criticality)    { kw_criticality >> space >> str('"') >> meta_key.as(:criticality) >> str('"') }
-        rule(:meta_version)        { kw_version >> space >> str('"') >> meta_key.as(:version) >> str('"') }
-        rule(:meta_runtime)        { kw_runtime >> space >> str('"') >> meta_key.as(:runtime) >> str('"') }
-        rule(:meta_manager)        { kw_manager >> space >> str('"') >> (meta_key >> (space >> meta_key).repeat).as(:manager) >> str('"') }
-        rule(:meta_maintainer)     { kw_maintainer >> space >> str('"') >> (meta_key >> (space >> meta_key).repeat).as(:maintainer) >> str('"') }
-        rule(:meta_doi)            { kw_doi >> space >> str('"') >> meta_key.as(:doi) >> str('"') }
+        rule(:meta_criticality)    { kw_criticality >> space >> str('"') >> key_value.as(:criticality) >> str('"') }
+        rule(:meta_version)        { kw_version >> space >> str('"') >> key_value.as(:version) >> str('"') }
+        rule(:meta_runtime)        { kw_runtime >> space >> str('"') >> key_value.as(:runtime) >> str('"') }
+        rule(:meta_manager)        { kw_manager >> space >> str('"') >> (key_value >> (space >> key_value).repeat).as(:manager) >> str('"') }
+        rule(:meta_maintainer)     { kw_maintainer >> space >> str('"') >> (key_value >> (space >> key_value).repeat).as(:maintainer) >> str('"') }
+        rule(:meta_doi)            { kw_doi >> space >> str('"') >> key_value.as(:doi) >> str('"') }
         rule(:meta_expr)           { meta_criticality | meta_version | meta_runtime | meta_manager | meta_maintainer | meta_doi }
         rule(:meta_expr_list)      { meta_expr >> (space >> meta_expr).repeat }
         rule(:meta_statement)      { kw_meta >> space >> meta_expr_list.as(:exprs) }
