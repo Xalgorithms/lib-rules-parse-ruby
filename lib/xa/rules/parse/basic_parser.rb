@@ -58,6 +58,7 @@ module XA
 
         rule(:effective_key)       { (match('\w') | str('-') | str(':') | str('/') | str('.')).repeat }
         rule(:effective_key_list)  { effective_key.as(:key) >> (comma >> space.maybe >> effective_key.as(:key)).repeat }
+        rule(:kw_doi)              { match('[dD]') >> match('[oO]') >> match('[iI]') }
         
         rule(:effective_in)        { kw_in >> space >> effective_key_list.as(:in) }
         rule(:effective_from)      { kw_from >> space >> effective_key.as(:from) }
@@ -75,7 +76,8 @@ module XA
         rule(:meta_runtime)        { kw_runtime >> space >> str('"') >> meta_key.as(:runtime) >> str('"') }
         rule(:meta_manager)        { kw_manager >> space >> str('"') >> (meta_key >> (space >> meta_key).repeat).as(:manager) >> str('"') }
         rule(:meta_maintainer)     { kw_maintainer >> space >> str('"') >> (meta_key >> (space >> meta_key).repeat).as(:maintainer) >> str('"') }
-        rule(:meta_expr)           { meta_criticality | meta_version | meta_runtime | meta_manager | meta_maintainer }
+        rule(:meta_doi)            { kw_doi >> space >> str('"') >> meta_key.as(:doi) >> str('"') }
+        rule(:meta_expr)           { meta_criticality | meta_version | meta_runtime | meta_manager | meta_maintainer | meta_doi }
         rule(:meta_expr_list)      { meta_expr >> (space >> meta_expr).repeat }
         rule(:meta_statement)      { kw_meta >> space >> meta_expr_list.as(:exprs) }
 

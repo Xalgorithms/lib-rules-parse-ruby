@@ -40,6 +40,14 @@
     }
   },
   {
+    "args": "META DOI \"1234\";",
+    "expects" : {
+      "meta" : {
+        "doi": "1234"
+      }
+    }
+  },
+  {
     "args": "META CRITICALITY \"high\"; META VERSION \"1.2.3\"; META RUNTIME \"1.2.3\"; META MANAGER \"Bob Smith <bob@smith.com>\"; META MAINTAINER \"Bob Smith <bob@smith.com>\";",
     "expects" : {
       "meta" : {
