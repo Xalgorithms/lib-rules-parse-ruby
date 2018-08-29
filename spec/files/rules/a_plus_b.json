@@ -1,4 +1,20 @@
 {
+  "meta" : {
+    "version" : "0.0.1",
+    "runtime" : "0.4.0",
+    "criticality" : "experimental",
+    "manager" : "Joseph Potvin <jpotvin@xalgorithms.org>",
+    "maintainer" : "Don Kelly <karfai@gmail.com>"
+    
+  },
+  "effective" : [
+    {
+      "timezone" : "America/Toronto",
+      "starts" : "2018-04-01T00:00",
+      "ends" : "9999-12-30T23:59",
+      "jurisdictions": ["CA-ON", "CA-QC"]
+    }
+  ],
   "whens" : {
     "envelope": [
       {
@@ -12,16 +28,21 @@
         "expr": {
           "left": {"section": "item", "key": "quantity.value", "type": "reference"},
           "right": {"type": "number", "value": "0"}, "op": "gt"}
+      },
+      {
+        "expr": {
+          "left": {"section": "item", "key": "id.value", "type": "reference"},
+          "right": {"type": "string", "value": "a"}, "op": "eq"}
       }
     ]
   },
   "steps" : [
-    {"reference": {"package": "ca.on.tax", "id": "flatfee_b", "version": "0.1.0", "name": "flatfee_b"}, "indexes": [], "name": "require"},
+    {"reference": {"package": "org.xalgorithms.examples.a_plus_b", "id": "all_bs", "version": "0.0.1", "name": "all_bs"}, "indexes": [], "name": "require"},
     {
       "table_name": "changes",
       "columns": [
         {"table": {"section": "table", "key": "items", "type": "reference"}, "sources": [{"columns": []}]},
-        {"table": {"section": "table", "key": "flatfee_b", "type": "reference"}, "sources": [{"columns": []}]}
+        {"table": {"section": "table", "key": "all_bs", "type": "reference"}, "sources": [{"columns": []}]}
       ],
       "name": "assemble"
     },
