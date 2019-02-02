@@ -299,6 +299,13 @@ module XA
             o['checksum'] = stm[:checksum].to_s if stm.key?(:checksum)
           end
         end
+
+        def build_refine(stm)
+          {
+            'table' => build_reference_operand(stm[:table]),
+            'refined_name' => stm[:refined_name].to_s,
+          }
+        end
         
         def parse(klass, content)
           @step_fns ||= {
@@ -309,6 +316,7 @@ module XA
             reduce: method(:build_reduce),
             require: method(:build_require),
             revise: method(:build_revise),
+            refine: method(:build_refine),
           }
 
           content = content.split(/\n/).map { |ln| ln.gsub(/\#.*/, '') }.join('')

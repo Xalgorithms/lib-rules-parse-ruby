@@ -42,6 +42,7 @@ describe XA::Rules::Parse do
       'whitespace',
       'effective',
       'meta',
+      'refine',
     ],
     table: [
       'effective',

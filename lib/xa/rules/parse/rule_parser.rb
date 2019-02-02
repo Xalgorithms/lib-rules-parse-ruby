@@ -46,6 +46,7 @@ module XA
         rule(:kw_add)             { match('[aA]') >> match('[dD]') >> match('[dD]') }
         rule(:kw_update)          { match('[uU]') >> match('[pP]') >> match('[dD]') >> match('[aA]') >> match('[tT]') >> match('[eE]') }
         rule(:kw_delete)          { match('[dD]') >> match('[eE]') >> match('[lL]') >> match('[eE]') >> match('[tT]') >> match('[eE]') }
+        rule(:kw_refine)          { match('[rR]') >> match('[eE]') >> match('[fF]') >> match('[iI]') >> match('[nN]') >> match('[eE]') }
         
         rule(:op_gte)             { str('>=') }
         rule(:op_lte)             { str('<=') }
@@ -102,7 +103,9 @@ module XA
 
         rule(:filter_statement)   { kw_filter >> space >> table_reference.as(:table) >> space >> when_statements.as(:whens) }
 
-        rule(:extension_statement) { when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | keep_statement.as(:keep) | map_statement.as(:map) | revise_statement.as(:revise) | filter_statement.as(:filter) | reduce_statement.as(:reduce) }
+        rule(:refine_statement)   { kw_refine >> space >> table_reference.as(:table) >> space >> kw_as >> space >> name.as(:refined_name) }
+
+        rule(:extension_statement) { when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | keep_statement.as(:keep) | map_statement.as(:map) | revise_statement.as(:revise) | filter_statement.as(:filter) | reduce_statement.as(:reduce) | refine_statement.as(:refine) }
       end
     end
   end

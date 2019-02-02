@@ -1,0 +1,14 @@
+[
+  {
+    "args": ["REFINE tables:x AS y;"],
+    "expects": {
+      "steps" : [
+        {
+          "name" : "refine",
+          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "refined_name" : "y"
+        }
+      ]
+    }
+  }
+]
