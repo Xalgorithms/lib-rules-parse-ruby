@@ -307,13 +307,16 @@ module XA
           }.tap do |o|
             o['refinements'] = stm[:refinements].collect do |r|
               k = r.keys.first
+              v = r[k]
               { 'name' => k.to_s }.tap do |ro|
                 case k
                 when :map
                   ro['assignment'] = {
-                    'target' => r[k][:name].to_s,
-                    'source' => build_assignment_expr(r[k][:expr]),
+                    'target' => v[:name].to_s,
+                    'source' => build_assignment_expr(v[:expr]),
                   }
+                when :filter
+                  ro['condition'] = build_expr(v[:expr])
                 end
               end
             end if stm.key?(:refinements)
