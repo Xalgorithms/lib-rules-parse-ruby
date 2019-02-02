@@ -186,15 +186,20 @@ module XA
           { 'table_name' => stm[:table_name].to_s }
         end
 
+        def build_function(fn_stm)
+          {
+            "name" => fn_stm[:name].to_s,
+            "args" => fn_stm[:args].map(&method(:build_assignment_expr)),
+          }
+        end
+
         def build_assignment_expr(expr)
           at = expr.keys.first
           case at
           when :function
             {
               "type" => "function",
-              "name" => expr[at][:name].to_s,
-              "args" => expr[at][:args].map(&method(:build_assignment_expr)),
-            }
+            }.merge(build_function(expr[at]))
           else
             build_assignment_operand(expr)
           end
@@ -315,8 +320,17 @@ module XA
                     'target' => v[:name].to_s,
                     'source' => build_assignment_expr(v[:expr]),
                   }
-                when :filter, :take
+                when :filter
                   ro['condition'] = build_expr(v[:expr])
+                when :take
+                  tk = v.keys.first
+                  tv = v[tk]
+                  case tk
+                  when :expr
+                    ro['condition'] = build_expr(tv)
+                  when :function
+                    ro['function'] = build_function(tv)
+                  end
                 end
               end
             end if stm.key?(:refinements) && stm[:refinements].any?

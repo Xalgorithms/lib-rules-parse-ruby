@@ -106,7 +106,7 @@ module XA
 
         rule(:map_refinement)     { kw_map >> space >> key_name.as(:name) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
         rule(:filter_refinement)  { kw_filter >> space >> expr.as(:expr) }
-        rule(:take_refinement)    { kw_take >> space >> expr.as(:expr) }
+        rule(:take_refinement)    { kw_take >> space >> (expr.as(:expr) | function_reference.as(:function))}
         rule(:refinement)         { map_refinement.as(:map) | filter_refinement.as(:filter) | take_refinement.as(:take) }
         rule(:refine_statement)   { kw_refine >> space >> table_reference.as(:table) >> space >> kw_as >> space >> name.as(:refined_name) >> (space >> refinement).repeat(0).as(:refinements) }
 
