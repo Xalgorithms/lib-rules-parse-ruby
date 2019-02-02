@@ -47,7 +47,7 @@ module XA
         rule(:kw_update)          { match('[uU]') >> match('[pP]') >> match('[dD]') >> match('[aA]') >> match('[tT]') >> match('[eE]') }
         rule(:kw_delete)          { match('[dD]') >> match('[eE]') >> match('[lL]') >> match('[eE]') >> match('[tT]') >> match('[eE]') }
         rule(:kw_refine)          { match('[rR]') >> match('[eE]') >> match('[fF]') >> match('[iI]') >> match('[nN]') >> match('[eE]') }
-        rule(:kw_collect)         { match('[cC]') >> match('[oO]') >> match('[lL]') >> match('[lL]') >> match('[eE]') >> match('[cC]') >> match('[tT]') }
+        rule(:kw_take)            { match('[tT]') >> match('[aA]') >> match('[kK]') >> match('[eE]') }
         
         rule(:op_gte)             { str('>=') }
         rule(:op_lte)             { str('<=') }
@@ -106,8 +106,8 @@ module XA
 
         rule(:map_refinement)     { kw_map >> space >> key_name.as(:name) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
         rule(:filter_refinement)  { kw_filter >> space >> expr.as(:expr) }
-        rule(:collect_refinement) { kw_collect >> space >> expr.as(:expr) }
-        rule(:refinement)         { map_refinement.as(:map) | filter_refinement.as(:filter) | collect_refinement.as(:collect) }
+        rule(:take_refinement)    { kw_take >> space >> expr.as(:expr) }
+        rule(:refinement)         { map_refinement.as(:map) | filter_refinement.as(:filter) | take_refinement.as(:take) }
         rule(:refine_statement)   { kw_refine >> space >> table_reference.as(:table) >> space >> kw_as >> space >> name.as(:refined_name) >> (space >> refinement).repeat(0).as(:refinements) }
 
         rule(:extension_statement) { when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | keep_statement.as(:keep) | map_statement.as(:map) | revise_statement.as(:revise) | filter_statement.as(:filter) | reduce_statement.as(:reduce) | refine_statement.as(:refine) }

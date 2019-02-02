@@ -315,7 +315,7 @@ module XA
                     'target' => v[:name].to_s,
                     'source' => build_assignment_expr(v[:expr]),
                   }
-                when :filter, :collect
+                when :filter, :take
                   ro['condition'] = build_expr(v[:expr])
                 end
               end

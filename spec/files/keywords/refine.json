@@ -105,7 +105,7 @@
     }
   },
   {
-    "args": ["REFINE tables:x AS y COLLECT a < 3;"],
+    "args": ["REFINE tables:x AS y TAKE a < 3;"],
     "expects": {
       "steps" : [
         {
@@ -114,7 +114,7 @@
           "refined_name" : "y",
           "refinements" : [
             {
-              "name" : "collect",
+              "name" : "take",
               "condition" : {
                 "left"  : { "type" : "reference", "section" : "_local", "key" : "a" },
                 "right" : { "type" : "number", "value" : "3" },
@@ -127,7 +127,7 @@
     }
   },
   {
-    "args": ["REFINE tables:x AS y COLLECT a == b;"],
+    "args": ["REFINE tables:x AS y TAKE a == b;"],
     "expects": {
       "steps" : [
         {
@@ -136,7 +136,7 @@
           "refined_name" : "y",
           "refinements" : [
             {
-              "name" : "collect",
+              "name" : "take",
               "condition" : {
                 "left"  : { "type" : "reference", "section" : "_local", "key" : "a" },
                 "right" : { "type" : "reference", "section" : "_local", "key" : "b" },
@@ -149,7 +149,7 @@
     }
   },
   {
-    "args": ["REFINE tables:x AS y MAP a = b COLLECT a == b FILTER a == b;"],
+    "args": ["REFINE tables:x AS y MAP a = b TAKE a == b FILTER a == b;"],
     "expects": {
       "steps" : [
         {
@@ -165,7 +165,7 @@
               }
             },
             {
-              "name" : "collect",
+              "name" : "take",
               "condition" : {
                 "left"  : { "type" : "reference", "section" : "_local", "key" : "a" },
                 "right" : { "type" : "reference", "section" : "_local", "key" : "b" },
