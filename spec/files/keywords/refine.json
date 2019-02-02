@@ -147,5 +147,42 @@
         }
       ]
     }
+  },
+  {
+    "args": ["REFINE tables:x AS y MAP a = b COLLECT a == b FILTER a == b;"],
+    "expects": {
+      "steps" : [
+        {
+          "name" : "refine",
+          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "refined_name" : "y",
+          "refinements" : [
+            {
+              "name" : "map",
+              "assignment" : {
+                "target" : "a",
+                "source" : { "type" : "reference", "section" : "_local", "key" : "b" }
+              }
+            },
+            {
+              "name" : "collect",
+              "condition" : {
+                "left"  : { "type" : "reference", "section" : "_local", "key" : "a" },
+                "right" : { "type" : "reference", "section" : "_local", "key" : "b" },
+                "op"    : "eq"
+              }
+            },
+            {
+              "name" : "filter",
+              "condition" : {
+                "left"  : { "type" : "reference", "section" : "_local", "key" : "a" },
+                "right" : { "type" : "reference", "section" : "_local", "key" : "b" },
+                "op"    : "eq"
+              }
+            }
+          ]
+        }
+      ]
+    }
   }
 ]

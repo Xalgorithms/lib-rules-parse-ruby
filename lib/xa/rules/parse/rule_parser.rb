@@ -107,8 +107,8 @@ module XA
         rule(:map_refinement)     { kw_map >> space >> key_name.as(:name) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
         rule(:filter_refinement)  { kw_filter >> space >> expr.as(:expr) }
         rule(:collect_refinement) { kw_collect >> space >> expr.as(:expr) }
-        rule(:refinements)        { map_refinement.as(:map) | filter_refinement.as(:filter) | collect_refinement.as(:collect) }
-        rule(:refine_statement)   { kw_refine >> space >> table_reference.as(:table) >> space >> kw_as >> space >> name.as(:refined_name) >> (space >> refinements.repeat(0).as(:refinements)).maybe }
+        rule(:refinement)         { map_refinement.as(:map) | filter_refinement.as(:filter) | collect_refinement.as(:collect) }
+        rule(:refine_statement)   { kw_refine >> space >> table_reference.as(:table) >> space >> kw_as >> space >> name.as(:refined_name) >> (space >> refinement).repeat(0).as(:refinements) }
 
         rule(:extension_statement) { when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | keep_statement.as(:keep) | map_statement.as(:map) | revise_statement.as(:revise) | filter_statement.as(:filter) | reduce_statement.as(:reduce) | refine_statement.as(:refine) }
       end

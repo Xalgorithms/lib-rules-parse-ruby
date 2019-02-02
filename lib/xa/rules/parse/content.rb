@@ -319,7 +319,7 @@ module XA
                   ro['condition'] = build_expr(v[:expr])
                 end
               end
-            end if stm.key?(:refinements)
+            end if stm.key?(:refinements) && stm[:refinements].any?
           end
         end
         
