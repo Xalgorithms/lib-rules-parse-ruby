@@ -304,7 +304,20 @@ module XA
           {
             'table' => build_reference_operand(stm[:table]),
             'refined_name' => stm[:refined_name].to_s,
-          }
+          }.tap do |o|
+            o['refinements'] = stm[:refinements].collect do |r|
+              k = r.keys.first
+              { 'name' => k.to_s }.tap do |ro|
+                case k
+                when :map
+                  ro['assignment'] = {
+                    'target' => r[k][:name].to_s,
+                    'source' => build_assignment_expr(r[k][:expr]),
+                  }
+                end
+              end
+            end if stm.key?(:refinements)
+          end
         end
         
         def parse(klass, content)

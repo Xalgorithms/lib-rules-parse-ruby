@@ -10,5 +10,54 @@
         }
       ]
     }
+  },
+  {
+    "args": ["REFINE tables:x AS y MAP a = b;"],
+    "expects": {
+      "steps" : [
+        {
+          "name" : "refine",
+          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "refined_name" : "y",
+          "refinements" : [
+            {
+              "name" : "map",
+              "assignment" : {
+                "target" : "a",
+                "source" : { "type" : "reference", "section" : "_local", "key" : "b" }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "args": ["REFINE tables:x AS y MAP a = concat(b, c);"],
+    "expects": {
+      "steps" : [
+        {
+          "name" : "refine",
+          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "refined_name" : "y",
+          "refinements" : [
+            {
+              "name" : "map",
+              "assignment" : {
+                "target" : "a",
+                "source" : {
+                  "type" : "function",
+                  "name" : "concat",
+                  "args" : [
+                    { "type" : "reference", "section" : "_local", "key" : "b" },
+                    { "type" : "reference", "section" : "_local", "key" : "c" }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
   }
 ]
