@@ -69,7 +69,7 @@
       "indexes":[]
     },
     {
-      "table_name" : "sellers_reductions",
+      "table_name" : "sellers_distances",
       "columns" : [
         {
           "table" : {
@@ -94,7 +94,7 @@
               "whens" : [
                 {
                   "left" : {"section" : "envelope", "key" : "parties.suppler.id.value", "type" : "reference"},
-                  "right" : {"section" : "_context", "key" : "supplier_id", "type" : "reference"},
+                  "right" : {"section" : "_local", "key" : "supplier_id", "type" : "reference"},
                   "op" : "eq"
                 }
               ]
@@ -105,58 +105,69 @@
       "name" : "assemble"
     },
     {
-      "table" : {
-        "section" : "table",
-        "key" : "sellers_reductions",
-        "type" : "reference"
-      },
-      "assignments" : [
+      "name" : "refine",
+      "table" : { "type" : "reference", "section" : "table", "key" : "sellers_distances" },
+      "refined_name" : "sellers_reductions",
+      "refinements" : [
         {
-          "source" : {
-            "type" : "function",
-            "name" : "subtract",
-            "args" : [
-              {"section" : "_context", "key" : "distance", "type" : "reference"},
-              {"section" : "_context", "key" : "seller_distance", "type" : "reference"}
-            ]
-          },
-          "target" : "difference"
+          "name" : "map",
+          "assignment" : {
+            "target" : "difference",
+            "source" : {
+              "type" : "function",
+              "name" : "subtract",
+              "args" : [
+                { "type" : "reference", "section" : "_local", "key" : "distance" },
+                { "type" : "reference", "section" : "_local", "key" : "seller_distance" }
+              ]
+            }
+          }
         }
-      ],
-      "name" : "map"
+      ]
     },
     {
-      "table" : {"section" : "table", "key" : "sellers_reductions", "type" : "reference"},
-      "filters" : [
+      "name" : "refine",
+      "table" : { "type" : "reference", "section" : "table", "key" : "sellers_reductions" },
+      "refined_name" : "applicable_sellers_reductions",
+      "refinements" : [
         {
-          "left" : {"section" : "_context", "key" : "difference", "type" : "reference"},
-          "right" : {"type" : "number", "value" : "0"},
-          "op" : "gte"
+          "name" : "filter",
+          "condition" : {
+            "left"  : { "type" : "reference", "section" : "_local", "key" : "difference" },
+            "right" : { "type" : "number", "value" : "0" },
+            "op"    : "gte"
+          }
+        },
+        {
+          "name" : "map",
+          "assignment" : {
+            "target" : "min_difference",
+            "source" : {
+              "type" : "function",
+              "name" : "min",
+              "args" : [
+                { "type" : "reference", "section" : "_local", "key" : "min_difference" },
+                { "type" : "reference", "section" : "_local", "key" : "difference" }
+              ]
+            }
+          }
         }
-      ],
-      "name" : "filter"
+      ]
     },
     {
-      "table": {"section": "table", "key": "sellers_reductions", "type": "reference"},
-      "assignments": [
+      "name" : "refine",
+      "table" : { "type" : "reference", "section" : "table", "key" : "applicable_sellers_reductions" },
+      "refined_name" : "final_sellers_reductions",
+      "refinements" : [
         {
-          "source" : {
-            "type": "function",
-            "name": "min",
-            "args": [
-              {"section": "_local", "key": "min_difference", "type": "reference"},
-              {"section": "_context", "key": "difference", "type": "reference"}
-            ]
-          },
-          "target": "min_difference"
+          "name" : "filter",
+          "condition" : {
+            "left"  : { "type" : "reference", "section" : "_local", "key" : "difference" },
+            "right" : { "type" : "reference", "section" : "_local", "key" : "min_difference" },
+            "op"    : "eq"
+          }
         }
-      ],
-      "filters": [
-        {
-          "left": {"section": "_local", "key": "difference", "type": "reference"},
-          "right": {"section": "_context", "key": "min_difference", "type": "reference"},
-          "op": "eq"}
-      ], "name": "reduce"
+      ]
     },
     {
       "table_name": "item_reductions",
@@ -168,12 +179,12 @@
               "columns": ["id", "classification", "price"],
               "whens": [
                 {
-                  "left": {"section": "_context", "key": "classification.list_name", "type": "reference"},
+                  "left": {"section": "_local", "key": "classification.list_name", "type": "reference"},
                   "right": {"type": "string", "value": "UNSPSC"},
                   "op": "eq"
                 },
                 {
-                  "left": {"section": "_context", "key": "classification.value", "type": "reference"},
+                  "left": {"section": "_local", "key": "classification.value", "type": "reference"},
                   "right": {"type": "string", "value": "506505"},
                   "op": "eq"
                 }
@@ -182,7 +193,7 @@
           ]
         },
         {
-          "table": {"section": "table", "key": "sellers_reductions", "type": "reference"},
+          "table": {"section": "table", "key": "final_sellers_reductions", "type": "reference"},
           "sources": [
             {"name": "reduction", "source": "reduction"}
           ]
@@ -191,29 +202,39 @@
       "name": "assemble"
     },
     {
-      "table": {"section": "table", "key": "item_reductions", "type": "reference"},
-      "assignments": [
+      "name" : "refine",
+      "table" : { "type" : "reference", "section" : "table", "key" : "item_reductions" },
+      "refined_name" : "applicable_reductions",
+      "refinements" : [
         {
-          "source" : { "section": "_local", "key": "false", "type": "reference" },
-          "target": "allowance.charge"
+          "name" : "map",
+          "assignment" : {
+            "target" : "allowance.charge",
+            "source" : { "type" : "string", "value" : "false" }
+          }
         },
         {
-          "source" : {
-            "type": "function",
-            "name": "multiply",
-            "args": [
-              {"section": "_context", "key": "price.value", "type": "reference"},
-              {"section": "_context", "key": "reduction", "type": "reference"}
-            ]
-          },
-          "target": "allowance.amount.value"
+          "name" : "map",
+          "assignment" : {
+            "target" : "allowance.amount.value",
+            "source" : {
+              "type" : "function",
+              "name" : "multiply",
+              "args" : [
+                { "type" : "reference", "section" : "_local", "key" : "price.value" },
+                { "type" : "reference", "section" : "_local", "key" : "reduction" }
+              ]
+            }
+          }
         },
         {
-          "source" : { "section": "_context", "key": "price.currency_code", "type": "reference" },
-          "target": "allowance.amount.currency_code"
+          "name" : "map",
+          "assignment" : {
+            "target" : "allowance.amount.currency_code",
+            "source" : { "type" : "reference", "section" : "_local", "key" : "price.currency_code" }
+          }
         }
-      ],
-      "name": "map"
+      ]
     },
     {
       "table": {"section": "table", "key": "items", "type": "reference"},
@@ -222,7 +243,7 @@
           "op": "add",
           "source": {
             "column": "allowance",
-            "table": {"section": "table", "key": "item_reductions", "type": "reference"}
+            "table": {"section": "table", "key": "applicable_reductions", "type": "reference"}
           }
         }
       ],

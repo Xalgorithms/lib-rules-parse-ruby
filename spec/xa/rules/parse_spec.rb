@@ -58,15 +58,14 @@ describe XA::Rules::Parse do
   Dir.glob('spec/files/rules/*.rule').each do |ffn|
     (dn, fn) = File.split(ffn)
     it "should parse: #{fn}" do
-      pending "test rules need to be rewritten to use REFINE"
-      # ex = MultiJson.decode(File.read(File.join(dn, "#{File.basename(ffn, '.rule')}.json")))
-      # ac = parse_rule(IO.read(ffn))
-      # expect(ac['whens']).to eql(ex['whens'])
-      # expect(ac['meta']).to eql(ex['meta']) if ex.key?('meta')
-      # expect(ac['effective']).to eql(ex['effective']) if ex.key?('effective')
-      # ac['steps'].each_with_index do |ac_step, i|
-      #   expect(ac_step).to eql(ex['steps'][i])
-      # end
+      ex = MultiJson.decode(File.read(File.join(dn, "#{File.basename(ffn, '.rule')}.json")))
+      ac = parse_rule(IO.read(ffn))
+      expect(ac['whens']).to eql(ex['whens'])
+      expect(ac['meta']).to eql(ex['meta']) if ex.key?('meta')
+      expect(ac['effective']).to eql(ex['effective']) if ex.key?('effective')
+      ac['steps'].each_with_index do |ac_step, i|
+        expect(ac_step).to eql(ex['steps'][i])
+      end
     end
   end
 

@@ -11,7 +11,7 @@ META
   MANAGER "Joseph Potvin <jpotvin@xalgorithms.org>"
   MAINTAINER "Don Kelly <karfai@gmail.com>";
 
-WHEN envelope:type == "invoice";
+WHEN document:type == "invoice";
 WHEN item:quantity.value > 0;
 WHEN item:id.value == "a";
 
@@ -21,11 +21,8 @@ ASSEMBLE changes
   COLUMNS FROM table:items
   COLUMNS FROM table:all_bs;
 
-FILTER table:changes
-  WHEN @id.value == @code;
-
-MAP table:changes
-  USING new_price = add(@price.value, @b);
+REFINE table:changes AS new_changes
+  MAP new_price = add(price.value, b);
 
 REVISE table:items
   UPDATE price.value

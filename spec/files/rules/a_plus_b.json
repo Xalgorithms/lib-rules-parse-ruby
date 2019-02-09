@@ -16,10 +16,10 @@
     }
   ],
   "whens" : {
-    "envelope": [
+    "document": [
       {
         "expr": {
-          "left": {"section": "envelope", "key": "type", "type": "reference"},
+          "left": {"section": "document", "key": "type", "type": "reference"},
           "right": {"type": "string", "value": "invoice"}, "op": "eq"}
       }
     ],
@@ -47,22 +47,25 @@
       "name": "assemble"
     },
     {
-      "table": {"section": "table", "key": "changes", "type": "reference"},
-      "filters": [
+      "name" : "refine",
+      "table" : { "type" : "reference", "section" : "table", "key" : "changes" },
+      "refined_name" : "new_changes",
+      "refinements" : [
         {
-          "left": {"section": "_context", "key": "id.value", "type": "reference"},
-          "right": {"section": "_context", "key": "code", "type": "reference"},
-          "op": "eq"
+          "name" : "map",
+          "assignment" : {
+            "target" : "new_price",
+            "source" : {
+              "type" : "function",
+              "name" : "add",
+              "args" : [
+                { "type" : "reference", "section" : "_local", "key" : "price.value" },
+                { "type" : "reference", "section" : "_local", "key" : "b" }
+              ]
+            }
+          }
         }
-      ],
-      "name": "filter"
-    },
-    {
-      "table": {"section": "table", "key": "changes", "type": "reference"},
-      "assignments": [
-        {"source": {"type": "function", "name": "add", "args": [{"section": "_context", "key": "price.value", "type": "reference"}, {"section": "_context", "key": "b", "type": "reference"}]}, "target": "new_price"}
-      ],
-      "name": "map"
+      ]
     },
     {
       "table": {"section": "table", "key": "items", "type": "reference"},
