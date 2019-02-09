@@ -33,7 +33,6 @@ describe XA::Rules::Parse do
     rule: [
       'assemble',
       'filter',
-      'keep',
       'map',
       'reduce',
       'require',
