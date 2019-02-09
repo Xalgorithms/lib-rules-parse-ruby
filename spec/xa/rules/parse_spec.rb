@@ -32,7 +32,6 @@ describe XA::Rules::Parse do
   {
     rule: [
       'assemble',
-      'filter',
       'reduce',
       'require',
       'revise',
