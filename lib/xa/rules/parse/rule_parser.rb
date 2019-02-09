@@ -41,7 +41,6 @@ module XA
         rule(:kw_index)           { match('[iI]') >> match('[nN]') >> match('[dD]') >> match('[eE]') >> match('[xX]') }
         rule(:kw_as)              { match('[aA]') >> match('[sS]') }
         rule(:kw_filter)          { match('[fF]') >> match('[iI]') >> match('[lL]') >> match('[tT]') >> match('[eE]') >> match('[rR]') }
-        rule(:kw_reduce)          { match('[rR]') >> match('[eE]') >> match('[dD]') >> match('[uU]') >> match('[cC]') >> match('[eE]') }
         rule(:kw_add)             { match('[aA]') >> match('[dD]') >> match('[dD]') }
         rule(:kw_update)          { match('[uU]') >> match('[pP]') >> match('[dD]') >> match('[aA]') >> match('[tT]') >> match('[eE]') }
         rule(:kw_delete)          { match('[dD]') >> match('[eE]') >> match('[lL]') >> match('[eE]') >> match('[tT]') >> match('[eE]') }
@@ -76,8 +75,6 @@ module XA
         rule(:when_statement)     { kw_when >> space >> expr.as(:expr) }
         rule(:when_statements)    { when_statement >> (space >> when_statement).repeat }
 
-        rule(:reduce_statement)   { kw_reduce >> space >> table_reference.as(:table) >> space >> assignments.as(:assignments) >> space >> when_statements.as(:whens) }
-        
         rule(:require_indexes)    { kw_index >> space >> lsquare >> name.as(:column) >> (comma >> space.maybe >> name.as(:column)).repeat >> rsquare }
         rule(:require_reference)  { key_name.as(:package) >> colon >> name.as(:id) >> colon >> version.as(:version) }
         rule(:require_statement)  { kw_require >> space >> require_reference.as(:reference) >> (space >> require_indexes.as(:indexes)).maybe >> (space >> kw_as >> space >> name.as(:name)).maybe }
@@ -103,7 +100,7 @@ module XA
         rule(:refinement)         { map_refinement.as(:map) | filter_refinement.as(:filter) | take_refinement.as(:take) }
         rule(:refine_statement)   { kw_refine >> space >> table_reference.as(:table) >> space >> kw_as >> space >> name.as(:refined_name) >> (space >> refinement).repeat(0).as(:refinements) }
 
-        rule(:extension_statement) { when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | revise_statement.as(:revise) | reduce_statement.as(:reduce) | refine_statement.as(:refine) }
+        rule(:extension_statement) { when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | revise_statement.as(:revise) | refine_statement.as(:refine) }
       end
     end
   end
