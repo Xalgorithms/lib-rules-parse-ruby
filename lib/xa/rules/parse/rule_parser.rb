@@ -91,8 +91,6 @@ module XA
         rule(:assign_expr)        { function_reference.as(:function) | reference | value.as(:value) }
         rule(:assignment)         { kw_using >> space >> key_name.as(:name) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
         rule(:assignments)        { assignment >> (space >> assignment).repeat }
-        rule(:assign_statement)   { table_reference.as(:table) >> space >> assignments.as(:assignments) }
-        rule(:map_statement)      { kw_map >> space >> assign_statement }
 
         rule(:revision_op)        { kw_add | kw_update | kw_delete }
         rule(:revision_statement) { revision_op.as(:op) >> space >> key_name.as(:key) >> (space >> kw_from >> space >> table_reference.as(:table)).maybe }
@@ -107,7 +105,7 @@ module XA
         rule(:refinement)         { map_refinement.as(:map) | filter_refinement.as(:filter) | take_refinement.as(:take) }
         rule(:refine_statement)   { kw_refine >> space >> table_reference.as(:table) >> space >> kw_as >> space >> name.as(:refined_name) >> (space >> refinement).repeat(0).as(:refinements) }
 
-        rule(:extension_statement) { when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | map_statement.as(:map) | revise_statement.as(:revise) | filter_statement.as(:filter) | reduce_statement.as(:reduce) | refine_statement.as(:refine) }
+        rule(:extension_statement) { when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | revise_statement.as(:revise) | filter_statement.as(:filter) | reduce_statement.as(:reduce) | refine_statement.as(:refine) }
       end
     end
   end
