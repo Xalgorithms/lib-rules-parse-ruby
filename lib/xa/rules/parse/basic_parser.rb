@@ -82,7 +82,7 @@ module XA
 
         rule(:basic_statement)     { effective_statement.as(:effective) | meta_statement.as(:meta) }
 
-        rule(:statement)           { (basic_statement | extension_statement) >> semi }
+        rule(:statement)           { (basic_statement | extension_statement) >> space.maybe >> semi }
         rule(:statements)          { statement >> (space.maybe >> statement).repeat >> space.maybe }
 
         root(:statements)
