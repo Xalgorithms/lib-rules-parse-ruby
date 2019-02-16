@@ -105,3 +105,82 @@ REFINE table:a AS sum_oranges
   TAKE last(1);
 ```
 
+# ARRANGE
+
+`REFINE` offers the ability to update the data within the table, but it does not
+offer the ability to algorithmically change the structure of the table (sorting,
+ordering of row). This will be provided by the `ARRANGE` action.
+
+For example, given:
+
+type  | price | count
+------|-------|------
+apple | 2.00  | 1
+apple | 8.00  | 4
+orange| 12.00 | 3
+orange| 4.00  | 1
+
+We could sort based on the price:
+
+```
+ARRANGE table:a AS table:price_sorted
+  USING sort(price, 'numeric', 'ascending');
+```
+
+This yields:
+
+type  | price | count
+------|-------|------
+apple | 2.00  | 1
+orange| 4.00  | 1
+apple | 8.00  | 4
+orange| 12.00 | 3
+
+We can invert the table:
+
+```
+ARRANGE table:a AS table:price_sorted
+  USING invert();
+```
+
+Yielding:
+
+type  | price | count
+------|-------|------
+orange| 4.00  | 1
+orange| 12.00 | 3
+apple | 8.00  | 4
+apple | 2.00  | 1
+
+We can also shift the rows:
+
+```
+ARRANGE table:a AS table:price_sorted
+  USING shift(2);
+```
+
+Yielding:
+
+type  | price | count
+------|-------|------
+orange| 12.00 | 3
+orange| 4.00  | 1
+apple | 2.00  | 1
+apple | 8.00  | 4
+
+Or shift in reverse:
+
+```
+ARRANGE table:a AS table:price_sorted
+  USING shift(-3);
+```
+
+Yielding:
+
+type  | price | count
+------|-------|------
+apple | 8.00  | 4
+orange| 12.00 | 3
+orange| 4.00  | 1
+apple | 2.00  | 1
+
