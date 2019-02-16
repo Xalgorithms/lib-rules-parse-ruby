@@ -105,6 +105,12 @@ REFINE table:a AS sum_oranges
   TAKE last(1);
 ```
 
+_The previous examples use `last` to get the final row. This will not be
+supported in the implementation. Use of `ARRANGE` will be needed to change the
+order of the rows. The `last` function would require information about the size
+of the table which is not supported in the [naive
+interpreter](https://github.com/Xalgorithms/lib-rules-int-scala)._
+
 # ARRANGE
 
 `REFINE` offers the ability to update the data within the table, but it does not
