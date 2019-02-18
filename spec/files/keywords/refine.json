@@ -61,6 +61,33 @@
     }
   },
   {
+    "args": ["REFINE tables:x AS y MAP a = twice(b);"],
+    "expects": {
+      "steps" : [
+        {
+          "name" : "refine",
+          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "refined_name" : "y",
+          "refinements" : [
+            {
+              "name" : "map",
+              "assignment" : {
+                "target" : "a",
+                "source" : {
+                  "type" : "function",
+                  "name" : "twice",
+                  "args" : [
+                    { "type" : "reference", "section" : "_local", "key" : "b" }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
     "args": ["REFINE tables:x AS y FILTER a < 3;"],
     "expects": {
       "steps" : [
@@ -141,6 +168,29 @@
                 "left"  : { "type" : "reference", "section" : "_local", "key" : "a" },
                 "right" : { "type" : "reference", "section" : "_local", "key" : "b" },
                 "op"    : "eq"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "args": ["REFINE tables:x AS y TAKE first(3);"],
+    "expects": {
+      "steps" : [
+        {
+          "name" : "refine",
+          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "refined_name" : "y",
+          "refinements" : [
+            {
+              "name" : "take",
+              "function" : {
+                "name" : "first",
+                "args" : [
+                  { "type" : "number", "value" : "3" }
+                ]
               }
             }
           ]

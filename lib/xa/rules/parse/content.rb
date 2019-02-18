@@ -187,9 +187,11 @@ module XA
         end
 
         def build_function(fn_stm)
+          args = fn_stm[:args]
+          args = [args] unless args.class == Array
           {
             "name" => fn_stm[:name].to_s,
-            "args" => fn_stm[:args].map(&method(:build_assignment_expr)),
+            "args" => args.map(&method(:build_assignment_expr)),
           }
         end
 
