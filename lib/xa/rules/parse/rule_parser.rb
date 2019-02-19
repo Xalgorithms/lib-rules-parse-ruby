@@ -54,7 +54,7 @@ module XA
         rule(:op_lt)              { str('<') }
 
         rule(:string)             { quote >> match('\w').repeat(1) >> quote }
-        rule(:number)             { match('[0-9]').repeat(1) }
+        rule(:number)             { match('-').maybe >> match('[0-9]').repeat(1) }
         rule(:name)               { match('[a-zA-Z]') >> match('\w').repeat }
         rule(:name_list)          { name.as(:name) >> (comma >> space.maybe >> name.as(:name)).repeat }
         rule(:key_name)           { name >> (str('.') >> name).repeat }
