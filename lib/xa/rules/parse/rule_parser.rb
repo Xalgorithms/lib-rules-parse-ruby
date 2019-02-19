@@ -46,6 +46,7 @@ module XA
         rule(:kw_delete)          { match('[dD]') >> match('[eE]') >> match('[lL]') >> match('[eE]') >> match('[tT]') >> match('[eE]') }
         rule(:kw_refine)          { match('[rR]') >> match('[eE]') >> match('[fF]') >> match('[iI]') >> match('[nN]') >> match('[eE]') }
         rule(:kw_take)            { match('[tT]') >> match('[aA]') >> match('[kK]') >> match('[eE]') }
+        rule(:kw_arrange)         { match('[aA]') >> match('[rR]') >> match('[rR]') >> match('[aA]') >> match('[nN]') >> match('[gG]') >> match('[eE]') }
         
         rule(:op_gte)             { str('>=') }
         rule(:op_lte)             { str('<=') }
@@ -100,7 +101,10 @@ module XA
         rule(:refinement)         { map_refinement.as(:map) | filter_refinement.as(:filter) | take_refinement.as(:take) }
         rule(:refine_statement)   { kw_refine >> space >> table_reference.as(:table) >> space >> kw_as >> space >> name.as(:refined_name) >> (space >> refinement).repeat(0).as(:refinements) }
 
-        rule(:extension_statement) { when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | revise_statement.as(:revise) | refine_statement.as(:refine) }
+        rule(:arrangement)        { kw_using >> space >> function_reference.as(:function) }
+        rule(:arrange_statement)  { kw_arrange >> space >> table_reference.as(:table) >> space >> kw_as >> space >> name.as(:table_name) >> (space >> arrangement).repeat(1).as(:arrangements) }
+
+        rule(:extension_statement) { when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | revise_statement.as(:revise) | refine_statement.as(:refine) | arrange_statement.as(:arrange) }
       end
     end
   end

@@ -1,0 +1,68 @@
+[
+  {
+    "args": ["ARRANGE table:x AS y USING invert();"],
+    "expects": {
+      "steps" : [
+        {
+          "name" : "arrange",
+          "table" : { "type" : "reference", "section" : "table", "key" : "x" },
+          "table_name" : "y",
+          "arrangements" : [
+            {
+              "type" : "function",
+              "name" : "invert",
+              "args" : []
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "args": ["ARRANGE table:x AS y USING shift(2);"],
+    "expects": {
+      "steps" : [
+        {
+          "name" : "arrange",
+          "table" : { "type" : "reference", "section" : "table", "key" : "x" },
+          "table_name" : "y",
+          "arrangements" : [
+            {
+              "type" : "function",
+              "name" : "shift",
+              "args" : [
+                { "type" : "number", "value" : "2" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "args": ["ARRANGE table:x AS y USING shift(-2) USING invert();"],
+    "expects": {
+      "steps" : [
+        {
+          "name" : "arrange",
+          "table" : { "type" : "reference", "section" : "table", "key" : "x" },
+          "table_name" : "y",
+          "arrangements" : [
+            {
+              "type" : "function",
+              "name" : "shift",
+              "args" : [
+                { "type" : "number", "value" : "-2" }
+              ]
+            },
+            {
+              "type" : "function",
+              "name" : "invert",
+              "args" : []
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

@@ -39,6 +39,7 @@ describe XA::Rules::Parse do
       'effective',
       'meta',
       'refine',
+      'arrange',
     ],
     table: [
       'effective',

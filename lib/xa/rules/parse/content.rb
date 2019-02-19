@@ -188,6 +188,7 @@ module XA
 
         def build_function(fn_stm)
           args = fn_stm[:args]
+          args = [] if args == ""
           args = [args] unless args.class == Array
           {
             "name" => fn_stm[:name].to_s,
@@ -338,7 +339,20 @@ module XA
             end if stm.key?(:refinements) && stm[:refinements].any?
           end
         end
-        
+
+        def build_arrange(stm)
+          {
+            'table' => build_reference_operand(stm[:table]),
+            'table_name' => stm[:table_name].to_s,
+          }.tap do |o|
+            o['arrangements'] = stm[:arrangements].collect do |r|
+              k = r.keys.first
+              v = r[k]
+              { 'type' => k.to_s }.merge(build_function(v))
+            end if stm.key?(:arrangements) && stm[:arrangements].any?
+          end
+        end
+
         def parse(klass, content)
           @step_fns ||= {
             assemble: method(:build_assemble),
@@ -349,6 +363,7 @@ module XA
             require: method(:build_require),
             revise: method(:build_revise),
             refine: method(:build_refine),
+            arrange: method(:build_arrange),
           }
 
           content = content.split(/\n/).map { |ln| ln.gsub(/\#.*/, '') }.join('')
