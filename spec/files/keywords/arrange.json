@@ -64,5 +64,28 @@
         }
       ]
     }
+  },
+  {
+    "args": ["ARRANGE table:x AS y USING sort(a, \"alpha\", \"descending\");"],
+    "expects": {
+      "steps" : [
+        {
+          "name" : "arrange",
+          "table" : { "type" : "reference", "section" : "table", "key" : "x" },
+          "table_name" : "y",
+          "arrangements" : [
+            {
+              "type" : "function",
+              "name" : "sort",
+              "args" : [
+                { "type" : "reference", "section" : "_local", "key" : "a" },
+                { "type" : "string", "value" : "alpha" },
+                { "type" : "string", "value" : "descending" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
   }
 ]
