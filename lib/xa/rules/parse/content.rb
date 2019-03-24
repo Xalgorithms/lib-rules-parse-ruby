@@ -66,8 +66,6 @@ module XA
             rv = { 'section' => opr[t][:section].to_s, 'key' => opr[t][:key].to_s }
           when :context
             rv = { 'section' => '_context', 'key' => opr[t][:key].to_s }
-          when :virtual
-            rv = { 'section' => '_virtual' }
           when :local
             rv = { 'section' => '_local', 'key' => opr[t][:key].to_s }
           end

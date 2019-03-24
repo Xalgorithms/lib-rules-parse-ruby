@@ -66,8 +66,7 @@ module XA
         rule(:section_reference)  { name.as(:section) >> colon >> key_name.as(:key) }
         rule(:context_reference)  { at >> key_name.as(:key) }
         rule(:local_reference)    { key_name.as(:key) }
-        rule(:vtable_reference)   { dollar }
-        rule(:table_reference)    { section_reference.as(:section) | context_reference.as(:context) | vtable_reference.as(:virtual) }
+        rule(:table_reference)    { section_reference.as(:section) | context_reference.as(:context) }
         rule(:function_reference) { name.as(:name) >> lparen >> (assign_expr.maybe >> (space.maybe >> comma >> space.maybe >> assign_expr).repeat).as(:args) >> rparen }
         rule(:reference)          { section_reference.as(:section) | context_reference.as(:context) | local_reference.as(:local) } 
         rule(:operand)            { value.as(:value) | reference.as(:reference) }
