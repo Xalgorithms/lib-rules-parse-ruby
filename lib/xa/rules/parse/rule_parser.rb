@@ -64,11 +64,11 @@ module XA
         rule(:value)              { string.as(:string) | number.as(:number) }
 
         rule(:section_reference)  { name.as(:section) >> colon >> key_name.as(:key) }
-        rule(:context_reference)  { at >> key_name.as(:key) }
-        rule(:local_reference)    { key_name.as(:key) }
-        rule(:table_reference)    { section_reference.as(:section) | context_reference.as(:context) }
+        rule(:local_reference)    { at >> key_name.as(:key) }
+        rule(:column_reference)   { key_name.as(:key) }
+        rule(:table_reference)    { section_reference.as(:section) | local_reference.as(:local) }
         rule(:function_reference) { name.as(:name) >> lparen >> (assign_expr.maybe >> (space.maybe >> comma >> space.maybe >> assign_expr).repeat).as(:args) >> rparen }
-        rule(:reference)          { section_reference.as(:section) | context_reference.as(:context) | local_reference.as(:local) } 
+        rule(:reference)          { section_reference.as(:section) | local_reference.as(:local) | column_reference.as(:column) }
         rule(:operand)            { value.as(:value) | reference.as(:reference) }
         rule(:op)                 { op_lte | op_gte | op_eq | op_lt | op_gt }
         rule(:expr)               { operand.as(:left) >> space.maybe >> op.as(:op) >> space.maybe >> operand.as(:right) }

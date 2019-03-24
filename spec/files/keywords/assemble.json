@@ -13,8 +13,8 @@
                   "name" : "c0",
                   "whens" : [
                     {
-                      "left" : { "type" : "reference", "section" : "_local", "key" : "x.y" },
-                      "right" : { "type" : "reference", "section" : "_context", "key" : "a.b" },
+                      "left" : { "type" : "reference", "section" : "_column", "key" : "x.y" },
+                      "right" : { "type" : "reference", "section" : "_local", "key" : "a.b" },
                       "op": "eq"
                     }
                   ]
@@ -39,7 +39,7 @@
                   "source": "c0", "name" : "c0", "whens" : [
                     {
                       "left" : { "type" : "reference", "section" : "envelope", "key" : "x.y" },
-                      "right" : { "type" : "reference", "section" : "_context", "key" : "a.b" },
+                      "right" : { "type" : "reference", "section" : "_local", "key" : "a.b" },
                       "op": "eq"
                     }
                   ]
@@ -78,7 +78,7 @@
               "table" : { "type" : "reference", "section" : "tables", "key" : "table1" },
               "sources" : [
                 { "source" : "c0", "name" : "nc0", "whens" : [{ "left" : { "type" : "reference", "section" : "envelope", "key" : "x.y" }, "right" : { "type" : "number", "value" : "2" }, "op" : "lte" }] },
-                { "source" : "c1", "name" : "nc1", "whens" : [{ "left" : { "type" : "reference", "section" : "_local", "key": "nc0" }, "right" : { "type" : "number", "value" : "3" }, "op": "eq" }] }
+                { "source" : "c1", "name" : "nc1", "whens" : [{ "left" : { "type" : "reference", "section" : "_column", "key": "nc0" }, "right" : { "type" : "number", "value" : "3" }, "op": "eq" }] }
               ]
             },
             {
@@ -139,16 +139,16 @@
                   "source": "c0", "name" : "c0", "whens" : [
                     {
                       "left" : { "type" : "reference", "section" : "envelope", "key" : "x.y" },
-                      "right" : { "type" : "reference", "section" : "_context", "key" : "a.b" },
+                      "right" : { "type" : "reference", "section" : "_local", "key" : "a.b" },
                       "op": "eq"
                     },
                     {
-                      "left" : { "type" : "reference", "section" : "_context", "key" : "c" },
+                      "left" : { "type" : "reference", "section" : "_local", "key" : "c" },
                       "right" : { "type" : "number", "value" : "1" },
                       "op": "gt"
                     },
                     {
-                      "left" : { "type" : "reference", "section" : "_context", "key" : "d" },
+                      "left" : { "type" : "reference", "section" : "_local", "key" : "d" },
                       "right" : { "type" : "number", "value" : "3" },
                       "op": "lte"
                     }
@@ -195,8 +195,8 @@
                   "columns": ["c0", "c1", "c2"],
                   "whens": [
                     {
-                      "left": {"section": "_context", "key": "a", "type": "reference"},
-                      "right": {"section": "_context", "key": "b", "type": "reference"},
+                      "left": {"section": "_local", "key": "a", "type": "reference"},
+                      "right": {"section": "_local", "key": "b", "type": "reference"},
                       "op": "eq"
                     }
                   ]
@@ -211,7 +211,7 @@
                   "source": "x",
                   "whens": [
                     {
-                      "left": {"section": "_local", "key": "x", "type": "reference"},
+                      "left": {"section": "_column", "key": "x", "type": "reference"},
                       "right": {"type": "number", "value": "1"},
                       "op": "eq"
                     }

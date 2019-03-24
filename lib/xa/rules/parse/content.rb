@@ -64,10 +64,10 @@ module XA
           case t
           when :section
             rv = { 'section' => opr[t][:section].to_s, 'key' => opr[t][:key].to_s }
-          when :context
-            rv = { 'section' => '_context', 'key' => opr[t][:key].to_s }
           when :local
             rv = { 'section' => '_local', 'key' => opr[t][:key].to_s }
+          when :column
+            rv = { 'section' => '_column', 'key' => opr[t][:key].to_s }
           end
 
           rv.merge('type' => 'reference') if rv
