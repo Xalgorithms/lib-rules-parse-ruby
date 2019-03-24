@@ -39,7 +39,6 @@ module XA
         rule(:rparen)             { str(')') }
         rule(:lsquare)            { str('[') }
         rule(:rsquare)            { str(']') }
-        rule(:dollar)             { str('$') }
         rule(:semi)               { str(';') }
         rule(:space)              { match('\s').repeat(1) }
 

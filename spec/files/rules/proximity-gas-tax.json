@@ -94,7 +94,7 @@
               "whens" : [
                 {
                   "left" : {"section" : "envelope", "key" : "parties.suppler.id.value", "type" : "reference"},
-                  "right" : {"section" : "_local", "key" : "supplier_id", "type" : "reference"},
+                  "right" : {"section" : "_column", "key" : "supplier_id", "type" : "reference"},
                   "op" : "eq"
                 }
               ]
@@ -117,8 +117,8 @@
               "type" : "function",
               "name" : "subtract",
               "args" : [
-                { "type" : "reference", "section" : "_local", "key" : "distance" },
-                { "type" : "reference", "section" : "_local", "key" : "seller_distance" }
+                { "type" : "reference", "section" : "_column", "key" : "distance" },
+                { "type" : "reference", "section" : "_column", "key" : "seller_distance" }
               ]
             }
           }
@@ -133,7 +133,7 @@
         {
           "name" : "filter",
           "condition" : {
-            "left"  : { "type" : "reference", "section" : "_local", "key" : "difference" },
+            "left"  : { "type" : "reference", "section" : "_column", "key" : "difference" },
             "right" : { "type" : "number", "value" : "0" },
             "op"    : "gte"
           }
@@ -146,8 +146,8 @@
               "type" : "function",
               "name" : "min",
               "args" : [
-                { "type" : "reference", "section" : "_local", "key" : "min_difference" },
-                { "type" : "reference", "section" : "_local", "key" : "difference" }
+                { "type" : "reference", "section" : "_column", "key" : "min_difference" },
+                { "type" : "reference", "section" : "_column", "key" : "difference" }
               ]
             }
           }
@@ -162,8 +162,8 @@
         {
           "name" : "filter",
           "condition" : {
-            "left"  : { "type" : "reference", "section" : "_local", "key" : "difference" },
-            "right" : { "type" : "reference", "section" : "_local", "key" : "min_difference" },
+            "left"  : { "type" : "reference", "section" : "_column", "key" : "difference" },
+            "right" : { "type" : "reference", "section" : "_column", "key" : "min_difference" },
             "op"    : "eq"
           }
         }
@@ -179,12 +179,12 @@
               "columns": ["id", "classification", "price"],
               "whens": [
                 {
-                  "left": {"section": "_local", "key": "classification.list_name", "type": "reference"},
+                  "left": {"section": "_column", "key": "classification.list_name", "type": "reference"},
                   "right": {"type": "string", "value": "UNSPSC"},
                   "op": "eq"
                 },
                 {
-                  "left": {"section": "_local", "key": "classification.value", "type": "reference"},
+                  "left": {"section": "_column", "key": "classification.value", "type": "reference"},
                   "right": {"type": "string", "value": "506505"},
                   "op": "eq"
                 }
@@ -221,8 +221,8 @@
               "type" : "function",
               "name" : "multiply",
               "args" : [
-                { "type" : "reference", "section" : "_local", "key" : "price.value" },
-                { "type" : "reference", "section" : "_local", "key" : "reduction" }
+                { "type" : "reference", "section" : "_column", "key" : "price.value" },
+                { "type" : "reference", "section" : "_column", "key" : "reduction" }
               ]
             }
           }
@@ -231,7 +231,7 @@
           "name" : "map",
           "assignment" : {
             "target" : "allowance.amount.currency_code",
-            "source" : { "type" : "reference", "section" : "_local", "key" : "price.currency_code" }
+            "source" : { "type" : "reference", "section" : "_column", "key" : "price.currency_code" }
           }
         }
       ]

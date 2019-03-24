@@ -23,7 +23,7 @@
               "whens" : [
                 {
                   "left" : {"section" : "envelope", "key" : "x.y", "type" : "reference"},
-                  "right" : {"section" : "_context", "key" : "a.b", "type" : "reference"},
+                  "right" : {"section" : "_local", "key" : "a.b", "type" : "reference"},
                   "op" : "eq"
                 }
               ]

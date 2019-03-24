@@ -59,8 +59,8 @@
               "type" : "function",
               "name" : "add",
               "args" : [
-                { "type" : "reference", "section" : "_local", "key" : "price.value" },
-                { "type" : "reference", "section" : "_local", "key" : "b" }
+                { "type" : "reference", "section" : "_column", "key" : "price.value" },
+                { "type" : "reference", "section" : "_column", "key" : "b" }
               ]
             }
           }

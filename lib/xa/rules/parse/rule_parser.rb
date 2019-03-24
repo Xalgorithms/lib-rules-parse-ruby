@@ -47,6 +47,7 @@ module XA
         rule(:kw_refine)          { match('[rR]') >> match('[eE]') >> match('[fF]') >> match('[iI]') >> match('[nN]') >> match('[eE]') }
         rule(:kw_take)            { match('[tT]') >> match('[aA]') >> match('[kK]') >> match('[eE]') }
         rule(:kw_arrange)         { match('[aA]') >> match('[rR]') >> match('[rR]') >> match('[aA]') >> match('[nN]') >> match('[gG]') >> match('[eE]') }
+        rule(:kw_generate)        { match('[gG]') >> match('[eE]') >> match('[nN]') >> match('[eE]') >> match('[rR]') >> match('[aA]') >> match('[tT]') >> match('[eE]') }
         
         rule(:op_gte)             { str('>=') }
         rule(:op_lte)             { str('<=') }
@@ -63,12 +64,11 @@ module XA
         rule(:value)              { string.as(:string) | number.as(:number) }
 
         rule(:section_reference)  { name.as(:section) >> colon >> key_name.as(:key) }
-        rule(:context_reference)  { at >> key_name.as(:key) }
-        rule(:local_reference)    { key_name.as(:key) }
-        rule(:vtable_reference)   { dollar }
-        rule(:table_reference)    { section_reference.as(:section) | context_reference.as(:context) | vtable_reference.as(:virtual) }
+        rule(:local_reference)    { at >> key_name.as(:key) }
+        rule(:column_reference)   { key_name.as(:key) }
+        rule(:table_reference)    { section_reference.as(:section) | local_reference.as(:local) }
         rule(:function_reference) { name.as(:name) >> lparen >> (assign_expr.maybe >> (space.maybe >> comma >> space.maybe >> assign_expr).repeat).as(:args) >> rparen }
-        rule(:reference)          { section_reference.as(:section) | context_reference.as(:context) | local_reference.as(:local) } 
+        rule(:reference)          { section_reference.as(:section) | local_reference.as(:local) | column_reference.as(:column) }
         rule(:operand)            { value.as(:value) | reference.as(:reference) }
         rule(:op)                 { op_lte | op_gte | op_eq | op_lt | op_gt }
         rule(:expr)               { operand.as(:left) >> space.maybe >> op.as(:op) >> space.maybe >> operand.as(:right) }
@@ -104,7 +104,9 @@ module XA
         rule(:arrangement)        { kw_using >> space >> function_reference.as(:function) }
         rule(:arrange_statement)  { kw_arrange >> space >> table_reference.as(:table) >> space >> kw_as >> space >> name.as(:table_name) >> (space >> arrangement).repeat(1).as(:arrangements) }
 
-        rule(:extension_statement) { when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | revise_statement.as(:revise) | refine_statement.as(:refine) | arrange_statement.as(:arrange) }
+        rule(:generate_statement) { kw_generate >> space >> function_reference.as(:function) >> space >> kw_as >> space >> name.as(:table_name) }
+
+        rule(:extension_statement) { when_statement.as(:when) | require_statement.as(:require) | assemble_statement.as(:assemble) | revise_statement.as(:revise) | refine_statement.as(:refine) | arrange_statement.as(:arrange) | generate_statement.as(:generate) }
       end
     end
   end

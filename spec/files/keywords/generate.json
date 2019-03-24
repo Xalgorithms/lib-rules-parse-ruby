@@ -1,0 +1,19 @@
+[
+  {
+    "args": ["GENERATE empty(4) AS foo;"],
+    "expects": {
+      "steps" : [
+        {
+          "name" : "generate",
+          "table_name" : "foo",
+          "function" : {
+            "name" : "empty",
+            "args" : [
+              { "type" : "number", "value" : "4" }
+            ]
+          }
+        }
+      ]
+    }
+  }
+]
