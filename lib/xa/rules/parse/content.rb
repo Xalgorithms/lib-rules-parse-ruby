@@ -353,6 +353,13 @@ module XA
           end
         end
 
+        def build_generate(stm)
+          {
+            'table_name' => stm[:table_name].to_s,
+            'function'   => build_function(stm[:function]),
+          }
+        end
+
         def parse(klass, content)
           @step_fns ||= {
             assemble: method(:build_assemble),
@@ -364,6 +371,7 @@ module XA
             revise: method(:build_revise),
             refine: method(:build_refine),
             arrange: method(:build_arrange),
+            generate: method(:build_generate),
           }
 
           content = content.split(/\n/).map { |ln| ln.gsub(/\#.*/, '') }.join('')

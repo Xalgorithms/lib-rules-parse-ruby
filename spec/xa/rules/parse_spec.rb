@@ -40,6 +40,7 @@ describe XA::Rules::Parse do
       'meta',
       'refine',
       'arrange',
+      'generate',
     ],
     table: [
       'effective',
