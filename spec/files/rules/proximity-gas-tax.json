@@ -112,7 +112,7 @@
         {
           "name" : "map",
           "assignment" : {
-            "target" : "difference",
+            "target" : { "type" : "reference", "section" : "_column", "key" : "difference" },
             "source" : {
               "type" : "function",
               "name" : "subtract",
@@ -141,7 +141,7 @@
         {
           "name" : "map",
           "assignment" : {
-            "target" : "min_difference",
+            "target" : { "type" : "reference", "section" : "_column", "key" : "min_difference" },
             "source" : {
               "type" : "function",
               "name" : "min",
@@ -209,14 +209,14 @@
         {
           "name" : "map",
           "assignment" : {
-            "target" : "allowance.charge",
+            "target" : { "type" : "reference", "section" : "_column", "key" : "allowance.charge" },
             "source" : { "type" : "string", "value" : "false" }
           }
         },
         {
           "name" : "map",
           "assignment" : {
-            "target" : "allowance.amount.value",
+            "target" : { "type" : "reference", "section" : "_column", "key" : "allowance.amount.value" },
             "source" : {
               "type" : "function",
               "name" : "multiply",
@@ -230,7 +230,7 @@
         {
           "name" : "map",
           "assignment" : {
-            "target" : "allowance.amount.currency_code",
+            "target" : { "type" : "reference", "section" : "_column", "key" : "allowance.amount.currency_code" },
             "source" : { "type" : "reference", "section" : "_column", "key" : "price.currency_code" }
           }
         }

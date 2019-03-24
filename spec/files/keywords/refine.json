@@ -23,7 +23,28 @@
             {
               "name" : "map",
               "assignment" : {
-                "target" : "a",
+                "target" : { "type" : "reference", "section" : "_column", "key" : "a" },
+                "source" : { "type" : "reference", "section" : "_column", "key" : "b" }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "args": ["REFINE tables:x AS y MAP @a = b;"],
+    "expects": {
+      "steps" : [
+        {
+          "name" : "refine",
+          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "refined_name" : "y",
+          "refinements" : [
+            {
+              "name" : "map",
+              "assignment" : {
+                "target" : { "type" : "reference", "section" : "_local", "key" : "a" },
                 "source" : { "type" : "reference", "section" : "_column", "key" : "b" }
               }
             }
@@ -44,13 +65,41 @@
             {
               "name" : "map",
               "assignment" : {
-                "target" : "a",
+                "target" : { "type" : "reference", "section" : "_column", "key" : "a" },
                 "source" : {
                   "type" : "function",
                   "name" : "concat",
                   "args" : [
                     { "type" : "reference", "section" : "_column", "key" : "b" },
                     { "type" : "reference", "section" : "_column", "key" : "c" }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "args": ["REFINE tables:x AS y MAP @a = concat(b, @c);"],
+    "expects": {
+      "steps" : [
+        {
+          "name" : "refine",
+          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "refined_name" : "y",
+          "refinements" : [
+            {
+              "name" : "map",
+              "assignment" : {
+                "target" : { "type" : "reference", "section" : "_local", "key" : "a" },
+                "source" : {
+                  "type" : "function",
+                  "name" : "concat",
+                  "args" : [
+                    { "type" : "reference", "section" : "_column", "key" : "b" },
+                    { "type" : "reference", "section" : "_local", "key" : "c" }
                   ]
                 }
               }
@@ -72,7 +121,7 @@
             {
               "name" : "map",
               "assignment" : {
-                "target" : "a",
+                "target" : { "type" : "reference", "section" : "_column", "key" : "a" },
                 "source" : {
                   "type" : "function",
                   "name" : "twice",
@@ -132,6 +181,28 @@
     }
   },
   {
+    "args": ["REFINE tables:x AS y FILTER @a == b;"],
+    "expects": {
+      "steps" : [
+        {
+          "name" : "refine",
+          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "refined_name" : "y",
+          "refinements" : [
+            {
+              "name" : "filter",
+              "condition" : {
+                "left"  : { "type" : "reference", "section" : "_local", "key" : "a" },
+                "right" : { "type" : "reference", "section" : "_column", "key" : "b" },
+                "op"    : "eq"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
     "args": ["REFINE tables:x AS y TAKE a < 3;"],
     "expects": {
       "steps" : [
@@ -167,6 +238,28 @@
               "condition" : {
                 "left"  : { "type" : "reference", "section" : "_column", "key" : "a" },
                 "right" : { "type" : "reference", "section" : "_column", "key" : "b" },
+                "op"    : "eq"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "args": ["REFINE tables:x AS y TAKE a == @b;"],
+    "expects": {
+      "steps" : [
+        {
+          "name" : "refine",
+          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "refined_name" : "y",
+          "refinements" : [
+            {
+              "name" : "take",
+              "condition" : {
+                "left"  : { "type" : "reference", "section" : "_column", "key" : "a" },
+                "right" : { "type" : "reference", "section" : "_local", "key" : "b" },
                 "op"    : "eq"
               }
             }
@@ -234,7 +327,7 @@
             {
               "name" : "map",
               "assignment" : {
-                "target" : "a",
+                "target" : { "type" : "reference", "section" : "_column", "key" : "a" },
                 "source" : { "type" : "reference", "section" : "_column", "key" : "b" }
               }
             },

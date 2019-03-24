@@ -95,7 +95,7 @@ module XA
         rule(:revision_statements) { revision_statement >> (space >> revision_statement).repeat }
         rule(:revise_statement)   { kw_revise >> space >> table_reference.as(:table) >> space >> revision_statements.as(:revisions) }
 
-        rule(:map_refinement)     { kw_map >> space >> key_name.as(:name) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
+        rule(:map_refinement)     { kw_map >> space >> reference.as(:reference) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
         rule(:filter_refinement)  { kw_filter >> space >> expr.as(:expr) }
         rule(:take_refinement)    { kw_take >> space >> (expr.as(:expr) | function_reference.as(:function))}
         rule(:refinement)         { map_refinement.as(:map) | filter_refinement.as(:filter) | take_refinement.as(:take) }

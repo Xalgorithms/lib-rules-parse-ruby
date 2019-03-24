@@ -318,7 +318,7 @@ module XA
                 case k
                 when :map
                   ro['assignment'] = {
-                    'target' => v[:name].to_s,
+                    'target' => build_reference_operand(v[:reference]),
                     'source' => build_assignment_expr(v[:expr]),
                   }
                 when :filter

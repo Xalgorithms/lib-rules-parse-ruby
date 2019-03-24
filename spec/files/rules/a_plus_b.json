@@ -54,7 +54,7 @@
         {
           "name" : "map",
           "assignment" : {
-            "target" : "new_price",
+            "target" : { "type" : "reference", "section" : "_column", "key" : "new_price" },
             "source" : {
               "type" : "function",
               "name" : "add",
