@@ -1,11 +1,11 @@
 [
   {
-    "args": ["ARRANGE table:x AS y USING invert();"],
+    "args": ["ARRANGE x AS y USING invert();"],
     "expects": {
       "steps" : [
         {
           "name" : "arrange",
-          "table" : { "type" : "reference", "section" : "table", "key" : "x" },
+          "table" : "x",
           "table_name" : "y",
           "arrangements" : [
             {
@@ -19,12 +19,12 @@
     }
   },
   {
-    "args": ["ARRANGE table:x AS y USING shift(2);"],
+    "args": ["ARRANGE x AS y USING shift(2);"],
     "expects": {
       "steps" : [
         {
           "name" : "arrange",
-          "table" : { "type" : "reference", "section" : "table", "key" : "x" },
+          "table" : "x",
           "table_name" : "y",
           "arrangements" : [
             {
@@ -40,12 +40,12 @@
     }
   },
   {
-    "args": ["ARRANGE table:x AS y USING shift(-2) USING invert();"],
+    "args": ["ARRANGE x AS y USING shift(-2) USING invert();"],
     "expects": {
       "steps" : [
         {
           "name" : "arrange",
-          "table" : { "type" : "reference", "section" : "table", "key" : "x" },
+          "table" : "x",
           "table_name" : "y",
           "arrangements" : [
             {
@@ -66,12 +66,12 @@
     }
   },
   {
-    "args": ["ARRANGE table:x AS y USING sort(a, \"alpha\", \"descending\");"],
+    "args": ["ARRANGE x AS y USING sort(a, \"alpha\", \"descending\");"],
     "expects": {
       "steps" : [
         {
           "name" : "arrange",
-          "table" : { "type" : "reference", "section" : "table", "key" : "x" },
+          "table" : "x",
           "table_name" : "y",
           "arrangements" : [
             {

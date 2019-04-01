@@ -72,21 +72,13 @@
       "table_name" : "sellers_distances",
       "columns" : [
         {
-          "table" : {
-            "section" : "table",
-            "key" : "reductions_by_distance",
-            "type" : "reference"
-          },
+          "table" : "reductions_by_distance",
           "sources" : [
             {"columns" : []}
           ]
         },
         {
-          "table" : {
-            "section" : "table",
-            "key" : "distances",
-            "type" : "reference"
-          },
+          "table" : "distances",
           "sources" : [
             {
               "name" : "seller_distance",
@@ -106,7 +98,7 @@
     },
     {
       "name" : "refine",
-      "table" : { "type" : "reference", "section" : "table", "key" : "sellers_distances" },
+      "table" : "sellers_distances",
       "refined_name" : "sellers_reductions",
       "refinements" : [
         {
@@ -127,7 +119,7 @@
     },
     {
       "name" : "refine",
-      "table" : { "type" : "reference", "section" : "table", "key" : "sellers_reductions" },
+      "table" : "sellers_reductions",
       "refined_name" : "applicable_sellers_reductions",
       "refinements" : [
         {
@@ -156,7 +148,7 @@
     },
     {
       "name" : "refine",
-      "table" : { "type" : "reference", "section" : "table", "key" : "applicable_sellers_reductions" },
+      "table" : "applicable_sellers_reductions",
       "refined_name" : "final_sellers_reductions",
       "refinements" : [
         {
@@ -173,7 +165,7 @@
       "table_name": "item_reductions",
       "columns": [
         {
-          "table": { "section": "table", "key": "items", "type": "reference"},
+          "table": "items",
           "sources": [
             {
               "columns": ["id", "classification", "price"],
@@ -193,7 +185,7 @@
           ]
         },
         {
-          "table": {"section": "table", "key": "final_sellers_reductions", "type": "reference"},
+          "table": "final_sellers_reductions",
           "sources": [
             {"name": "reduction", "source": "reduction"}
           ]
@@ -203,7 +195,7 @@
     },
     {
       "name" : "refine",
-      "table" : { "type" : "reference", "section" : "table", "key" : "item_reductions" },
+      "table" : "item_reductions",
       "refined_name" : "applicable_reductions",
       "refinements" : [
         {
@@ -237,13 +229,13 @@
       ]
     },
     {
-      "table": {"section": "table", "key": "items", "type": "reference"},
+      "table": "items",
       "revisions": [
         {
           "op": "add",
           "source": {
             "column": "allowance",
-            "table": {"section": "table", "key": "applicable_reductions", "type": "reference"}
+            "table": "applicable_reductions"
           }
         }
       ],

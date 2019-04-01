@@ -1,23 +1,23 @@
 [
   {
-    "args": ["REFINE tables:x AS y;"],
+    "args": ["REFINE x AS y;"],
     "expects": {
       "steps" : [
         {
           "name" : "refine",
-          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "table" : "x",
           "refined_name" : "y"
         }
       ]
     }
   },
   {
-    "args": ["REFINE tables:x AS y MAP a = b;"],
+    "args": ["REFINE x AS y MAP a = b;"],
     "expects": {
       "steps" : [
         {
           "name" : "refine",
-          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "table" : "x",
           "refined_name" : "y",
           "refinements" : [
             {
@@ -33,12 +33,12 @@
     }
   },
   {
-    "args": ["REFINE tables:x AS y MAP @a = b;"],
+    "args": ["REFINE x AS y MAP @a = b;"],
     "expects": {
       "steps" : [
         {
           "name" : "refine",
-          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "table" : "x",
           "refined_name" : "y",
           "refinements" : [
             {
@@ -54,12 +54,12 @@
     }
   },
   {
-    "args": ["REFINE tables:x AS y MAP a = concat(b, c);"],
+    "args": ["REFINE x AS y MAP a = concat(b, c);"],
     "expects": {
       "steps" : [
         {
           "name" : "refine",
-          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "table" : "x",
           "refined_name" : "y",
           "refinements" : [
             {
@@ -82,12 +82,12 @@
     }
   },
   {
-    "args": ["REFINE tables:x AS y MAP @a = concat(b, @c);"],
+    "args": ["REFINE x AS y MAP @a = concat(b, @c);"],
     "expects": {
       "steps" : [
         {
           "name" : "refine",
-          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "table" : "x",
           "refined_name" : "y",
           "refinements" : [
             {
@@ -110,12 +110,12 @@
     }
   },
   {
-    "args": ["REFINE tables:x AS y MAP a = twice(b);"],
+    "args": ["REFINE x AS y MAP a = twice(b);"],
     "expects": {
       "steps" : [
         {
           "name" : "refine",
-          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "table" : "x",
           "refined_name" : "y",
           "refinements" : [
             {
@@ -137,12 +137,12 @@
     }
   },
   {
-    "args": ["REFINE tables:x AS y FILTER a < 3;"],
+    "args": ["REFINE x AS y FILTER a < 3;"],
     "expects": {
       "steps" : [
         {
           "name" : "refine",
-          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "table" : "x",
           "refined_name" : "y",
           "refinements" : [
             {
@@ -159,12 +159,12 @@
     }
   },
   {
-    "args": ["REFINE tables:x AS y FILTER a == b;"],
+    "args": ["REFINE x AS y FILTER a == b;"],
     "expects": {
       "steps" : [
         {
           "name" : "refine",
-          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "table" : "x",
           "refined_name" : "y",
           "refinements" : [
             {
@@ -181,12 +181,12 @@
     }
   },
   {
-    "args": ["REFINE tables:x AS y FILTER @a == b;"],
+    "args": ["REFINE x AS y FILTER @a == b;"],
     "expects": {
       "steps" : [
         {
           "name" : "refine",
-          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "table" : "x",
           "refined_name" : "y",
           "refinements" : [
             {
@@ -203,12 +203,12 @@
     }
   },
   {
-    "args": ["REFINE tables:x AS y TAKE a < 3;"],
+    "args": ["REFINE x AS y TAKE a < 3;"],
     "expects": {
       "steps" : [
         {
           "name" : "refine",
-          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "table" : "x",
           "refined_name" : "y",
           "refinements" : [
             {
@@ -225,12 +225,12 @@
     }
   },
   {
-    "args": ["REFINE tables:x AS y TAKE a == b;"],
+    "args": ["REFINE x AS y TAKE a == b;"],
     "expects": {
       "steps" : [
         {
           "name" : "refine",
-          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "table" : "x",
           "refined_name" : "y",
           "refinements" : [
             {
@@ -247,12 +247,12 @@
     }
   },
   {
-    "args": ["REFINE tables:x AS y TAKE a == @b;"],
+    "args": ["REFINE x AS y TAKE a == @b;"],
     "expects": {
       "steps" : [
         {
           "name" : "refine",
-          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "table" : "x",
           "refined_name" : "y",
           "refinements" : [
             {
@@ -269,12 +269,12 @@
     }
   },
   {
-    "args": ["REFINE tables:x AS y TAKE first(3);"],
+    "args": ["REFINE x AS y TAKE first(3);"],
     "expects": {
       "steps" : [
         {
           "name" : "refine",
-          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "table" : "x",
           "refined_name" : "y",
           "refinements" : [
             {
@@ -292,12 +292,12 @@
     }
   },
   {
-    "args": ["REFINE tables:x AS y TAKE nth(1, 3);"],
+    "args": ["REFINE x AS y TAKE nth(1, 3);"],
     "expects": {
       "steps" : [
         {
           "name" : "refine",
-          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "table" : "x",
           "refined_name" : "y",
           "refinements" : [
             {
@@ -316,12 +316,12 @@
     }
   },
   {
-    "args": ["REFINE tables:x AS y MAP a = b TAKE a == b FILTER a == b;"],
+    "args": ["REFINE x AS y MAP a = b TAKE a == b FILTER a == b;"],
     "expects": {
       "steps" : [
         {
           "name" : "refine",
-          "table" : { "type" : "reference", "section" : "tables", "key" : "x" },
+          "table" : "x",
           "refined_name" : "y",
           "refinements" : [
             {

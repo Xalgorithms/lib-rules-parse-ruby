@@ -116,7 +116,7 @@ module XA
           whens = [whens] if whens.class == Hash
           source = col[:source].to_s
           {
-            table: build_reference_operand(col[:reference]),
+            table: col[:table].to_s,
             col: {
               'name'       => col.fetch(:name, source).to_s,
               'source'     => source,
@@ -130,7 +130,7 @@ module XA
           whens = col[:whens]
           whens = [whens] if whens.class == Hash
           {
-            table: build_reference_operand(col[:reference]),
+            table: col[:table].to_s,
             col: {
               'columns' => col.fetch(:column_names, []).map { |o| o[:name].to_s },
             }.tap do |col|
@@ -243,14 +243,14 @@ module XA
           revisions = stm[:revisions]
           revisions = [revisions] if revisions.class == Hash
           {
-            'table'   => build_reference_operand(stm[:table]),
+            'table'   => stm[:table].to_s,
             'revisions' => revisions.map do |rev|
               {
                 'op'     => rev[:op].to_s.downcase,
                 'source' => {
                   'column' => rev[:key].to_s
                 }.tap do |o|
-                  o['table'] = build_reference_operand(rev[:table]) if rev.key?(:table)
+                  o['table'] = rev[:table].to_s if rev.key?(:table)
                 end,
               }
             end
@@ -308,7 +308,7 @@ module XA
 
         def build_refine(stm)
           {
-            'table' => build_reference_operand(stm[:table]),
+            'table' => stm[:table].to_s,
             'refined_name' => stm[:refined_name].to_s,
           }.tap do |o|
             o['refinements'] = stm[:refinements].collect do |r|
@@ -340,7 +340,7 @@ module XA
 
         def build_arrange(stm)
           {
-            'table' => build_reference_operand(stm[:table]),
+            'table' => stm[:table].to_s,
             'table_name' => stm[:table_name].to_s,
           }.tap do |o|
             o['arrangements'] = stm[:arrangements].collect do |r|

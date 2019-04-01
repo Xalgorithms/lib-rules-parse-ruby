@@ -1,12 +1,12 @@
 [
   {
-    "args": ["ASSEMBLE table0 COLUMN c0 FROM tables:table1 WHEN x.y == @a.b;"],
+    "args": ["ASSEMBLE table0 COLUMN c0 FROM table1 WHEN x.y == @a.b;"],
     "expects" : {
       "steps" : [
         {
           "name" : "assemble", "table_name" : "table0", "columns" : [
             {
-              "table" : { "type" : "reference", "section" : "tables", "key" : "table1" },
+              "table" : "table1",
               "sources" : [
                 {
                   "source": "c0",
@@ -27,13 +27,13 @@
     }
   },
   {
-    "args": ["ASSEMBLE table0 COLUMN c0 FROM tables:table1 WHEN envelope:x.y == @a.b;"],
+    "args": ["ASSEMBLE table0 COLUMN c0 FROM table1 WHEN envelope:x.y == @a.b;"],
     "expects" : {
       "steps" : [
         {
           "name" : "assemble", "table_name" : "table0", "columns" : [
             {
-              "table" : { "type" : "reference", "section" : "tables", "key" : "table1" },
+              "table" : "table1",
               "sources" : [
                 {
                   "source": "c0", "name" : "c0", "whens" : [
@@ -52,13 +52,13 @@
     }
   },
   {
-    "args": ["ASSEMBLE table0 COLUMN c0 AS nc0 FROM tables:table1 WHEN envelope:x.y <= 2;"],
+    "args": ["ASSEMBLE table0 COLUMN c0 AS nc0 FROM table1 WHEN envelope:x.y <= 2;"],
     "expects" : {
       "steps" : [
         {
           "name" : "assemble", "table_name" : "table0", "columns" : [
             {
-              "table" : { "type" : "reference", "section" : "tables", "key" : "table1" },
+              "table" : "table1",
               "sources" : [
                 { "source" : "c0", "name" : "nc0", "whens" : [{ "left" : { "type" : "reference", "section" : "envelope", "key" : "x.y" }, "right" : { "type" : "number", "value" : "2" }, "op": "lte" }] }
               ]
@@ -69,20 +69,20 @@
     }
   },
   {
-    "args": ["ASSEMBLE table0 COLUMN c0 AS nc0 FROM tables:table1 WHEN envelope:x.y <= 2 COLUMN c1 AS nc1 FROM tables:table1 WHEN nc0 == 3 COLUMN b0 AS nc2 FROM tables:table2 WHEN envelope:p.q == 3;"],
+    "args": ["ASSEMBLE table0 COLUMN c0 AS nc0 FROM table1 WHEN envelope:x.y <= 2 COLUMN c1 AS nc1 FROM table1 WHEN nc0 == 3 COLUMN b0 AS nc2 FROM table2 WHEN envelope:p.q == 3;"],
     "expects" : {
       "steps" : [
         {
           "name" : "assemble", "table_name" : "table0", "columns" : [
             {
-              "table" : { "type" : "reference", "section" : "tables", "key" : "table1" },
+              "table" : "table1",
               "sources" : [
                 { "source" : "c0", "name" : "nc0", "whens" : [{ "left" : { "type" : "reference", "section" : "envelope", "key" : "x.y" }, "right" : { "type" : "number", "value" : "2" }, "op" : "lte" }] },
                 { "source" : "c1", "name" : "nc1", "whens" : [{ "left" : { "type" : "reference", "section" : "_column", "key": "nc0" }, "right" : { "type" : "number", "value" : "3" }, "op": "eq" }] }
               ]
             },
             {
-              "table" : { "type" : "reference", "section" : "tables", "key" : "table2" },
+              "table" : "table2",
               "sources" : [
                 { "source" : "b0", "name" : "nc2", "whens" : [{ "left" : { "type" : "reference", "section" : "envelope", "key" : "p.q" }, "right" : { "type" : "number", "value" : "3" }, "op": "eq" }] }
               ]
@@ -93,13 +93,13 @@
     }
   },
   {
-    "args": ["ASSEMBLE table0 COLUMNS FROM tables:table1;"],
+    "args": ["ASSEMBLE table0 COLUMNS FROM table1;"],
     "expects" : {
       "steps" : [
         {
           "name" : "assemble", "table_name" : "table0", "columns" : [
             {
-              "table" : { "type" : "reference", "section" : "tables", "key" : "table1" },
+              "table" : "table1",
               "sources" : [
                 { "columns" : [] }
               ]
@@ -110,13 +110,13 @@
     }
   },
   {
-    "args": ["ASSEMBLE table0 COLUMNS (c0, c1, c2) FROM tables:table1;"],
+    "args": ["ASSEMBLE table0 COLUMNS (c0, c1, c2) FROM table1;"],
     "expects" : {
       "steps" : [
         {
           "name" : "assemble", "table_name" : "table0", "columns" : [
             {
-              "table" : { "type" : "reference", "section" : "tables", "key" : "table1" },
+              "table" : "table1",
               "sources" : [
                 { "columns" : ["c0", "c1", "c2"] }
               ]
@@ -127,13 +127,13 @@
     }
   },
   {
-    "args": ["ASSEMBLE table0 COLUMN c0 FROM tables:table1 WHEN envelope:x.y == @a.b WHEN @c > 1 WHEN @d <= 3;"],
+    "args": ["ASSEMBLE table0 COLUMN c0 FROM table1 WHEN envelope:x.y == @a.b WHEN @c > 1 WHEN @d <= 3;"],
     "expects" : {
       "steps" : [
         {
           "name" : "assemble", "table_name" : "table0", "columns" : [
             {
-              "table" : { "type" : "reference", "section" : "tables", "key" : "table1" },
+              "table" : "table1",
               "sources" : [
                 {
                   "source": "c0", "name" : "c0", "whens" : [
@@ -162,13 +162,13 @@
     }
   },
   {
-    "args": ["ASSEMBLE table0 COLUMN c0 FROM tables:table1;"],
+    "args": ["ASSEMBLE table0 COLUMN c0 FROM table1;"],
     "expects" : {
       "steps" : [
         {
           "name" : "assemble", "table_name" : "table0", "columns" : [
             {
-              "table" : { "type" : "reference", "section" : "tables", "key" : "table1" },
+              "table" : "table1",
               "sources" : [
                 {
                   "source": "c0",
@@ -182,14 +182,14 @@
     }
   },
   {
-    "args": ["ASSEMBLE table0 COLUMNS (c0, c1, c2) FROM tables:table0 WHEN @a == @b COLUMN x AS y FROM tables:table1 WHEN x == 1;"],
+    "args": ["ASSEMBLE table0 COLUMNS (c0, c1, c2) FROM table0 WHEN @a == @b COLUMN x AS y FROM table1 WHEN x == 1;"],
     "expects" : {
       "steps" : [
         {
           "table_name": "table0",
           "columns": [
             {
-              "table": {"section": "tables", "key": "table0", "type": "reference"},
+              "table": "table0",
               "sources": [
                 {
                   "columns": ["c0", "c1", "c2"],
@@ -204,7 +204,7 @@
               ]
             },
             {
-              "table": {"section": "tables", "key": "table1", "type": "reference"},
+              "table": "table1",
               "sources": [
                 {
                   "name": "y",

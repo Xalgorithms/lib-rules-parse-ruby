@@ -15,7 +15,7 @@
       "table_name" : "table0",
       "columns" : [
         {
-          "table" : { "type" : "reference", "section" : "tables", "key" : "table1" },
+          "table" : "table1",
           "sources" : [
             {
               "name" : "c0",

@@ -41,14 +41,14 @@
     {
       "table_name": "changes",
       "columns": [
-        {"table": {"section": "table", "key": "items", "type": "reference"}, "sources": [{"columns": []}]},
-        {"table": {"section": "table", "key": "all_bs", "type": "reference"}, "sources": [{"columns": []}]}
+        {"table": "items", "sources": [{"columns": []}]},
+        {"table": "all_bs", "sources": [{"columns": []}]}
       ],
       "name": "assemble"
     },
     {
       "name" : "refine",
-      "table" : { "type" : "reference", "section" : "table", "key" : "changes" },
+      "table" : "changes",
       "refined_name" : "new_changes",
       "refinements" : [
         {
@@ -68,13 +68,13 @@
       ]
     },
     {
-      "table": {"section": "table", "key": "items", "type": "reference"},
+      "table": "items",
       "revisions": [
         {
           "op": "update",
           "source": {
             "column": "price.value",
-            "table": {"section": "table", "key": "changes", "type": "reference"}
+            "table": "changes"
           }
         }
       ],

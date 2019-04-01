@@ -18,12 +18,12 @@ WHEN item:id.value == "a";
 REQUIRE org.xalgorithms.examples.a_plus_b:all_bs:0.0.1;
 
 ASSEMBLE changes
-  COLUMNS FROM table:items
-  COLUMNS FROM table:all_bs;
+  COLUMNS FROM items
+  COLUMNS FROM all_bs;
 
-REFINE table:changes AS new_changes
+REFINE changes AS new_changes
   MAP new_price = add(price.value, b);
 
-REVISE table:items
+REVISE items
   UPDATE price.value
-  FROM table:changes;
+  FROM changes;

@@ -66,7 +66,6 @@ module XA
         rule(:section_reference)  { name.as(:section) >> colon >> key_name.as(:key) }
         rule(:local_reference)    { at >> key_name.as(:key) }
         rule(:column_reference)   { key_name.as(:key) }
-        rule(:table_reference)    { section_reference.as(:section) | local_reference.as(:local) }
         rule(:function_reference) { name.as(:name) >> lparen >> (assign_expr.maybe >> (space.maybe >> comma >> space.maybe >> assign_expr).repeat).as(:args) >> rparen }
         rule(:reference)          { section_reference.as(:section) | local_reference.as(:local) | column_reference.as(:column) }
         rule(:operand)            { value.as(:value) | reference.as(:reference) }
@@ -80,8 +79,8 @@ module XA
         rule(:require_reference)  { key_name.as(:package) >> colon >> name.as(:id) >> colon >> version.as(:version) }
         rule(:require_statement)  { kw_require >> space >> require_reference.as(:reference) >> (space >> require_indexes.as(:indexes)).maybe >> (space >> kw_as >> space >> name.as(:name)).maybe }
 
-        rule(:assemble_column)    { kw_column >> space >> name.as(:source) >> (space >> kw_as >> space >> name.as(:name)).maybe >> space >> kw_from >> space >> reference.as(:reference) >> (space >> when_statements.as(:whens)).maybe }
-        rule(:assemble_column_import) { kw_columns >> space >> (lparen >> name_list.as(:column_names) >> rparen >> space).maybe >> kw_from >> space >> reference.as(:reference) >> (space >> when_statements.as(:whens)).maybe }
+        rule(:assemble_column)    { kw_column >> space >> name.as(:source) >> (space >> kw_as >> space >> name.as(:name)).maybe >> space >> kw_from >> space >> name.as(:table) >> (space >> when_statements.as(:whens)).maybe }
+        rule(:assemble_column_import) { kw_columns >> space >> (lparen >> name_list.as(:column_names) >> rparen >> space).maybe >> kw_from >> space >> name.as(:table) >> (space >> when_statements.as(:whens)).maybe }
         rule(:assemble_columnset) { assemble_column.as(:column) | assemble_column_import.as(:column_import) } 
         rule(:assemble_columns)   { assemble_columnset >> (space >> assemble_columnset).repeat }
         rule(:assemble_statement) { kw_assemble >> space >> name.as(:table_name) >> space >> assemble_columns.as(:columns) }
@@ -91,18 +90,18 @@ module XA
         rule(:assignments)        { assignment >> (space >> assignment).repeat }
 
         rule(:revision_op)        { kw_add | kw_update | kw_delete }
-        rule(:revision_statement) { revision_op.as(:op) >> space >> key_name.as(:key) >> (space >> kw_from >> space >> table_reference.as(:table)).maybe }
+        rule(:revision_statement) { revision_op.as(:op) >> space >> key_name.as(:key) >> (space >> kw_from >> space >> name.as(:table)).maybe }
         rule(:revision_statements) { revision_statement >> (space >> revision_statement).repeat }
-        rule(:revise_statement)   { kw_revise >> space >> table_reference.as(:table) >> space >> revision_statements.as(:revisions) }
+        rule(:revise_statement)   { kw_revise >> space >> name.as(:table) >> space >> revision_statements.as(:revisions) }
 
         rule(:map_refinement)     { kw_map >> space >> reference.as(:reference) >> space.maybe >> eq >> space.maybe >> assign_expr.as(:expr) }
         rule(:filter_refinement)  { kw_filter >> space >> expr.as(:expr) }
         rule(:take_refinement)    { kw_take >> space >> (expr.as(:expr) | function_reference.as(:function))}
         rule(:refinement)         { map_refinement.as(:map) | filter_refinement.as(:filter) | take_refinement.as(:take) }
-        rule(:refine_statement)   { kw_refine >> space >> table_reference.as(:table) >> space >> kw_as >> space >> name.as(:refined_name) >> (space >> refinement).repeat(0).as(:refinements) }
+        rule(:refine_statement)   { kw_refine >> space >> name.as(:table) >> space >> kw_as >> space >> name.as(:refined_name) >> (space >> refinement).repeat(0).as(:refinements) }
 
         rule(:arrangement)        { kw_using >> space >> function_reference.as(:function) }
-        rule(:arrange_statement)  { kw_arrange >> space >> table_reference.as(:table) >> space >> kw_as >> space >> name.as(:table_name) >> (space >> arrangement).repeat(1).as(:arrangements) }
+        rule(:arrange_statement)  { kw_arrange >> space >> name.as(:table) >> space >> kw_as >> space >> name.as(:table_name) >> (space >> arrangement).repeat(1).as(:arrangements) }
 
         rule(:generate_statement) { kw_generate >> space >> function_reference.as(:function) >> space >> kw_as >> space >> name.as(:table_name) }
 

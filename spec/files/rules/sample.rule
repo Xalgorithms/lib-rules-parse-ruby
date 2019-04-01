@@ -1,4 +1,4 @@
 # only applies to invoices
 WHEN envelope:type == "invoice";
 
-ASSEMBLE table0 COLUMN c0 FROM tables:table1 WHEN envelope:x.y == @a.b;
+ASSEMBLE table0 COLUMN c0 FROM table1 WHEN envelope:x.y == @a.b;
