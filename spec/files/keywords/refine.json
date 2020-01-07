@@ -23,8 +23,8 @@
             {
               "name" : "map",
               "assignment" : {
-                "target" : { "type" : "reference", "section" : "_column", "key" : "a" },
-                "source" : { "type" : "reference", "section" : "_column", "key" : "b" }
+                "target" : { "type" : "reference", "scope" : "_column", "key" : "a" },
+                "source" : { "type" : "reference", "scope" : "_column", "key" : "b" }
               }
             }
           ]
@@ -44,8 +44,8 @@
             {
               "name" : "map",
               "assignment" : {
-                "target" : { "type" : "reference", "section" : "_local", "key" : "a" },
-                "source" : { "type" : "reference", "section" : "_column", "key" : "b" }
+                "target" : { "type" : "reference", "scope" : "_local", "key" : "a" },
+                "source" : { "type" : "reference", "scope" : "_column", "key" : "b" }
               }
             }
           ]
@@ -65,13 +65,13 @@
             {
               "name" : "map",
               "assignment" : {
-                "target" : { "type" : "reference", "section" : "_column", "key" : "a" },
+                "target" : { "type" : "reference", "scope" : "_column", "key" : "a" },
                 "source" : {
                   "type" : "function",
                   "name" : "concat",
                   "args" : [
-                    { "type" : "reference", "section" : "_column", "key" : "b" },
-                    { "type" : "reference", "section" : "_column", "key" : "c" }
+                    { "type" : "reference", "scope" : "_column", "key" : "b" },
+                    { "type" : "reference", "scope" : "_column", "key" : "c" }
                   ]
                 }
               }
@@ -93,13 +93,13 @@
             {
               "name" : "map",
               "assignment" : {
-                "target" : { "type" : "reference", "section" : "_local", "key" : "a" },
+                "target" : { "type" : "reference", "scope" : "_local", "key" : "a" },
                 "source" : {
                   "type" : "function",
                   "name" : "concat",
                   "args" : [
-                    { "type" : "reference", "section" : "_column", "key" : "b" },
-                    { "type" : "reference", "section" : "_local", "key" : "c" }
+                    { "type" : "reference", "scope" : "_column", "key" : "b" },
+                    { "type" : "reference", "scope" : "_local", "key" : "c" }
                   ]
                 }
               }
@@ -121,12 +121,12 @@
             {
               "name" : "map",
               "assignment" : {
-                "target" : { "type" : "reference", "section" : "_column", "key" : "a" },
+                "target" : { "type" : "reference", "scope" : "_column", "key" : "a" },
                 "source" : {
                   "type" : "function",
                   "name" : "twice",
                   "args" : [
-                    { "type" : "reference", "section" : "_column", "key" : "b" }
+                    { "type" : "reference", "scope" : "_column", "key" : "b" }
                   ]
                 }
               }
@@ -148,7 +148,7 @@
             {
               "name" : "filter",
               "condition" : {
-                "left"  : { "type" : "reference", "section" : "_column", "key" : "a" },
+                "left"  : { "type" : "reference", "scope" : "_column", "key" : "a" },
                 "right" : { "type" : "number", "value" : "3" },
                 "op"    : "lt"
               }
@@ -170,8 +170,8 @@
             {
               "name" : "filter",
               "condition" : {
-                "left"  : { "type" : "reference", "section" : "_column", "key" : "a" },
-                "right" : { "type" : "reference", "section" : "_column", "key" : "b" },
+                "left"  : { "type" : "reference", "scope" : "_column", "key" : "a" },
+                "right" : { "type" : "reference", "scope" : "_column", "key" : "b" },
                 "op"    : "eq"
               }
             }
@@ -192,8 +192,8 @@
             {
               "name" : "filter",
               "condition" : {
-                "left"  : { "type" : "reference", "section" : "_local", "key" : "a" },
-                "right" : { "type" : "reference", "section" : "_column", "key" : "b" },
+                "left"  : { "type" : "reference", "scope" : "_local", "key" : "a" },
+                "right" : { "type" : "reference", "scope" : "_column", "key" : "b" },
                 "op"    : "eq"
               }
             }
@@ -214,7 +214,7 @@
             {
               "name" : "take",
               "condition" : {
-                "left"  : { "type" : "reference", "section" : "_column", "key" : "a" },
+                "left"  : { "type" : "reference", "scope" : "_column", "key" : "a" },
                 "right" : { "type" : "number", "value" : "3" },
                 "op"    : "lt"
               }
@@ -236,8 +236,8 @@
             {
               "name" : "take",
               "condition" : {
-                "left"  : { "type" : "reference", "section" : "_column", "key" : "a" },
-                "right" : { "type" : "reference", "section" : "_column", "key" : "b" },
+                "left"  : { "type" : "reference", "scope" : "_column", "key" : "a" },
+                "right" : { "type" : "reference", "scope" : "_column", "key" : "b" },
                 "op"    : "eq"
               }
             }
@@ -258,8 +258,8 @@
             {
               "name" : "take",
               "condition" : {
-                "left"  : { "type" : "reference", "section" : "_column", "key" : "a" },
-                "right" : { "type" : "reference", "section" : "_local", "key" : "b" },
+                "left"  : { "type" : "reference", "scope" : "_column", "key" : "a" },
+                "right" : { "type" : "reference", "scope" : "_local", "key" : "b" },
                 "op"    : "eq"
               }
             }
@@ -327,23 +327,23 @@
             {
               "name" : "map",
               "assignment" : {
-                "target" : { "type" : "reference", "section" : "_column", "key" : "a" },
-                "source" : { "type" : "reference", "section" : "_column", "key" : "b" }
+                "target" : { "type" : "reference", "scope" : "_column", "key" : "a" },
+                "source" : { "type" : "reference", "scope" : "_column", "key" : "b" }
               }
             },
             {
               "name" : "take",
               "condition" : {
-                "left"  : { "type" : "reference", "section" : "_column", "key" : "a" },
-                "right" : { "type" : "reference", "section" : "_column", "key" : "b" },
+                "left"  : { "type" : "reference", "scope" : "_column", "key" : "a" },
+                "right" : { "type" : "reference", "scope" : "_column", "key" : "b" },
                 "op"    : "eq"
               }
             },
             {
               "name" : "filter",
               "condition" : {
-                "left"  : { "type" : "reference", "section" : "_column", "key" : "a" },
-                "right" : { "type" : "reference", "section" : "_column", "key" : "b" },
+                "left"  : { "type" : "reference", "scope" : "_column", "key" : "a" },
+                "right" : { "type" : "reference", "scope" : "_column", "key" : "b" },
                 "op"    : "eq"
               }
             }

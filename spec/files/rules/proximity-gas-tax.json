@@ -3,21 +3,21 @@
     "envelope" : [
       {
         "expr" : {
-          "left" : {"section" : "envelope", "key" : "type", "type" : "reference"},
+          "left" : {"scope" : "envelope", "key" : "type", "type" : "reference"},
           "right" : {"type" : "string", "value" : "invoice"},
           "op" : "eq"
         }
       },
       {
         "expr" : {
-          "left" : {"section" : "envelope", "key" : "parties.supplier.industry.list_id", "type" : "reference"},
+          "left" : {"scope" : "envelope", "key" : "parties.supplier.industry.list_id", "type" : "reference"},
           "right" : {"type" : "string", "value" : "ISIC"},
           "op" : "eq"
         }
       },
       {
         "expr" : {
-          "left" : {"section" : "envelope", "key" : "parties.supplier.industry.value", "type" : "reference"},
+          "left" : {"scope" : "envelope", "key" : "parties.supplier.industry.value", "type" : "reference"},
           "right" : {"type" : "string", "value" : "G4711"},
           "op" : "eq"
         }
@@ -26,21 +26,21 @@
     "item" : [
       {
         "expr" : {
-          "left" : {"section" : "item", "key" : "classification.list_name", "type" : "reference"},
+          "left" : {"scope" : "item", "key" : "classification.list_name", "type" : "reference"},
           "right" : {"type" : "string", "value" : "UNSPSC"},
           "op" : "eq"
         }
       },
       {
         "expr" : {
-          "left" : {"section" : "item", "key" : "classification.value", "type" : "reference"},
+          "left" : {"scope" : "item", "key" : "classification.value", "type" : "reference"},
           "right" : {"type" : "string", "value" : "506505"},
           "op" : "eq"
         }
       },
       {
         "expr" : {
-          "left" : {"section" : "item", "key" : "quantity.value", "type" : "reference"},
+          "left" : {"scope" : "item", "key" : "quantity.value", "type" : "reference"},
           "right" : {"type" : "number", "value" : "0"},
           "op" : "gt"
         }
@@ -85,8 +85,8 @@
               "source" : "seller_distance",
               "whens" : [
                 {
-                  "left" : {"section" : "envelope", "key" : "parties.suppler.id.value", "type" : "reference"},
-                  "right" : {"section" : "_column", "key" : "supplier_id", "type" : "reference"},
+                  "left" : {"scope" : "envelope", "key" : "parties.suppler.id.value", "type" : "reference"},
+                  "right" : {"scope" : "_column", "key" : "supplier_id", "type" : "reference"},
                   "op" : "eq"
                 }
               ]
@@ -104,13 +104,13 @@
         {
           "name" : "map",
           "assignment" : {
-            "target" : { "type" : "reference", "section" : "_column", "key" : "difference" },
+            "target" : { "type" : "reference", "scope" : "_column", "key" : "difference" },
             "source" : {
               "type" : "function",
               "name" : "subtract",
               "args" : [
-                { "type" : "reference", "section" : "_column", "key" : "distance" },
-                { "type" : "reference", "section" : "_column", "key" : "seller_distance" }
+                { "type" : "reference", "scope" : "_column", "key" : "distance" },
+                { "type" : "reference", "scope" : "_column", "key" : "seller_distance" }
               ]
             }
           }
@@ -125,7 +125,7 @@
         {
           "name" : "filter",
           "condition" : {
-            "left"  : { "type" : "reference", "section" : "_column", "key" : "difference" },
+            "left"  : { "type" : "reference", "scope" : "_column", "key" : "difference" },
             "right" : { "type" : "number", "value" : "0" },
             "op"    : "gte"
           }
@@ -133,13 +133,13 @@
         {
           "name" : "map",
           "assignment" : {
-            "target" : { "type" : "reference", "section" : "_column", "key" : "min_difference" },
+            "target" : { "type" : "reference", "scope" : "_column", "key" : "min_difference" },
             "source" : {
               "type" : "function",
               "name" : "min",
               "args" : [
-                { "type" : "reference", "section" : "_column", "key" : "min_difference" },
-                { "type" : "reference", "section" : "_column", "key" : "difference" }
+                { "type" : "reference", "scope" : "_column", "key" : "min_difference" },
+                { "type" : "reference", "scope" : "_column", "key" : "difference" }
               ]
             }
           }
@@ -154,8 +154,8 @@
         {
           "name" : "filter",
           "condition" : {
-            "left"  : { "type" : "reference", "section" : "_column", "key" : "difference" },
-            "right" : { "type" : "reference", "section" : "_column", "key" : "min_difference" },
+            "left"  : { "type" : "reference", "scope" : "_column", "key" : "difference" },
+            "right" : { "type" : "reference", "scope" : "_column", "key" : "min_difference" },
             "op"    : "eq"
           }
         }
@@ -171,12 +171,12 @@
               "columns": ["id", "classification", "price"],
               "whens": [
                 {
-                  "left": {"section": "_column", "key": "classification.list_name", "type": "reference"},
+                  "left": {"scope": "_column", "key": "classification.list_name", "type": "reference"},
                   "right": {"type": "string", "value": "UNSPSC"},
                   "op": "eq"
                 },
                 {
-                  "left": {"section": "_column", "key": "classification.value", "type": "reference"},
+                  "left": {"scope": "_column", "key": "classification.value", "type": "reference"},
                   "right": {"type": "string", "value": "506505"},
                   "op": "eq"
                 }
@@ -201,20 +201,20 @@
         {
           "name" : "map",
           "assignment" : {
-            "target" : { "type" : "reference", "section" : "_column", "key" : "allowance.charge" },
+            "target" : { "type" : "reference", "scope" : "_column", "key" : "allowance.charge" },
             "source" : { "type" : "string", "value" : "false" }
           }
         },
         {
           "name" : "map",
           "assignment" : {
-            "target" : { "type" : "reference", "section" : "_column", "key" : "allowance.amount.value" },
+            "target" : { "type" : "reference", "scope" : "_column", "key" : "allowance.amount.value" },
             "source" : {
               "type" : "function",
               "name" : "multiply",
               "args" : [
-                { "type" : "reference", "section" : "_column", "key" : "price.value" },
-                { "type" : "reference", "section" : "_column", "key" : "reduction" }
+                { "type" : "reference", "scope" : "_column", "key" : "price.value" },
+                { "type" : "reference", "scope" : "_column", "key" : "reduction" }
               ]
             }
           }
@@ -222,8 +222,8 @@
         {
           "name" : "map",
           "assignment" : {
-            "target" : { "type" : "reference", "section" : "_column", "key" : "allowance.amount.currency_code" },
-            "source" : { "type" : "reference", "section" : "_column", "key" : "price.currency_code" }
+            "target" : { "type" : "reference", "scope" : "_column", "key" : "allowance.amount.currency_code" },
+            "source" : { "type" : "reference", "scope" : "_column", "key" : "price.currency_code" }
           }
         }
       ]

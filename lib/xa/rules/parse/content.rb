@@ -62,12 +62,12 @@ module XA
         def build_reference_operand(opr)
           t = opr.keys.first
           case t
-          when :section
-            rv = { 'section' => opr[t][:section].to_s, 'key' => opr[t][:key].to_s }
+          when :scope
+            rv = { 'scope' => opr[t][:scope].to_s, 'key' => opr[t][:key].to_s }
           when :local
-            rv = { 'section' => '_local', 'key' => opr[t][:key].to_s }
+            rv = { 'scope' => '_local', 'key' => opr[t][:key].to_s }
           when :column
-            rv = { 'section' => '_column', 'key' => opr[t][:key].to_s }
+            rv = { 'scope' => '_column', 'key' => opr[t][:key].to_s }
           end
 
           rv.merge('type' => 'reference') if rv
@@ -385,8 +385,8 @@ module XA
             when :when
               expr = build_when(stm)
               whens = o.fetch('whens', {})
-              section = expr['expr']['left']['section']
-              o.merge('whens' => whens.merge(section => whens.fetch(section, []) + [expr]))
+              scope = expr['expr']['left']['scope']
+              o.merge('whens' => whens.merge(scope => whens.fetch(scope, []) + [expr]))
             when :effective
               expr = build_effective(stm)
               effectives = o.fetch('effective', [])

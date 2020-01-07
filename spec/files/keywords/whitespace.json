@@ -4,11 +4,11 @@
     "expects" : {
       "whens" : {
         "envelope" : [
-          { "expr" : { "left" : { "section" : "envelope", "type" : "reference", "key" : "type" }, "op" : "eq", "right" : { "type" : "string", "value" : "invoice" } } }
+          { "expr" : { "left" : { "scope" : "envelope", "type" : "reference", "key" : "type" }, "op" : "eq", "right" : { "type" : "string", "value" : "invoice" } } }
         ],
         "item" : [
-          { "expr" : { "left" : { "section" : "item", "type" : "reference", "key" : "a" }, "op" : "lt", "right" : { "type" : "number", "value" : "1" } } },
-          { "expr" : { "left" : { "section" : "item", "type" : "reference", "key" : "b" }, "op" : "eq", "right" : { "type" : "number", "value" : "2" } } }
+          { "expr" : { "left" : { "scope" : "item", "type" : "reference", "key" : "a" }, "op" : "lt", "right" : { "type" : "number", "value" : "1" } } },
+          { "expr" : { "left" : { "scope" : "item", "type" : "reference", "key" : "b" }, "op" : "eq", "right" : { "type" : "number", "value" : "2" } } }
         ]
       }
     }

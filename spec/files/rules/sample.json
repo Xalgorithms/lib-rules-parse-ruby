@@ -3,7 +3,7 @@
     "envelope" : [
       {
         "expr" : {
-          "left" :  { "section" : "envelope", "key" : "type", "type" : "reference" },
+          "left" :  { "scope" : "envelope", "key" : "type", "type" : "reference" },
           "right" : { "type" : "string", "value" : "invoice" },
           "op" : "eq"
         }
@@ -22,8 +22,8 @@
               "source" : "c0",
               "whens" : [
                 {
-                  "left" : {"section" : "envelope", "key" : "x.y", "type" : "reference"},
-                  "right" : {"section" : "_local", "key" : "a.b", "type" : "reference"},
+                  "left" : {"scope" : "envelope", "key" : "x.y", "type" : "reference"},
+                  "right" : {"scope" : "_local", "key" : "a.b", "type" : "reference"},
                   "op" : "eq"
                 }
               ]

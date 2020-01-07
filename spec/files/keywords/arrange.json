@@ -78,7 +78,7 @@
               "type" : "function",
               "name" : "sort",
               "args" : [
-                { "type" : "reference", "section" : "_column", "key" : "a" },
+                { "type" : "reference", "scope" : "_column", "key" : "a" },
                 { "type" : "string", "value" : "alpha" },
                 { "type" : "string", "value" : "descending" }
               ]

@@ -19,19 +19,19 @@
     "document": [
       {
         "expr": {
-          "left": {"section": "document", "key": "type", "type": "reference"},
+          "left": {"scope": "document", "key": "type", "type": "reference"},
           "right": {"type": "string", "value": "invoice"}, "op": "eq"}
       }
     ],
     "item": [
       {
         "expr": {
-          "left": {"section": "item", "key": "quantity.value", "type": "reference"},
+          "left": {"scope": "item", "key": "quantity.value", "type": "reference"},
           "right": {"type": "number", "value": "0"}, "op": "gt"}
       },
       {
         "expr": {
-          "left": {"section": "item", "key": "id.value", "type": "reference"},
+          "left": {"scope": "item", "key": "id.value", "type": "reference"},
           "right": {"type": "string", "value": "a"}, "op": "eq"}
       }
     ]
@@ -54,13 +54,13 @@
         {
           "name" : "map",
           "assignment" : {
-            "target" : { "type" : "reference", "section" : "_column", "key" : "new_price" },
+            "target" : { "type" : "reference", "scope" : "_column", "key" : "new_price" },
             "source" : {
               "type" : "function",
               "name" : "add",
               "args" : [
-                { "type" : "reference", "section" : "_column", "key" : "price.value" },
-                { "type" : "reference", "section" : "_column", "key" : "b" }
+                { "type" : "reference", "scope" : "_column", "key" : "price.value" },
+                { "type" : "reference", "scope" : "_column", "key" : "b" }
               ]
             }
           }
