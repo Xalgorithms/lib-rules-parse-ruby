@@ -23,7 +23,7 @@
 # <http://www.gnu.org/licenses/>.
 source 'https://rubygems.org'
 
-ruby "2.4.2"
+ruby "2.7.0"
 
 gemspec
 

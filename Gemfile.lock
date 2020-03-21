@@ -59,7 +59,7 @@ DEPENDENCIES
   xa-rules!
 
 RUBY VERSION
-   ruby 2.4.2p198
+   ruby 2.7.0p0
 
 BUNDLED WITH
-   1.16.1
+   2.1.4
