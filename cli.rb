@@ -21,17 +21,13 @@
 # You should have received a copy of the GNU Affero General Public
 # License along with this program. If not, see
 # <http://www.gnu.org/licenses/>.
+
 require 'multi_json'
 require_relative 'lib/xa/rules/parse/content'
 
 include XA::Rules::Parse::Content
 
-IO.write(
-    ARGV[1], 
-    MultiJson.dump(
-        parse_rule(
-            IO.read(
-                ARGV[0]
-            )
-        ),
-        pretty: true))
+input_file = ARGV[0]
+output_file = (ARGV[1] != nil) ? ARGV[1] : "#{input_file}.json"
+
+IO.write(output_file, MultiJson.dump(parse_rule(IO.read(input_file)), pretty: true))
