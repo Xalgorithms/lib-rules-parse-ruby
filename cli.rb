@@ -22,7 +22,16 @@
 # License along with this program. If not, see
 # <http://www.gnu.org/licenses/>.
 require 'multi_json'
-require_relative 'lib/xa/rules/parse'
+require_relative 'lib/xa/rules/parse/content'
 
-include XA::Rules::Parse
-IO.write(ARGV[1], MultiJson.dump(parse(IO.read(ARGV[0])), pretty: true))
+include XA::Rules::Parse::Content
+
+IO.write(
+    ARGV[1], 
+    MultiJson.dump(
+        parse_rule(
+            IO.read(
+                ARGV[0]
+            )
+        ),
+        pretty: true))
