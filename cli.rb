@@ -27,13 +27,21 @@ require_relative 'lib/xa/rules/parse/content'
 
 include XA::Rules::Parse::Content
 
-input_file = ARGV[0]
-output_file = (ARGV[1] != nil) ? ARGV[1] : "#{input_file}.json"
+def run
+    input_file = ARGV[0]
+    output_file = (ARGV[1] != nil) ? ARGV[1] : "#{input_file}.json"
 
-if input_file.end_with?(".rule")
-    IO.write(output_file, MultiJson.dump(parse_rule(IO.read(input_file)), pretty: true))
-elsif input_file.end_with?(".table")
-    IO.write(output_file, MultiJson.dump(parse_table(IO.read(input_file)), pretty: true))
+    if input_file.end_with?(".rule")
+        IO.write(output_file, MultiJson.dump(parse_rule(IO.read(input_file)), pretty: true))
+    elsif input_file.end_with?(".table")
+        IO.write(output_file, MultiJson.dump(parse_table(IO.read(input_file)), pretty: true))
+    else
+        raise 'File type not *.rule or *.table'
+    end
+end
+
+if ARGV[0] == nil
+    raise 'Please provide a .rule or .table file to parse'
 else
-    raise 'File type not *.rule or *.table'
+    run
 end
