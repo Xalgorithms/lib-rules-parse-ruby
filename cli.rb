@@ -21,8 +21,44 @@
 # You should have received a copy of the GNU Affero General Public
 # License along with this program. If not, see
 # <http://www.gnu.org/licenses/>.
-require 'multi_json'
-require_relative 'lib/xa/rules/parse'
 
-include XA::Rules::Parse
-IO.write(ARGV[1], MultiJson.dump(parse(IO.read(ARGV[0])), pretty: true))
+require 'multi_json'
+require_relative 'lib/xa/rules/parse/content'
+
+include XA::Rules::Parse::Content
+
+# Determines if file is a rule or table, and runs relevant library method.
+def parse_file(input_file, output_file)
+
+    puts "Parsing #{input_file}"
+
+    if output_file == nil
+        output_file = "#{input_file}.json"
+    end
+    if input_file.end_with?(".rule")
+        IO.write(output_file, MultiJson.dump(parse_rule(IO.read(input_file)), pretty: true))
+    elsif input_file.end_with?(".table")
+        IO.write(output_file, MultiJson.dump(parse_table(IO.read(input_file)), pretty: true))
+    else
+        raise 'File type not *.rule or *.table'
+    end
+end
+
+# Executes on program start. For each file in a folder, or a single file, runs parse_file
+def cli_run
+    if ARGV[0] == nil
+        raise 'Please provide a .rule or .table file to parse'
+    elsif File.directory?(ARGV[0])
+        Dir.foreach(ARGV[0]) do |name|
+            file = File.join(ARGV[0], name)
+            if file.end_with?(".table") || file.end_with?(".rule")
+                parse_file(file, nil)
+            end
+        end
+    else
+        parse_file(ARGV[0], ARGV[1])
+    end
+end
+
+# Execute immediately
+cli_run
