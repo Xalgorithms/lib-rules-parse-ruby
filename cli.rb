@@ -27,10 +27,14 @@ require_relative 'lib/xa/rules/parse/content'
 
 include XA::Rules::Parse::Content
 
-def run
-    input_file = ARGV[0]
-    output_file = (ARGV[1] != nil) ? ARGV[1] : "#{input_file}.json"
+# Determines if file is a rule or table, and runs relevant library method.
+def parse_file(input_file, output_file)
 
+    puts "Parsing #{input_file}"
+
+    if output_file == nil
+        output_file = "#{input_file}.json"
+    end
     if input_file.end_with?(".rule")
         IO.write(output_file, MultiJson.dump(parse_rule(IO.read(input_file)), pretty: true))
     elsif input_file.end_with?(".table")
@@ -40,8 +44,21 @@ def run
     end
 end
 
-if ARGV[0] == nil
-    raise 'Please provide a .rule or .table file to parse'
-else
-    run
+# Executes on program start. For each file in a folder, or a single file, runs parse_file
+def cli_run
+    if ARGV[0] == nil
+        raise 'Please provide a .rule or .table file to parse'
+    elsif File.directory?(ARGV[0])
+        Dir.foreach(ARGV[0]) do |name|
+            file = File.join(ARGV[0], name)
+            if file.end_with?(".table") || file.end_with?(".rule")
+                parse_file(file, nil)
+            end
+        end
+    else
+        parse_file(ARGV[0], ARGV[1])
+    end
 end
+
+# Execute immediately
+cli_run
